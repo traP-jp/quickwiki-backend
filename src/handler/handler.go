@@ -126,3 +126,29 @@ func (h *Handler) GetLectureChildFolderHandler(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, files)
 }
+
+// /lecture/:lectureId
+func (h *Handler) GetLectureHandler(c echo.Context) error {
+	lectureID, err := strconv.Atoi(c.Param("lectureId"))
+	if err != nil {
+		log.Printf("failed to convert lectureId to int: %v", err)
+		return c.JSON(http.StatusBadRequest, err)
+	}
+
+	lecture := LectureFromDB{}
+	err = h.db.Get(&lecture, "SELECT * FROM lectures WHERE id = ?", lectureID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return c.JSON(http.StatusNotFound, err)
+		}
+		log.Printf("failed to get lecture: %v", err)
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	return c.JSON(http.StatusOK, Lecture{
+		ID:         lecture.ID,
+		Title:      lecture.Title,
+		Content:    lecture.Content,
+		FolderPath: lecture.FolderPath,
+	})
+}
