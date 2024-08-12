@@ -54,8 +54,29 @@ func (h *Handler) GetLectureByFolderIDHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, lecturesWithFolderPath)
 }
 
-func (h *Handler) GetLectureByFolderPath(c echo.Context) error {
+func (h *Handler) GetLectureByFolderPathHandler(c echo.Context) error {
 	folderPath := c.Param("folderPath")
 
-	folderTree := strings.Split(folderPath, "-")
+	folderPath = "/" + strings.ReplaceAll(folderPath, "-", " /")
+	lectures := []LectureFromDB{}
+	err := h.db.Select(&lectures, "SELECT * FROM lectures WHERE folderpath = ?", folderPath)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return c.JSON(http.StatusNotFound, err)
+		}
+		log.Printf("failed to get lectures: %v", err)
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	lecturesWithFolderPath := []Lecture{}
+	for _, lecture := range lectures {
+		lecturesWithFolderPath = append(lecturesWithFolderPath, Lecture{
+			ID:         lecture.ID,
+			Title:      lecture.Title,
+			Content:    lecture.Content,
+			FolderPath: lecture.FolderPath,
+		})
+	}
+
+	return c.JSON(http.StatusOK, lecturesWithFolderPath)
 }
