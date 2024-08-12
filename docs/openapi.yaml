@@ -14,7 +14,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ping'
-  /lecuture/{lectureId}:
+  /lecture/{lectureId}:
     get:
       summary: 1つの講習会情報の概要の取得
       parameters:
