@@ -1,0 +1,243 @@
+openapi: 3.0.3
+info:
+  title: QuickWiki API
+  version: 1.0.0
+  description: API for QuickWiki
+paths:
+  /ping:
+    get:
+      summary: 疎通確認
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ping'
+  /lecuture/{lectureId}:
+    get:
+      summary: 1つの講習会情報の概要の取得
+      parameters:
+        - name: lectureId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 講習会ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/lectureAbstract'
+  /lecture/{lectureId}/content:
+    get:
+      summary: 1つの講習会のコンテンツの取得
+      parameters:
+        - name: lectureId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 講習会ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/lectureContent'
+  /lecture/{folderpath}:
+    get:
+      summary: フォルダパスに対応する講習会のリストを取得
+      parameters:
+        - name: folderpath
+          in: path
+          required: true
+          schema:
+            type: string
+          description: フォルダパス
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/lectureList'
+  /sodan/search:
+    get:
+      summary: sodanの検索
+      parameters:
+        - name: keyword
+          in: query
+          required: true
+          schema:
+            type: string
+          description: 検索キーワード
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sodanList'
+  /sodan/{tag}: 
+    get:
+      summary: sodanのタグに対応するsodanのリストを取得
+      parameters:
+        - name: tag
+          in: path
+          required: true
+          schema:
+            type: string
+          description: タグ
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sodanList'
+  /sodan/{sodanId}:
+    get:
+      summary: 1つのsodanの取得
+      parameters:
+        - name: sodanId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: sodanID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sodan'
+  /memo:
+    post:
+      summary: メモの作成
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: Introduction to Computer Science
+                content:
+                  type: string
+                  example: This is an introductory course to computer science
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sodan'
+  /memo/{userId}: 
+    get:
+      summary: ユーザーのメモの取得
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ユーザーID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sodanList'
+  /memo/{userId}/favorite:
+    get:
+      summary: ユーザーのお気に入りのメモの取得
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ユーザーID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sodanList'
+                
+
+components:
+  schemas:
+    ping:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Pong
+    lectureAbstract:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 123
+        title:
+          type: string
+          example: Introduction to Computer Science
+        description:
+          type: string
+          example: This is an introductory course to computer science
+    lectureContent:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 123
+        title:
+          type: string
+          example: Introduction to Computer Science
+        description:
+          type: string
+          example: This is an introductory course to computer science
+        content:
+          type: string
+          example: This is an introductory course to computer science
+    lectureList:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+            example: 123
+    sodanList:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+            example: 123
+    sodan:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 123
+        type:
+          type: string
+          example: sodan
+        title:
+          type: string
+          example: Introduction to Computer Science
+        content:
+          type: string
+          example: This is an introductory course to computer science
