@@ -10,7 +10,6 @@ CREATE TABLE wikis (
 CREATE TABLE lectures (
     id INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
     title TEXT NOT NULL,
-    description TEXT NOT NULL,
     content TEXT NOT NULL,
     folder_id INT(11)
 );
