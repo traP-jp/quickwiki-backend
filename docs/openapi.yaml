@@ -91,7 +91,8 @@ paths:
           required: true
           schema:
             type: string
-          description: フォルダパス
+            example: School-ComputerScience-Python
+          description: フォルダパス ハイフン区切り
       responses:
         '200':
           description: OK
