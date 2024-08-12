@@ -27,6 +27,6 @@ CREATE TABLE tags_in_wiki (
 CREATE TABLE folders (
     id INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
     name TEXT NOT NULL,
-    parent_id INT(11),
+    parent_id INT(11),  -- 0 if root
     UNIQUE KEY (name, parent_id)
 );
