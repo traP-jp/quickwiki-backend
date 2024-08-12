@@ -14,3 +14,19 @@ type Lecture struct {
 	Content    string `json:"content"`
 	FolderPath string `json:"folderpath"`
 }
+
+type FolderFromDB struct {
+	ID   int    `db:"id"`
+	Name string `db:"name"`
+}
+
+type File struct {
+	ID       int    `json:"id"`
+	Name     string `json:"name"`
+	IsFolder bool   `json:"isFolder"`
+}
+
+type LectureOnlyName struct {
+	ID    int    `db:"id"`
+	Title string `db:"title"`
+}
