@@ -12,6 +12,7 @@ CREATE TABLE lectures (
     title TEXT NOT NULL,
     content TEXT NOT NULL,
     folder_id INT(11)
+    folder_path TEXT NOT NULL,
 );
 CREATE TABLE tags (
     id INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
