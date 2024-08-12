@@ -48,7 +48,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/lectureContent'
-  /lecture/{folderpath}:
+  /lecture/folder/{folderpath}:
     get:
       summary: フォルダパスに対応する講習会のリストを取得
       parameters:
@@ -65,9 +65,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/lectureList'
-  /sodan/search:
+  /wiki/search:
     get:
-      summary: sodanの検索
+      summary: sodanと備忘録の検索
       parameters:
         - name: keyword
           in: query
@@ -81,10 +81,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/sodanList'
-  /sodan/{tag}: 
+                $ref: '#/components/schemas/wikiList'
+  /wiki/tag/{tag}: 
     get:
-      summary: sodanのタグに対応するsodanのリストを取得
+      summary: タグに対応するsodanと備忘録のリストを取得
       parameters:
         - name: tag
           in: path
@@ -98,7 +98,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/sodanList'
+                $ref: '#/components/schemas/wikiList'
   /sodan/{sodanId}:
     get:
       summary: 1つのsodanの取得
@@ -139,7 +139,65 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/sodan'
-  /memo/{userId}: 
+    patch:
+      summary: メモの更新
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: Introduction to Computer Science
+                content:
+                  type: string
+                  example: This is an introductory course to computer science
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sodan'
+    delete:
+      summary: メモの削除
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                memoId:
+                  type: string
+                  example: 123
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sodan'
+  /memo/{memoId}:
+    get:
+      summary: 1つのメモの取得
+      parameters:
+        - name: memoId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: メモID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/memo'
+  /memo/user/{userId}: 
     get:
       summary: ユーザーのメモの取得
       parameters:
@@ -155,8 +213,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/sodanList'
-  /memo/{userId}/favorite:
+                $ref: '#/components/schemas/wikiList'
+  /memo/user/{userId}/favorite:
     get:
       summary: ユーザーのお気に入りのメモの取得
       parameters:
@@ -172,7 +230,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/sodanList'
+                $ref: '#/components/schemas/wikiList'
                 
 
 components:
@@ -194,7 +252,10 @@ components:
           example: Introduction to Computer Science
         description:
           type: string
-          example: This is an introductory course to computer science
+          example: これはコンピュータサイエンスの入門コースです．
+        folderpath:
+          type: string
+          example: /School/ComputerScience
     lectureContent:
       type: object
       properties:
@@ -206,10 +267,13 @@ components:
           example: Introduction to Computer Science
         description:
           type: string
-          example: This is an introductory course to computer science
+          example: これはコンピュータサイエンスの入門コースです．
+        folderpath:
+          type: string
+          example: /School/ComputerScience
         content:
           type: string
-          example: This is an introductory course to computer science
+          example: マークダウン形式のコンテンツ
     lectureList:
       type: array
       items:
@@ -218,7 +282,7 @@ components:
           id:
             type: string
             example: 123
-    sodanList:
+    wikiList:
       type: array
       items:
         type: object
@@ -226,6 +290,9 @@ components:
           id:
             type: string
             example: 123
+          type:
+            type: string
+            example: sodan
     sodan:
       type: object
       properties:
@@ -241,3 +308,29 @@ components:
         content:
           type: string
           example: This is an introductory course to computer science
+        tags:
+          type: array
+          items:
+            type: string
+            example: ComputerScience
+    memo: 
+      type: object
+      properties:
+        id:
+          type: string
+          example: 123
+        title:
+          type: string
+          example: Introduction to Computer Science
+        content:
+          type: string
+          example: This is an introductory course to computer science
+        ownerTraqId:
+          type: string
+          example: kavos
+        createdAt:
+          type: string
+          example: 2021-09-01 00:00:00
+        updatedAt:
+          type: string
+          example: 2021-09-01 00:00:00
