@@ -5,16 +5,24 @@ CREATE TABLE wikis (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     owner_traq_id INTEGER NOT NULL,
-    content TEXT NOT NULL, 
-    tags TEXT[]
+    content TEXT NOT NULL
 );
 CREATE TABLE lectures (
-    id INT(11) NOT NULL AUTO_INCREMENT,
+    id INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
     title TEXT NOT NULL,
     description TEXT NOT NULL,
     content TEXT NOT NULL,
-    parent_id INT(11)
-    KEY parent_id_idx (parent_id)
-        FOREIGN KEY (parent_id)
-        REFERENCES lectures(id)
+    parent_id INT(11),
+    UNIQUE KEY (title, parent_id)
+);
+CREATE TABLE tags (
+    id INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    name TEXT NOT NULL
+);
+CREATE TABLE tags_in_wiki (
+    PRIMARY KEY (wiki_id, tag_id),
+    FOREIGN KEY (wiki_id)
+        REFERENCES wikis(id),
+    FOREIGN KEY (tag_id)
+        REFERENCES tags(id)
 );
