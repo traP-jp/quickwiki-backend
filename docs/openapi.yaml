@@ -3,9 +3,18 @@ info:
   title: QuickWiki API
   version: 1.0.0
   description: API for QuickWiki
+tags:
+  - name: ping
+    description: 疎通確認
+  - name: lecture
+    description: 講習会情報
+  - name: wiki
+    description: sodanと備忘録
 paths:
   /ping:
     get:
+      tags:
+        - ping
       summary: 疎通確認
       responses:
         '200':
@@ -16,6 +25,8 @@ paths:
                 $ref: '#/components/schemas/ping'
   /lecture/{lectureId}:
     get:
+      tags:
+        - lecture
       summary: 1つの講習会情報の概要の取得
       parameters:
         - name: lectureId
@@ -33,6 +44,8 @@ paths:
                 $ref: '#/components/schemas/lectureAbstract'
   /lecture/{lectureId}/content:
     get:
+      tags:
+        - lecture
       summary: 1つの講習会のコンテンツの取得
       parameters:
         - name: lectureId
@@ -48,12 +61,33 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/lectureContent'
-  /lecture/folder/{folderpath}:
+  /lecture/byFolder/id/{folderId}:
     get:
-      summary: フォルダパスに対応する講習会のリストを取得
+      tags:
+        - lecture
+      summary: フォルダに対応する講習会のリストを取得
+      parameters:
+        - name: folderId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: フォルダID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/lectureList'
+  /lecture/byFolder/path:
+    get:
+      tags:
+        - lecture
+      summary: フォルダに対応する講習会のリストを取得
       parameters:
         - name: folderpath
-          in: path
+          in: query
           required: true
           schema:
             type: string
@@ -65,8 +99,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/lectureList'
+  /lecture/folder/{folderId}:
+    get:
+      tags:
+        - lecture
+      summary: 子フォルダのリストの取得
+      parameters:
+        - name: folderId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: フォルダID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/folderList'
   /wiki/search:
     get:
+      tags:
+        - wiki
       summary: sodanと備忘録の検索
       parameters:
         - name: keyword
@@ -84,6 +139,8 @@ paths:
                 $ref: '#/components/schemas/wikiList'
   /wiki/tag/{tag}: 
     get:
+      tags:
+        - wiki
       summary: タグに対応するsodanと備忘録のリストを取得
       parameters:
         - name: tag
@@ -99,70 +156,64 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/wikiList'
-  /sodan/{sodanId}:
+  /wiki/{wikiId}:
     get:
-      summary: 1つのsodanの取得
+      tags:
+        - wiki
+      summary: 1つのsodan/備忘録の取得
       parameters:
-        - name: sodanId
+        - name: wikiId
           in: path
           required: true
           schema:
             type: string
-          description: sodanID
+          description: wikiID
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/sodan'
+                $ref: '#/components/schemas/wikiContent'
   /memo:
     post:
-      summary: メモの作成
+      tags:
+        - wiki
+      summary: 備忘録の作成
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                title:
-                  type: string
-                  example: Introduction to Computer Science
-                content:
-                  type: string
-                  example: This is an introductory course to computer science
+              $ref: '#/components/schemas/newMemo'
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/sodan'
+                $ref: '#/components/schemas/wikiContent'
     patch:
-      summary: メモの更新
+      tags:
+        - wiki
+      summary: 備忘録の更新
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                title:
-                  type: string
-                  example: Introduction to Computer Science
-                content:
-                  type: string
-                  example: This is an introductory course to computer science
+              $ref: '#/components/schemas/updateMemo'
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/sodan'
+                $ref: '#/components/schemas/wikiContent'
     delete:
-      summary: メモの削除
+      tags:
+        - wiki
+      summary: 備忘録の削除
       requestBody:
         required: true
         content:
@@ -179,27 +230,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/sodan'
-  /memo/{memoId}:
-    get:
-      summary: 1つのメモの取得
-      parameters:
-        - name: memoId
-          in: path
-          required: true
-          schema:
-            type: string
-          description: メモID
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/memo'
+                $ref: '#/components/schemas/wikiContent'
   /memo/user/{userId}: 
     get:
-      summary: ユーザーのメモの取得
+      tags:
+        - wiki
+      summary: ユーザーの備忘録の取得
       parameters:
         - name: userId
           in: path
@@ -216,7 +252,9 @@ paths:
                 $ref: '#/components/schemas/wikiList'
   /memo/user/{userId}/favorite:
     get:
-      summary: ユーザーのお気に入りのメモの取得
+      tags:
+        - wiki
+      summary: ユーザーのお気に入りの備忘録の取得
       parameters:
         - name: userId
           in: path
@@ -245,7 +283,7 @@ components:
       type: object
       properties:
         id:
-          type: string
+          type: integer
           example: 123
         title:
           type: string
@@ -260,7 +298,7 @@ components:
       type: object
       properties:
         id:
-          type: string
+          type: integer
           example: 123
         title:
           type: string
@@ -277,27 +315,16 @@ components:
     lectureList:
       type: array
       items:
-        type: object
-        properties:
-          id:
-            type: string
-            example: 123
+        $ref: '#/components/schemas/lectureContent'
     wikiList:
       type: array
       items:
-        type: object
-        properties:
-          id:
-            type: string
-            example: 123
-          type:
-            type: string
-            example: sodan
-    sodan:
+        $ref: '#/components/schemas/wikiContent'
+    wikiContent:
       type: object
       properties:
         id:
-          type: string
+          type: integer
           example: 123
         type:
           type: string
@@ -308,16 +335,51 @@ components:
         content:
           type: string
           example: This is an introductory course to computer science
+        createdAt:
+          type: string
+          example: 2021-01-01 00:00:00
+        updatedAt:
+          type: string
+          example: 2021-01-01 00:00:00
+        ownerTraqId:
+          type: string
+          example: kavos
         tags:
           type: array
           items:
             type: string
             example: ComputerScience
-    memo: 
+    folderList:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: integer
+            example: 123
+          name:
+            type: string
+            example: ComputerScience
+          isFolder:
+            type: boolean
+            example: true
+    newMemo:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Introduction to Computer Science
+        content:
+          type: string
+          example: This is an introductory course to computer science
+        ownerTraqId:
+          type: string
+          example: kavos
+    updateMemo:
       type: object
       properties:
         id:
-          type: string
+          type: integer
           example: 123
         title:
           type: string
@@ -328,9 +390,3 @@ components:
         ownerTraqId:
           type: string
           example: kavos
-        createdAt:
-          type: string
-          example: 2021-09-01 00:00:00
-        updatedAt:
-          type: string
-          example: 2021-09-01 00:00:00
