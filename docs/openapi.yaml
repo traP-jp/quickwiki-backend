@@ -27,7 +27,7 @@ paths:
     get:
       tags:
         - lecture
-      summary: 1つの講習会情報の概要の取得
+      summary: 1つの講習会情報の取得
       parameters:
         - name: lectureId
           in: path
@@ -42,25 +42,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/lectureAbstract'
-  /lecture/{lectureId}/content:
-    get:
-      tags:
-        - lecture
-      summary: 1つの講習会のコンテンツの取得
-      parameters:
-        - name: lectureId
-          in: path
-          required: true
-          schema:
-            type: string
-          description: 講習会ID
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema: 
-                $ref: '#/components/schemas/lectureContent'
   /lecture/byFolder/id/{folderId}:
     get:
       tags:
