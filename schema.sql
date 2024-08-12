@@ -12,8 +12,7 @@ CREATE TABLE lectures (
     title TEXT NOT NULL,
     description TEXT NOT NULL,
     content TEXT NOT NULL,
-    parent_id INT(11),
-    UNIQUE KEY (title, parent_id)
+    folder_id INT(11)
 );
 CREATE TABLE tags (
     id INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -25,4 +24,10 @@ CREATE TABLE tags_in_wiki (
         REFERENCES wikis(id),
     FOREIGN KEY (tag_id)
         REFERENCES tags(id)
+);
+CREATE TABLE folders (
+    id INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    name TEXT NOT NULL,
+    parent_id INT(11),
+    UNIQUE KEY (name, parent_id)
 );
