@@ -47,7 +47,7 @@ func main() {
 	e.GET("/lecture/folder/:folderId", h.GetLectureChildFolderHandler)
 	e.GET("/lecture/lectureId", h.GetLectureHandler)
 
-	e.GET("/bot", s.StartBot)
+	s.StartBot()
 
 	e.Logger.Fatal(e.Start(":8080"))
 }

@@ -21,7 +21,7 @@ func NewScraper(db *sqlx.DB) *Scraper {
 	return &Scraper{db: db}
 }
 
-func (s *Scraper) StartBot(c echo.Context) error {
+func (s *Scraper) StartBot() {
 	bot, err := traqwsbot.NewBot(&traqwsbot.Options{
 		AccessToken: os.Getenv("TRAQ_BOT_TOKEN"),
 	})
@@ -47,6 +47,4 @@ func (s *Scraper) StartBot(c echo.Context) error {
 	if err != nil {
 		panic(err)
 	}
-
-	return c.String(http.StatusOK, "BOT started")
 }
