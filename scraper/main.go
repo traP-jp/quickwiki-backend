@@ -4,10 +4,8 @@ import (
 	"context"
 	"log"
 	"os"
-	"strings"
 
 	traqwsbot "github.com/traPtitech/traq-ws-bot"
-	payload "github.com/traPtitech/traq-ws-bot/payload"
 )
 
 func main() {
@@ -18,37 +16,35 @@ func main() {
 		panic(err)
 	}
 
-	bot.OnMessageCreated(func(p *payload.MessageCreated) {
-		log.Println("Received MESSAGE_CREATED event: " + p.Message.Text)
-		// _, _, err := bot.API().
-		// 	MessageApi.
-		// 	PostMessage(context.Background(), p.Message.ChannelID).
-		// 	PostMessageRequest(traq.PostMessageRequest{
-		// 		Content: "Hello",
-		// 	}).
-		// 	Execute()
-		GetChannelIDByName(bot)
+	// bot.OnMessageCreated(func(p *payload.MessageCreated) {
+	// 	log.Println("Received MESSAGE_CREATED event: " + p.Message.Text)
+	// 	// _, _, err := bot.API().
+	// 	// 	MessageApi.
+	// 	// 	PostMessage(context.Background(), p.Message.ChannelID).
+	// 	// 	PostMessageRequest(traq.PostMessageRequest{
+	// 	// 		Content: "Hello",
+	// 	// 	}).
+	// 	// 	Execute()
+	// 	GetMessages(p, bot)
+	// 	if err != nil {
+	// 		log.Println(err)
+	// 	}
+	// })
+	GetChannels(bot)
+}
+
+func GetChannels(bot *traqwsbot.Bot) {
+	channelID := "aff37b5f-0911-4255-81c3-b49985c8943f"
+	channel, _, err := bot.API().ChannelApi.GetChannel(context.Background(), channelID).Execute()
+	if err != nil {
+		log.Println(err)
+	}
+	log.Println(channel)
+	for _, c := range channel.Children {
+		ch, _, err := bot.API().ChannelApi.GetChannel(context.Background(), c).Execute()
 		if err != nil {
 			log.Println(err)
 		}
-	})
-
-	err = bot.Start()
-	if err != nil {
-		panic(err)
-	}
-}
-
-func GetChannelIDByName(bot *traqwsbot.Bot) {
-	channels, _, err := bot.API().ChannelApi.GetChannels(context.Background()).IncludeDm(false).Execute()
-	if err != nil {
-		panic(err)
-	}
-
-	for _, channel := range channels.Public {
-		if strings.Contains(channel.Name, "random/sodan") {
-			log.Printf("channleID: %s\nchannelName: %s\n", channel.Id, channel.Name)
-			log.Println(channel.Children)
-		}
+		log.Println(ch)
 	}
 }
