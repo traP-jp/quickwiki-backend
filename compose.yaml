@@ -13,6 +13,7 @@ services:
       DB_HOSTNAME: mariadb
       DB_PORT: 3306
       DB_NAME: quickwiki
+      TRAQ_BOT_TOKEN: ${TRAQ_BOT_TOKEN}
     depends_on:
       mariadb:
         condition: service_healthy
