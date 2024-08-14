@@ -39,6 +39,11 @@ func main() {
 	e := echo.New()
 
 	e.GET("/ping", h.PingHandler)
+	
+	e.GET("/lecture/byFolder/id/:folderId", h.GetLectureByFolderIDHandler)
+	e.GET("/lecture/byFolder/path", h.GetLectureByFolderPathHandler)
+	e.GET("/lecture/folder/:folderId", h.GetLectureChildFolderHandler)
+	e.GET("/lecture/lectureId", h.GetLectureHandler)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
