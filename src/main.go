@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"quickwiki-backend/handler"
+	"quickwiki-backend/scraper"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
@@ -36,14 +37,17 @@ func main() {
 	}
 
 	h := handler.NewHandler(db)
+	s := scraper.NewScraper(db)
 	e := echo.New()
 
 	e.GET("/ping", h.PingHandler)
-	
+
 	e.GET("/lecture/byFolder/id/:folderId", h.GetLectureByFolderIDHandler)
 	e.GET("/lecture/byFolder/path", h.GetLectureByFolderPathHandler)
 	e.GET("/lecture/folder/:folderId", h.GetLectureChildFolderHandler)
 	e.GET("/lecture/lectureId", h.GetLectureHandler)
+
+	e.GET("/bot", s.StartBot)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
