@@ -160,6 +160,13 @@ paths:
       tags:
         - wiki
       summary: 特定のsodanを取得
+      parameters:
+        - name: wikiId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: wikiID
       responses:
         '200':
           description: OK
@@ -173,6 +180,13 @@ paths:
       tags:
         - wiki
       summary: 備忘録の取得
+      parameters:
+        - name: wikiId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: wikiID
       responses:
         '200':
           description: OK

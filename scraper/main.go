@@ -61,7 +61,7 @@ func main() {
 	// 		log.Println(err)
 	// 	}
 	// })
-	GetChannels(bot)
+	GetSodanMessages(bot)
 }
 
 func GetChannels(bot *traqwsbot.Bot) {
@@ -81,16 +81,29 @@ func GetChannels(bot *traqwsbot.Bot) {
 }
 
 func GetSodanMessages(bot *traqwsbot.Bot) {
-	sodanMessages, _, err := bot.API().MessageApi.GetMessages(context.Background(), "aff37b5f-0911-4255-81c3-b49985c8943f").Offset(13).Limit(20).Order("asc").Execute()
+	//sodanMessages, _, err := bot.API().MessageApi.GetMessages(context.Background(), "aff37b5f-0911-4255-81c3-b49985c8943f").Offset(13).Limit(20).Execute()
 	if err != nil {
 		log.Println(err)
 	}
-	
-	
+
+	sampleMessages := []traq.Message{}
+	sampleMessages = append(sampleMessages, traq.Message{
+		Id:"ccce4f44-2d8c-4ec2-917b-479a5ecb6c2c",
+		UserId: "cf0e74cd-660a-4954-a9e0-aadff17fb752",
+		ChannelId: "aff37b5f-0911-4255-81c3-b49985c8943f",
+		Content: "sample message",
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		Pinned: false,
+		Stamps: []traq.MessageStamp{
+			{ba994be3-eac0-48a2-9632-b7af1a09b879 350c45b4-a048-4f62-bf2b-e98f4edef40c 1 2024-07-16 12:17:10.314089 +0000 UTC 2024-07-16 12:17:10.314089 +0000 UTC} {cf0e74cd-660a-4954-a9e0-aadff17fb752 68c4cc50-487d-44a1-ade3-0808023037b8 1 2024-07-16 12:50:58.748844 +0000 UTC 2024-07-16 12:50:58.748844 +0000 UTC}
+		},
+	})
+
 
 	for _, m := range sodanMessages {
 		log.Println(m)
-		newSodan := &Wiki{
+		newSodan := Wiki{
 			Name:        "sodan",
 			Type:        "sodan",
 			Content:     m.Content,
@@ -102,15 +115,18 @@ func GetSodanMessages(bot *traqwsbot.Bot) {
 		if err != nil {
 			log.Println(err)
 		}
-		wikiId := result.LastInsertId()
+		wikiId, err := result.LastInsertId()
+		if err != nil {
+			log.Println(err)
+		}
 
 		AddMessageToDB(m, wikiId)
 	}
 }
 
-func AddMessageToDB(m traq.Message, wikiId int) {
-	newMessage := &Message{
-		WikiID:     wikiId,
+func AddMessageToDB(m traq.Message, wikiId int64) {
+	newMessage := Message{
+		WikiID:     int(wikiId),
 		Content:    m.Content,
 		CreatedAt:  m.CreatedAt,
 		UpdatedAt:  m.UpdatedAt,
@@ -121,7 +137,10 @@ func AddMessageToDB(m traq.Message, wikiId int) {
 	if err != nil {
 		log.Println(err)
 	}
-	messageId := result.LastInsertId()
+	messageId, err := result.LastInsertId()
+	if err != nil {
+		log.Println(err)
+	}
 
 	stampCount := make(map[string]int)
 	for _, s := range m.Stamps {
@@ -132,8 +151,8 @@ func AddMessageToDB(m traq.Message, wikiId int) {
 	}
 
 	for stampId, count := range stampCount {
-		newStamp := &Stamp{
-			MessageID:   messageId,
+		newStamp := Stamp{
+			MessageID:   int(messageId),
 			StampTraqID: stampId,
 			Count:       count,
 		}
