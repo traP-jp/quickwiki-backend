@@ -1,0 +1,24 @@
+### GET request to example server
+GET https://examples.http-client.intellij.net/get
+    ?generated-in=IntelliJ IDEA
+
+###
+POST http://localhost:8080/tag
+    ?generated-in=IntelliJ IDEA
+    Content-Type: application/json
+
+    {
+        "name": "John"
+    }
+
+###
+GET http://localhost:8080/ping
+    ?generated-in=IntelliJ IDEA
+
+###
+POST http://localhost:8080/tag
+Content-Type: application/json
+
+{
+  "name": "test"
+}

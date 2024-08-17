@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"quickwiki-backend/handler"
 	"time"
 
@@ -19,11 +20,11 @@ func main() {
 		log.Fatal(err)
 	}
 	conf := mysql.Config{
-		User:                 "DB_USER",
-		Passwd:               "DB_PASSWORD",
+		User:                 os.Getenv("DB_USER"),
+		Passwd:               os.Getenv("DB_PASSWORD"),
 		Net:                  "tcp",
-		Addr:                 "DB_HOSTNAME" + ":" + "DB_PORT",
-		DBName:               "DB_NAME",
+		Addr:                 os.Getenv("DB_HOSTNAME") + ":" + os.Getenv("DB_PORT"),
+		DBName:               os.Getenv("DB_NAME"),
 		ParseTime:            true,
 		Collation:            "utf8mb4_unicode_ci",
 		Loc:                  jst,
@@ -35,11 +36,17 @@ func main() {
 		log.Fatal(err)
 	}
 
+	result, err := db.Exec("SHOW GLOBAL VARIABLES ")
+	if err != nil {
+		log.Println(err)
+	}
+	log.Printf("result: %+v", result)
+
 	h := handler.NewHandler(db)
 	e := echo.New()
 
 	e.GET("/ping", h.PingHandler)
-	
+
 	e.GET("/lecture/byFolder/id/:folderId", h.GetLectureByFolderIDHandler)
 	e.GET("/lecture/byFolder/path", h.GetLectureByFolderPathHandler)
 	e.GET("/lecture/folder/:folderId", h.GetLectureChildFolderHandler)
