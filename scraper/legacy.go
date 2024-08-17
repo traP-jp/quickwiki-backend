@@ -21,3 +21,19 @@ func GetChannels(bot *traqwsbot.Bot) {
 		log.Println(ch)
 	}
 }
+
+func GetBotMessages(bot *traqwsbot.Bot) {
+	messages, _, err := bot.
+		API().
+		MessageApi.
+		GetMessages(context.Background(), "98ea48da-64e8-4f69-9d0d-80690b682670").
+		Limit(20).
+		Execute()
+	if err != nil {
+		log.Println(err)
+	}
+
+	for _, m := range messages {
+		log.Println(m)
+	}
+}
