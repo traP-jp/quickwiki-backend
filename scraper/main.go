@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"time"
@@ -49,20 +50,16 @@ func main() {
 	}
 	log.Println("connected")
 
-	// bot.OnMessageCreated(func(p *payload.MessageCreated) {
-	// 	log.Println("Received MESSAGE_CREATED event: " + p.Message.Text)
-	// 	// _, _, err := bot.API().
-	// 	// 	MessageApi.
-	// 	// 	PostMessage(context.Background(), p.Message.ChannelID).
-	// 	// 	PostMessageRequest(traq.PostMessageRequest{
-	// 	// 		Content: "Hello",
-	// 	// 	}).
-	// 	// 	Execute()
-	// 	GetMessages(p, bot)
-	// 	if err != nil {
-	// 		log.Println(err)
-	// 	}
-	// })
-	//GetSodanMessages(bot)
+	// get users
+	users, resp, err := bot.API().UserApi.GetUsers(context.Background()).Execute()
+	if err != nil {
+		log.Println("failed to get users")
+		log.Printf("response: %+v", resp)
+		log.Fatal(err)
+	}
+	for _, u := range users {
+		usersMap[u.Id] = u
+	}
+
 	GetSodanMessages(bot)
 }
