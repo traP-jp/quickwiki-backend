@@ -13,6 +13,7 @@ CREATE TABLE messages (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     user_traq_id CHAR(36) NOT NULL,
+    message_id CHAR(36) NOT NULL,
     channel_id CHAR(36) NOT NULL,
     content TEXT NOT NULL,
     FOREIGN KEY (wiki_id) REFERENCES wikis(id)
