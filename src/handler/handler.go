@@ -93,7 +93,7 @@ func (h *Handler) GetLectureChildFolderHandler(c echo.Context) error {
 	}
 
 	files := []File{}
-	
+
 	childFolders := []FolderFromDB{}
 	err = h.db.Select(&childFolders, "SELECT * FROM folders WHERE parent_id = ?", folderID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {

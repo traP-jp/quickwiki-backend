@@ -34,7 +34,7 @@ func main() {
 		User:                 "root",
 		Passwd:               "password",
 		Net:                  "tcp",
-		Addr:                 "mariadb:3306",
+		Addr:                 "localhost:3306",
 		DBName:               "quickwiki",
 		ParseTime:            true,
 		Collation:            "utf8mb4_unicode_ci",
@@ -44,8 +44,10 @@ func main() {
 
 	db, err = sqlx.Open("mysql", conf.FormatDSN())
 	if err != nil {
+		log.Println("failed to open db")
 		log.Fatal(err)
 	}
+	log.Println("connected")
 
 	// bot.OnMessageCreated(func(p *payload.MessageCreated) {
 	// 	log.Println("Received MESSAGE_CREATED event: " + p.Message.Text)
@@ -61,48 +63,55 @@ func main() {
 	// 		log.Println(err)
 	// 	}
 	// })
-	GetSodanMessages(bot)
+	//GetSodanMessages(bot)
+	GetBotMessages(bot)
 }
 
-func GetChannels(bot *traqwsbot.Bot) {
-	channelID := "aff37b5f-0911-4255-81c3-b49985c8943f"
-	channel, _, err := bot.API().ChannelApi.GetChannel(context.Background(), channelID).Execute()
+func GetBotMessages(bot *traqwsbot.Bot) {
+	messages, _, err := bot.
+		API().
+		MessageApi.
+		GetMessages(context.Background(), "98ea48da-64e8-4f69-9d0d-80690b682670").
+		Limit(20).
+		Execute()
 	if err != nil {
 		log.Println(err)
 	}
-	log.Println(channel)
-	for _, c := range channel.Children {
-		ch, _, err := bot.API().ChannelApi.GetChannel(context.Background(), c).Execute()
-		if err != nil {
-			log.Println(err)
-		}
-		log.Println(ch)
+
+	for _, m := range messages {
+		log.Println(m)
 	}
 }
 
 func GetSodanMessages(bot *traqwsbot.Bot) {
-	//sodanMessages, _, err := bot.API().MessageApi.GetMessages(context.Background(), "aff37b5f-0911-4255-81c3-b49985c8943f").Offset(13).Limit(20).Execute()
+	sodanMessages, _, err := bot.
+		API().
+		MessageApi.
+		GetMessages(context.Background(), "aff37b5f-0911-4255-81c3-b49985c8943f").
+		Offset(13).
+		Limit(20).
+		Execute()
 	if err != nil {
 		log.Println(err)
 	}
 
-	sampleMessages := []traq.Message{}
-	sampleMessages = append(sampleMessages, traq.Message{
-		Id:"ccce4f44-2d8c-4ec2-917b-479a5ecb6c2c",
-		UserId: "cf0e74cd-660a-4954-a9e0-aadff17fb752",
-		ChannelId: "aff37b5f-0911-4255-81c3-b49985c8943f",
-		Content: "sample message",
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-		Pinned: false,
-		Stamps: []traq.MessageStamp{
-			{ba994be3-eac0-48a2-9632-b7af1a09b879 350c45b4-a048-4f62-bf2b-e98f4edef40c 1 2024-07-16 12:17:10.314089 +0000 UTC 2024-07-16 12:17:10.314089 +0000 UTC} {cf0e74cd-660a-4954-a9e0-aadff17fb752 68c4cc50-487d-44a1-ade3-0808023037b8 1 2024-07-16 12:50:58.748844 +0000 UTC 2024-07-16 12:50:58.748844 +0000 UTC}
-		},
-	})
-
+	//sampleMessages := []traq.Message{}
+	//sampleMessages = append(sampleMessages, traq.Message{
+	//	Id:        "id1",
+	//	UserId:    "u1",
+	//	ChannelId: "c1",
+	//	Content:   "sample message",
+	//	CreatedAt: time.Now(),
+	//	UpdatedAt: time.Now(),
+	//	Pinned:    false,
+	//	Stamps: []traq.MessageStamp{
+	//		{"u1", "s1", 2, time.Now(), time.Now()},
+	//		{"u2", "s1", 4, time.Now(), time.Now()},
+	//		{"u3", "s2", 12, time.Now(), time.Now()},
+	//	},
+	//})
 
 	for _, m := range sodanMessages {
-		log.Println(m)
 		newSodan := Wiki{
 			Name:        "sodan",
 			Type:        "sodan",
@@ -113,10 +122,12 @@ func GetSodanMessages(bot *traqwsbot.Bot) {
 		}
 		result, err := db.Exec("INSERT INTO wikis (name, type, content, created_at, updated_at, owner_traq_id) VALUES (?, ?, ?, ?, ?, ?)", newSodan.Name, newSodan.Type, newSodan.Content, newSodan.CreatedAt, newSodan.UpdatedAt, newSodan.OwnerTraqID)
 		if err != nil {
+			log.Println("failed to insert wiki")
 			log.Println(err)
 		}
 		wikiId, err := result.LastInsertId()
 		if err != nil {
+			log.Println("failed to get last insert id")
 			log.Println(err)
 		}
 
@@ -147,7 +158,7 @@ func AddMessageToDB(m traq.Message, wikiId int64) {
 		if _, ok := stampCount[s.StampId]; !ok {
 			stampCount[s.StampId] = 0
 		}
-		stampCount[s.StampId]++
+		stampCount[s.StampId] += int(s.Count)
 	}
 
 	for stampId, count := range stampCount {
@@ -156,7 +167,7 @@ func AddMessageToDB(m traq.Message, wikiId int64) {
 			StampTraqID: stampId,
 			Count:       count,
 		}
-		_, err := db.Exec("INSERT INTO stamps (message_id, stamp_traq_id, count) VALUES (?, ?, ?)", newStamp.MessageID, newStamp.StampTraqID, newStamp.Count)
+		_, err := db.Exec("INSERT INTO messageStamps (message_id, stamp_traq_id, count) VALUES (?, ?, ?)", newStamp.MessageID, newStamp.StampTraqID, newStamp.Count)
 		if err != nil {
 			log.Println(err)
 		}

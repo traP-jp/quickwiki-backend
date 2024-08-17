@@ -36,6 +36,12 @@ func main() {
 		log.Fatal(err)
 	}
 
+	result, err := db.Exec("SHOW GLOBAL VARIABLES ")
+	if err != nil {
+		log.Println(err)
+	}
+	log.Printf("result: %+v", result)
+
 	h := handler.NewHandler(db)
 	e := echo.New()
 

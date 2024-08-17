@@ -4,7 +4,7 @@ CREATE TABLE wikis (
     type TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    owner_traq_id INTEGER NOT NULL,
+    owner_traq_id CHAR(36) NOT NULL,
     content TEXT NOT NULL
 );
 CREATE TABLE messages (
@@ -29,7 +29,7 @@ CREATE TABLE memos (
     wiki_id INT(11) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    owner_traq_id INTEGER NOT NULL,
+    owner_traq_id CHAR(36) NOT NULL,
     content TEXT NOT NULL,
     FOREIGN KEY (wiki_id) REFERENCES wikis(id)
 );
@@ -54,7 +54,6 @@ CREATE TABLE lectures (
 CREATE TABLE folders (
     id INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
     name TEXT NOT NULL,
-    parent_id INT(11),
-    -- 0 if root
+    parent_id INT(11),-- 0 if root
     UNIQUE KEY (name, parent_id)
 );
