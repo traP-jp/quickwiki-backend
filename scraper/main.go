@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"os"
+	"regexp"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
@@ -120,7 +121,8 @@ func GetSodanMessages(bot *traqwsbot.Bot) {
 			UpdatedAt:   m.UpdatedAt,
 			OwnerTraqID: m.UserId,
 		}
-		result, err := db.Exec("INSERT INTO wikis (name, type, content, created_at, updated_at, owner_traq_id) VALUES (?, ?, ?, ?, ?, ?)", newSodan.Name, newSodan.Type, newSodan.Content, newSodan.CreatedAt, newSodan.UpdatedAt, newSodan.OwnerTraqID)
+		result, err := db.Exec("INSERT INTO wikis (name, type, content, created_at, updated_at, owner_traq_id) VALUES (?, ?, ?, ?, ?, ?)",
+			newSodan.Name, newSodan.Type, newSodan.Content, newSodan.CreatedAt, newSodan.UpdatedAt, newSodan.OwnerTraqID)
 		if err != nil {
 			log.Println("failed to insert wiki")
 			log.Println(err)
@@ -131,20 +133,77 @@ func GetSodanMessages(bot *traqwsbot.Bot) {
 			log.Println(err)
 		}
 
+		AddMessageToDB(m, int(wikiId))
+	}
+
+	GetSodanSubMessages(bot, "98ea48da-64e8-4f69-9d0d-80690b682670", 7, 52)
+	GetSodanSubMessages(bot, "30c30aa5-c380-4324-b227-0ca85c34801c", 0, 32)
+	GetSodanSubMessages(bot, "7ec94f1d-1920-4e15-bfc5-049c9a289692", 5, 18)
+	GetSodanSubMessages(bot, "c67abb48-3fb0-4486-98ad-4b6947998ad5", 0, 21)
+	GetSodanSubMessages(bot, "eb5a0035-a340-4cf6-a9e0-94ddfabe9337", 0, 2)
+}
+
+func GetSodanSubMessages(bot *traqwsbot.Bot, channelId string, offset int, limit int) {
+	rsodanChannelId := "aff37b5f-0911-4255-81c3-b49985c8943f"
+
+	messages, _, err := bot.
+		API().
+		MessageApi.
+		GetMessages(context.Background(), channelId).
+		Offset(int32(offset)).
+		Limit(int32(limit)).
+		Execute()
+	if err != nil {
+		log.Println(err)
+	}
+
+	// reverse messages slice
+	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
+		messages[i], messages[j] = messages[j], messages[i]
+	}
+
+	var wikiId int
+	urlOffset := len("https://q.trap.jp/messages/")
+	for _, m := range messages {
+		re := regexp.MustCompile(`https://q.trap.jp/messages/([^!*]*)`)
+		cites := re.FindAllString(m.Content, -1)
+		if len(cites) > 0 {
+			citedMessageId := cites[0][urlOffset:]
+			citedMessage, _, err := bot.API().MessageApi.GetMessage(context.Background(), citedMessageId).Execute()
+			if err != nil {
+				log.Println("failed to get cited message")
+				log.Println(err)
+			}
+			if citedMessage.ChannelId == rsodanChannelId {
+				wikiId = GetWikiIDByMessageId(citedMessageId)
+			}
+		}
+
 		AddMessageToDB(m, wikiId)
 	}
 }
 
-func AddMessageToDB(m traq.Message, wikiId int64) {
+func GetWikiIDByMessageId(messageId string) int {
+	var wikiId int
+	err := db.Get(&wikiId, "SELECT wiki_id FROM messages WHERE message_id = ?", messageId)
+	if err != nil {
+		log.Println(err)
+	}
+	return wikiId
+}
+
+func AddMessageToDB(m traq.Message, wikiId int) {
 	newMessage := Message{
-		WikiID:     int(wikiId),
+		WikiID:     wikiId,
 		Content:    m.Content,
 		CreatedAt:  m.CreatedAt,
 		UpdatedAt:  m.UpdatedAt,
 		UserTraqID: m.UserId,
 		ChannelID:  m.ChannelId,
+		MessageID:  m.Id,
 	}
-	result, err := db.Exec("INSERT INTO messages (wiki_id, content, created_at, updated_at, user_traq_id, channel_id) VALUES (?, ?, ?, ?, ?, ?)", newMessage.WikiID, newMessage.Content, newMessage.CreatedAt, newMessage.UpdatedAt, newMessage.UserTraqID, newMessage.ChannelID)
+	result, err := db.Exec("INSERT INTO messages (wiki_id, content, created_at, updated_at, user_traq_id, channel_id, message_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
+		newMessage.WikiID, newMessage.Content, newMessage.CreatedAt, newMessage.UpdatedAt, newMessage.UserTraqID, newMessage.ChannelID, newMessage.MessageID)
 	if err != nil {
 		log.Println(err)
 	}
@@ -167,7 +226,8 @@ func AddMessageToDB(m traq.Message, wikiId int64) {
 			StampTraqID: stampId,
 			Count:       count,
 		}
-		_, err := db.Exec("INSERT INTO messageStamps (message_id, stamp_traq_id, count) VALUES (?, ?, ?)", newStamp.MessageID, newStamp.StampTraqID, newStamp.Count)
+		_, err := db.Exec("INSERT INTO messageStamps (message_id, stamp_traq_id, count) VALUES (?, ?, ?)",
+			newStamp.MessageID, newStamp.StampTraqID, newStamp.Count)
 		if err != nil {
 			log.Println(err)
 		}
