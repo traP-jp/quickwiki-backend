@@ -38,12 +38,12 @@ func GetSodanMessages(bot *traqwsbot.Bot) {
 
 	for _, m := range sodanMessages {
 		newSodan := Wiki{
-			Name:        "sodan",
+			Name:        m.Content,
 			Type:        "sodan",
 			Content:     m.Content,
 			CreatedAt:   m.CreatedAt,
 			UpdatedAt:   m.UpdatedAt,
-			OwnerTraqID: m.UserId,
+			OwnerTraqID: usersMap[m.UserId].Name,
 		}
 		result, err := db.Exec("INSERT INTO wikis (name, type, content, created_at, updated_at, owner_traq_id) VALUES (?, ?, ?, ?, ?, ?)",
 			newSodan.Name, newSodan.Type, newSodan.Content, newSodan.CreatedAt, newSodan.UpdatedAt, newSodan.OwnerTraqID)
@@ -123,7 +123,7 @@ func AddMessageToDB(m traq.Message, wikiId int) {
 		Content:    m.Content,
 		CreatedAt:  m.CreatedAt,
 		UpdatedAt:  m.UpdatedAt,
-		UserTraqID: m.UserId,
+		UserTraqID: usersMap[m.UserId].Name,
 		ChannelID:  m.ChannelId,
 		MessageID:  m.Id,
 	}
