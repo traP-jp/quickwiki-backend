@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"quickwiki-backend/handler"
+	"quickwiki-backend/scraper"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
@@ -36,11 +37,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	result, err := db.Exec("SHOW GLOBAL VARIABLES ")
-	if err != nil {
-		log.Println(err)
-	}
-	log.Printf("result: %+v", result)
+	scraper.Scrape()
 
 	h := handler.NewHandler(db)
 	e := echo.New()

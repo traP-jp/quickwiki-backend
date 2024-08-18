@@ -1,4 +1,4 @@
-package main
+package scraper
 
 import (
 	"context"
@@ -17,7 +17,7 @@ var (
 	usersMap = make(map[string]traq.User)
 )
 
-func main() {
+func Scrape() {
 	// setting bot
 	bot, err := traqwsbot.NewBot(&traqwsbot.Options{
 		AccessToken: os.Getenv("TRAQ_BOT_TOKEN"),

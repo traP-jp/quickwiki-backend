@@ -1,2 +1,3 @@
 .env
 /scraper/*.txt
+.ipynb_checkpoints/
