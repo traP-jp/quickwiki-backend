@@ -155,7 +155,7 @@ func (h *Handler) GetLectureHandler(c echo.Context) error {
 
 // /sodan
 func (h *Handler) GetSodanHandler(c echo.Context) error {
-	wikiId := c.Param("wikiId")
+	wikiId := c.QueryParam("wikiId")
 	if wikiId == "" {
 		return c.JSON(http.StatusBadRequest, "wikiId is required")
 	}
