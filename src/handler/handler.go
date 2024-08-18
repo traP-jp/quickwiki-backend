@@ -152,3 +152,106 @@ func (h *Handler) GetLectureHandler(c echo.Context) error {
 		FolderPath: lecture.FolderPath,
 	})
 }
+
+// /sodan
+func (h *Handler) GetSodanHandler(c echo.Context) error {
+	wikiId := c.Param("wikiId")
+	if wikiId == "" {
+		return c.JSON(http.StatusBadRequest, "wikiId is required")
+	}
+
+	wiki := Wiki{}
+	err := h.db.Get(&wiki, "SELECT * FROM wikis WHERE id = ?", wikiId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return c.JSON(http.StatusNotFound, err)
+		}
+		log.Printf("failed to get wiki: %v", err)
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	questionMessage := Message{}
+	err = h.db.Get(&questionMessage, "SELECT * FROM messages WHERE wiki_id = ? ORDER BY created_at DESC LIMIT 1", wikiId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return c.JSON(http.StatusNotFound, err)
+		}
+		log.Printf("failed to get question message: %v", err)
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	answerMessages := []Message{}
+	err = h.db.Select(&answerMessages, "SELECT * FROM messages WHERE wiki_id = ? AND id != ? ORDER BY created_at", wikiId, questionMessage.ID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return c.JSON(http.StatusNotFound, err)
+		}
+		log.Printf("failed to get answer messages: %v", err)
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	questionMessageStamp := []Stamp{}
+	err = h.db.Select(&questionMessageStamp, "SELECT * FROM messageStamps WHERE message_id = ?", questionMessage.ID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return c.JSON(http.StatusNotFound, err)
+		}
+		log.Printf("failed to get question message stamps: %v", err)
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	questionMessageStampResponse := []StampResponse{}
+	for _, stamp := range questionMessageStamp {
+		questionMessageStampResponse = append(questionMessageStampResponse, StampResponse{
+			StampID: stamp.StampTraqID,
+			Count:   stamp.Count,
+		})
+	}
+
+	questionMessageResponse := MessageResponse{
+		UserTraqID: questionMessage.UserTraqID,
+		Content:    questionMessage.Content,
+		CreatedAt:  questionMessage.CreatedAt,
+		UpdatedAt:  questionMessage.UpdatedAt,
+		Stamps:     questionMessageStampResponse,
+	}
+
+	answerMessagesResponse := []MessageResponse{}
+	for _, message := range answerMessages {
+		stamps := []Stamp{}
+		err = h.db.Select(&stamps, "SELECT * FROM messageStamps WHERE message_id = ?", message.ID)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return c.JSON(http.StatusNotFound, err)
+			}
+			log.Printf("failed to get stamps: %v", err)
+			return c.JSON(http.StatusInternalServerError, err)
+		}
+
+		stampsResponse := []StampResponse{}
+		for _, stamp := range stamps {
+			stampsResponse = append(stampsResponse, StampResponse{
+				StampID: stamp.StampTraqID,
+				Count:   stamp.Count,
+			})
+		}
+
+		answerMessagesResponse = append(answerMessagesResponse, MessageResponse{
+			UserTraqID: message.UserTraqID,
+			Content:    message.Content,
+			CreatedAt:  message.CreatedAt,
+			UpdatedAt:  message.UpdatedAt,
+			Stamps:     stampsResponse,
+		})
+	}
+
+	res := SodanResponse{
+		ID:              wiki.ID,
+		Title:           wiki.Name,
+		Tags:            []Tag{{Name: "test"}, {Name: "test2"}},
+		QuestionMessage: questionMessageResponse,
+		AnswerMessages:  answerMessagesResponse,
+	}
+
+	return c.JSON(http.StatusOK, res)
+}
