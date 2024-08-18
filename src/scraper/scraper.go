@@ -2,22 +2,26 @@ package scraper
 
 import (
 	"context"
-	"log"
-	"os"
-	"time"
-
-	"github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	"github.com/traPtitech/go-traq"
 	traqwsbot "github.com/traPtitech/traq-ws-bot"
+	"log"
+	"os"
 )
 
-var (
+type Scraper struct {
 	db       *sqlx.DB
-	usersMap = make(map[string]traq.User)
-)
+	usersMap map[string]traq.User
+}
 
-func Scrape() {
+func NewScraper(db *sqlx.DB) *Scraper {
+	return &Scraper{
+		db:       db,
+		usersMap: make(map[string]traq.User),
+	}
+}
+
+func (s *Scraper) Scrape() {
 	// setting bot
 	bot, err := traqwsbot.NewBot(&traqwsbot.Options{
 		AccessToken: os.Getenv("TRAQ_BOT_TOKEN"),
@@ -25,30 +29,7 @@ func Scrape() {
 	if err != nil {
 		panic(err)
 	}
-
-	// setting db
-	jst, err := time.LoadLocation("Asia/Tokyo")
-	if err != nil {
-		log.Fatal(err)
-	}
-	conf := mysql.Config{
-		User:                 "root",
-		Passwd:               "password",
-		Net:                  "tcp",
-		Addr:                 "localhost:3306",
-		DBName:               "quickwiki",
-		ParseTime:            true,
-		Collation:            "utf8mb4_unicode_ci",
-		Loc:                  jst,
-		AllowNativePasswords: true,
-	}
-
-	db, err = sqlx.Open("mysql", conf.FormatDSN())
-	if err != nil {
-		log.Println("failed to open db")
-		log.Fatal(err)
-	}
-	log.Println("connected")
+	log.Println("bot connected")
 
 	// get users
 	users, resp, err := bot.API().UserApi.GetUsers(context.Background()).Execute()
@@ -58,8 +39,8 @@ func Scrape() {
 		log.Fatal(err)
 	}
 	for _, u := range users {
-		usersMap[u.Id] = u
+		s.usersMap[u.Id] = u
 	}
 
-	GetSodanMessages(bot)
+	s.GetSodanMessages(bot)
 }

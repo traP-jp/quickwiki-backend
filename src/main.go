@@ -37,7 +37,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	scraper.Scrape()
+	s := scraper.NewScraper(db)
+	s.Scrape()
 
 	h := handler.NewHandler(db)
 	e := echo.New()
