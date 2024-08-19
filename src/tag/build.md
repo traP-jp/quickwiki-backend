@@ -6,3 +6,9 @@ g++ keyword_extractor.cpp -shared -o libkeyword_extractor.so -fPIC `pkg-config p
 ```shell
 export LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH
 ```
+
+python: spacy model, pkeが必要 
+
+python3-dev をインストール
+
+ライブラリパスは適宜調整
