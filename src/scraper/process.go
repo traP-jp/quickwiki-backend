@@ -131,10 +131,13 @@ func (s *Scraper) AddMessageToDB(m traq.Message, wikiId int) {
 	result, err := s.db.Exec("INSERT INTO messages (wiki_id, content, created_at, updated_at, user_traq_id, channel_id, message_traq_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
 		newMessage.WikiID, newMessage.Content, newMessage.CreatedAt, newMessage.UpdatedAt, newMessage.UserTraqID, newMessage.ChannelID, newMessage.MessageID)
 	if err != nil {
+		log.Println("failed to insert message")
+		log.Println(newMessage)
 		log.Println(err)
 	}
 	messageId, err := result.LastInsertId()
 	if err != nil {
+		log.Println("failed to get last insert id")
 		log.Println(err)
 	}
 
