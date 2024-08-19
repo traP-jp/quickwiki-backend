@@ -1,3 +1,6 @@
 .env
 /scraper/*.txt
 .ipynb_checkpoints/
+*.o
+*.out
+*.a
