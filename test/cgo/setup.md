@@ -24,6 +24,7 @@ gcc main.c -o main.out -L. -lhello `pkg-config python3 --cflags` -lpython3.10
 ```
 これをcgoに直すと
 ```go
+package main
 /*
 #cgo pkg-config: python-3.12
 #cgo LDFLAGS: -L. -lhello -lpython3.12
