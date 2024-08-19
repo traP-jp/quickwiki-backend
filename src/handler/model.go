@@ -44,6 +44,13 @@ type WikiContent_fromDB struct {
 	WikiContent string    `db:"content"`
 }
 
+// sqlよりtagを取ってくるときに使う
+type Tag_fromDB struct {
+	WikiID  int    `db:"wiki_id"`
+	TagID   int    `db:"tag_id"`
+	TagName string `db:"name"`
+}
+
 // sqlのmessagesから情報を取ってくるときに使う
 type SodanContent_fromDB struct {
 	ID             int       `db:"id"`
@@ -78,6 +85,16 @@ type MessageContent_SodanResponse struct {
 	UpdatedAt  time.Time              `json:"updatedAt"`
 	Stamps     []Stamp_MessageContent `json:"stamps"`
 }
+// MessageContent_SodanResponseのコンストラクタ関数
+func NewMessageContent_SodanResponse() *MessageContent_SodanResponse {
+	return &MessageContent_SodanResponse{
+		UserTraqID: "",
+		Content: "",
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		Stamps: []Stamp_MessageContent{},
+	}
+}
 
 // /sodan?wikiId= の Response
 type SodanResponse struct {
@@ -88,9 +105,13 @@ type SodanResponse struct {
 	AnswerMessages  []MessageContent_SodanResponse `json:"answerMessages"`
 }
 
-// sqlよりtagを取ってくるときに使う
-type Tag_fromDB struct {
-	WikiID  int    `db:"wiki_id"`
-	TagID   int    `db:"tag_id"`
-	TagName string `db:"name"`
+// SodanResponseのコンストラクタ関数
+func NewSodanResponse() *SodanResponse {
+	return &SodanResponse{
+		WikiID:          0,
+		Title:           "",
+		Tags:            []string{},
+		QuestionMessage: MessageContent_SodanResponse{},
+		AnswerMessages:  []MessageContent_SodanResponse{},
+	}
 }

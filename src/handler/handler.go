@@ -156,7 +156,7 @@ func (h *Handler) GetLectureHandler(c echo.Context) error {
 // /sodan/?wiliId=
 func (h *Handler) GetSodanHandler(c echo.Context) error {
 
-	var Response SodanResponse
+	Response := NewSodanResponse()
 
 	wikiId, err := strconv.Atoi(c.QueryParam("wikiId"))
 	if err != nil {
@@ -210,12 +210,12 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 	Response.QuestionMessage.CreatedAt = messageContents[0].CreatedAt
 	Response.QuestionMessage.UpdatedAt = messageContents[0].UpdatedAt
 	for i := 1; i < howManyMessages; i++ {
-		var ans_Response MessageContent_SodanResponse
+		ans_Response := NewMessageContent_SodanResponse()
 		ans_Response.UserTraqID = messageContents[i].UserTraqID
 		ans_Response.Content = messageContents[i].MessageContent
 		ans_Response.CreatedAt = messageContents[i].CreatedAt
 		ans_Response.UpdatedAt = messageContents[i].UpdatedAt
-		Response.AnswerMessages = append(Response.AnswerMessages, ans_Response)
+		Response.AnswerMessages = append(Response.AnswerMessages, *ans_Response)
 	}
 
 	for i := 0; i < howManyMessages; i++ {
