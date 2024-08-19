@@ -152,3 +152,97 @@ func (h *Handler) GetLectureHandler(c echo.Context) error {
 		FolderPath: lecture.FolderPath,
 	})
 }
+
+// /sodan/?wiliId=
+func (h *Handler) GetSodanHandler(c echo.Context) error {
+
+	var Response SodanResponse
+
+	wikiId, err := strconv.Atoi(c.QueryParam("wikiId"))
+	if err != nil {
+		log.Printf("failed to convert wikiId to int: %v", err)
+		return c.JSON(http.StatusBadRequest, err)
+	}
+	Response.WikiID = wikiId
+
+	var wikiContent WikiContent_fromDB
+	err = h.db.Get(&wikiContent, "select * from wikis where id = ?", wikiId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return c.NoContent(http.StatusNotFound)
+		}
+		log.Printf("failed to get wikiContent: %s\n", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	Response.Title = wikiContent.Name
+
+	// tagの実装がまだなのでコメントアウト,直下にダミーを実装
+	// var tags []Tag_fromDB
+	// var howManyTags int
+	// err = h.db.Get(&tags, "select * from tags join tags_in_wiki on tag_id where wiki_id = ?", wikiId)
+	// if err != nil {
+	// 	if errors.Is(err, sql.ErrNoRows) {
+	// 		return c.NoContent(http.StatusNotFound)
+	// 	}
+	// 	log.Printf("failed to get tags: %s\n", err)
+	// 	return c.NoContent(http.StatusInternalServerError)
+	// }
+	// howManyTags = len(tags)
+	// for i := 0; i < howManyTags; i++ {
+	// 	Response.Tags = append(Response.Tags, tags[i].TagName)
+	// }
+	Response.Tags = []string{"hoge", "fuga"}
+
+	var messageContents []SodanContent_fromDB
+	var howManyMessages int
+	err = h.db.Select(&messageContents, "select * from messages where wiki_id = ? order by created_at", wikiId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return c.NoContent(http.StatusNotFound)
+		}
+		log.Printf("failed to get sodanContent: %s\n", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	howManyMessages = len(messageContents)
+	log.Println("howManyMessages : ", howManyMessages)
+	Response.QuestionMessage.UserTraqID = messageContents[0].UserTraqID
+	Response.QuestionMessage.Content = messageContents[0].MessageContent
+	Response.QuestionMessage.CreatedAt = messageContents[0].CreatedAt
+	Response.QuestionMessage.UpdatedAt = messageContents[0].UpdatedAt
+	for i := 1; i < howManyMessages; i++ {
+		var ans_Response MessageContent_SodanResponse
+		ans_Response.UserTraqID = messageContents[i].UserTraqID
+		ans_Response.Content = messageContents[i].MessageContent
+		ans_Response.CreatedAt = messageContents[i].CreatedAt
+		ans_Response.UpdatedAt = messageContents[i].UpdatedAt
+		Response.AnswerMessages = append(Response.AnswerMessages, ans_Response)
+	}
+
+	for i := 0; i < howManyMessages; i++ {
+		var stamps []Stamp_fromDB
+		err = h.db.Select(&stamps, "select * from messageStamps where message_id = ?", messageContents[i].ID)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return c.NoContent(http.StatusNotFound)
+			}
+			log.Printf("failed to get messageStamps: %s\n", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		howManyStamps := len(stamps)
+		log.Println("howManyStamps : ", howManyStamps)
+		for j := 0; j < howManyStamps; j++ {
+			if i == 0 {
+				var stamps_Response Stamp_MessageContent
+				stamps_Response.StampTraqID = stamps[j].StampTraqID
+				stamps_Response.StampCount = stamps[j].StampCount
+				Response.QuestionMessage.Stamps = append(Response.QuestionMessage.Stamps, stamps_Response)
+			} else {
+				var stamps_Response Stamp_MessageContent
+				stamps_Response.StampTraqID = stamps[j].StampTraqID
+				stamps_Response.StampCount = stamps[j].StampCount
+				Response.AnswerMessages[i-1].Stamps = append(Response.QuestionMessage.Stamps, stamps_Response)
+			}
+		}
+	}
+	return c.JSON(http.StatusOK, Response)
+}
