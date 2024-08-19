@@ -2,10 +2,11 @@ package scraper
 
 import (
 	"context"
-	"github.com/traPtitech/go-traq"
-	traqwsbot "github.com/traPtitech/traq-ws-bot"
 	"log"
 	"regexp"
+
+	"github.com/traPtitech/go-traq"
+	traqwsbot "github.com/traPtitech/traq-ws-bot"
 )
 
 func (s *Scraper) GetSodanMessages(bot *traqwsbot.Bot) {
@@ -110,7 +111,7 @@ func (s *Scraper) GetSodanSubMessages(bot *traqwsbot.Bot, channelId string, offs
 
 func (s *Scraper) GetWikiIDByMessageId(messageId string) int {
 	var wikiId int
-	err := s.db.Get(&wikiId, "SELECT wiki_id FROM messages WHERE message_id = ?", messageId)
+	err := s.db.Get(&wikiId, "SELECT wiki_id FROM messages WHERE message_traq_id = ?", messageId)
 	if err != nil {
 		log.Println(err)
 	}
@@ -127,7 +128,7 @@ func (s *Scraper) AddMessageToDB(m traq.Message, wikiId int) {
 		ChannelID:  m.ChannelId,
 		MessageID:  m.Id,
 	}
-	result, err := s.db.Exec("INSERT INTO messages (wiki_id, content, created_at, updated_at, user_traq_id, channel_id, message_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
+	result, err := s.db.Exec("INSERT INTO messages (wiki_id, content, created_at, updated_at, user_traq_id, channel_id, message_traq_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
 		newMessage.WikiID, newMessage.Content, newMessage.CreatedAt, newMessage.UpdatedAt, newMessage.UserTraqID, newMessage.ChannelID, newMessage.MessageID)
 	if err != nil {
 		log.Println(err)

@@ -13,14 +13,14 @@ CREATE TABLE messages (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     user_traq_id CHAR(36) NOT NULL,
-    message_id CHAR(36) NOT NULL,
+    message_traq_id CHAR(36) NOT NULL,
     channel_id CHAR(36) NOT NULL,
     content TEXT NOT NULL,
     FOREIGN KEY (wiki_id) REFERENCES wikis(id)
 );
 CREATE TABLE messageStamps (
     id INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    message_id INT(11) NOT NULL,
+    message_id INT(11) NOT NULL,-- = messages.id
     stamp_traq_id CHAR(36) NOT NULL,
     count INT(11) NOT NULL,
     FOREIGN KEY (message_id) REFERENCES messages(id)
