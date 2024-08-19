@@ -2,6 +2,10 @@
 *.txt
 .ipynb_checkpoints/
 *.o
+*.so
 *.out
-*.
+*.a
 venv/
+__pycache__/
+build/
+UNKNOWN*/

@@ -1,8 +1,8 @@
 package main
 
 /*
-#cgo pkg-config: python-3.12
-#cgo LDFLAGS: -L. -lhello -lpython3.12
+#cgo pkg-config: python3
+#cgo LDFLAGS: -L. -lhello -lpython3.10
 #include <Python.h>
 #include <stdio.h>
 #include <string.h>

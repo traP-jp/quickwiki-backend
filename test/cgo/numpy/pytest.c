@@ -1,7 +1,6 @@
-#include </usr/include/python3.12/Python.h>
+#include </usr/include/python3.10/Python.h>
 #include <stdio.h>
 #include <string.h>
-#include "hello.h"
 
 char result[16];
 
@@ -68,4 +67,8 @@ char *pyHello(char *name, char *fileName, char *funcName) {
 
     printf("Finish calling python\nresult: %s\n", result);
     return result;
+}
+
+int main() {
+    pyHello("World", "hello", "hello");
 }

@@ -1,7 +1,7 @@
 # c-go-pythonのsetup
-pythonの -devをインストール(ここでは3.12を使用)
+pythonの -devをインストール
 ```shell
-sudo apt install python3.12 python3.12-dev
+sudo apt install python3 python3-dev
 ```
 cファイルのライブラリ作成
 ```shell
@@ -20,7 +20,7 @@ int main(int argc, char const *argv[])
 ```
 コンパイルコマンド
 ```shell
-gcc main.c -o main -L. -lhello `pkg-config --cflags` -lpython3.12
+gcc main.c -o main.out -L. -lhello `pkg-config python3 --cflags` -lpython3.10
 ```
 これをcgoに直すと
 ```go
@@ -34,3 +34,7 @@ gcc main.c -o main -L. -lhello `pkg-config --cflags` -lpython3.12
 */
 import "C"
 ```
+
+cpythonについて
+Py_DECREF: NULL許容しない
+Py_XDECREF: NULL許容
