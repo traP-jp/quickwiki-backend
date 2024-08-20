@@ -6,6 +6,10 @@ g++ keyword_extractor.cpp -shared -o libkeyword_extractor.so -fPIC `pkg-config p
 ```shell
 export LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH
 ```
+C-Python 動作確認用
+```shell
+g++ main.cpp -o main.o -L. -lkeyword_extractor `pkg-config python3 --cflags` -lpython3.10
+```
 
 python: spacy model, pkeが必要 
 
