@@ -10,3 +10,4 @@ __pycache__/
 build/
 UNKNOWN*/
 !requirements.txt
+*.bleve
