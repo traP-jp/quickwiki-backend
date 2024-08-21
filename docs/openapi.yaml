@@ -10,6 +10,8 @@ tags:
     description: 講習会情報
   - name: wiki
     description: sodanと備忘録
+  - name: user
+    description: ユーザー関連
 paths:
   /ping:
     get:
@@ -23,8 +25,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ping'
-  /lecture: 
-    post: 
+  /lecture:
+    post:
       tags:
         - lecture
       summary: 新しい講習会情報の作成
@@ -136,7 +138,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/wikiList'
-  /wiki/tag/{tag}: 
+  /wiki/tag/{tag}:
     get:
       tags:
         - wiki
@@ -205,12 +207,12 @@ paths:
             schema:
               $ref: '#/components/schemas/newMemo'
       responses:
-        '200':
+        '201':
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/wikiAbstract'
+                $ref: '#/components/schemas/memo'
     patch:
       tags:
         - wiki
@@ -227,7 +229,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/wikiAbstract'
+                $ref: '#/components/schemas/memo'
     delete:
       tags:
         - wiki
@@ -248,12 +250,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/wikiAbstract'
-  /memo/user/{userId}: 
+                $ref: '#/components/schemas/memo'
+  /wiki/user/{userId}:
     get:
       tags:
-        - wiki
-      summary: ユーザーの備忘録の取得
+        - user
+      summary: ユーザーの備忘録 & sodanの取得
       parameters:
         - name: userId
           in: path
@@ -267,12 +269,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/wikiList'
-  /memo/user/{userId}/favorite:
+                $ref: '#/components/schemas/memoList'
+  /wiki/user/{userId}/favorite:
     get:
       tags:
-        - wiki
-      summary: ユーザーのお気に入りの備忘録の取得
+        - user
+      summary: ユーザーのお気に入りの備忘録 & sodanの取得
       parameters:
         - name: userId
           in: path
@@ -286,8 +288,91 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/wikiList'
-                
+                $ref: '#/components/schemas/memoList'
+    post:
+      tags:
+        - user
+      summary: ユーザーのお気に入りの備忘録 & sodanの追加
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                memoId:
+                  type: string
+                  example: 123
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/memo'
+    delete:
+      tags:
+        - user
+      summary: ユーザーのお気に入りの備忘録 & sodanの削除
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                memoId:
+                  type: string
+                  example: 123
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/memo'
+  /tag:
+    get:
+      tags:
+        - wiki
+      summary: タグ一覧の取得
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tagList'
+    post:
+      tags:
+        - wiki
+      summary: タグの追加
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/tag'
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tag'
+  /me:
+    get:
+      tags:
+        - user
+      summary: 自分の情報の取得
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+
 
 components:
   schemas:
@@ -459,7 +544,7 @@ components:
               count:
                 type: integer
                 example: 3
-    memo: 
+    memo:
       type: object
       properties:
         id:
@@ -485,3 +570,26 @@ components:
         updatedAt:
           type: string
           example: 2021-01-01 00:00:00
+    memoList:
+      type: array
+      items:
+        $ref: '#/components/schemas/memo'
+    user:
+      type: object
+      properties:
+        traqId:
+          type: string
+          example: kavos
+        name:
+          type: string
+          example: kavos
+        iconUri:
+          type: string
+          example: あとで調べる
+    tag:
+      type: string
+      example: ComputerScience
+    tagList:
+      type: array
+      items:
+        $ref: '#/components/schemas/tag'
