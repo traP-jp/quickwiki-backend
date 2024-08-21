@@ -54,3 +54,9 @@ CREATE TABLE folders (
     parent_id INT(11),-- 0 if root
     UNIQUE KEY (name, parent_id)
 );
+CREATE TABLE favorites (
+    id INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    user_traq_id CHAR(36) NOT NULL,
+    wiki_id INT(11) NOT NULL,
+    FOREIGN KEY (wiki_id) REFERENCES wikis(id)
+);
