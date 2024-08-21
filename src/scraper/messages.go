@@ -73,6 +73,7 @@ func (s *Scraper) GetSodanMessages(bot *traqwsbot.Bot) {
 
 	s.updateWikisContent()
 	s.setSodanTags()
+	s.setIndexing()
 }
 
 func (s *Scraper) GetSodanSubMessages(bot *traqwsbot.Bot, channelId string, offset int, limit int) {
