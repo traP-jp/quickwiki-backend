@@ -25,6 +25,12 @@ CREATE TABLE messageStamps (
     count INT(11) NOT NULL,
     FOREIGN KEY (message_id) REFERENCES messages(id)
 );
+CREATE TABLE citedMessages (
+    id INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    message_traq_id CHAR(36) NOT NULL,
+    parent_message_id INT(11) NOT NULL,-- = messages.id
+    FOREIGN KEY (parent_message_id) REFERENCES messages(id)
+);
 CREATE TABLE memos (
     id INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
     wiki_id INT(11) NOT NULL,
@@ -53,4 +59,10 @@ CREATE TABLE folders (
     name TEXT NOT NULL,
     parent_id INT(11),-- 0 if root
     UNIQUE KEY (name, parent_id)
+);
+CREATE TABLE favorites (
+    id INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    user_traq_id CHAR(36) NOT NULL,
+    wiki_id INT(11) NOT NULL,
+    FOREIGN KEY (wiki_id) REFERENCES wikis(id)
 );
