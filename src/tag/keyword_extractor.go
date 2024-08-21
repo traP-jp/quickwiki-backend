@@ -1,36 +1,66 @@
-package main
+package tag
 
 /*
 #cgo pkg-config: python3
-#cgo LDFLAGS: -L. -lkeyword_extractor -lpython3.10
+#cgo LDFLAGS: -L. -lkeyword_extractor -lpython3.11
 #include <stdlib.h>
 #include "keyword_extractor.h"
 */
 import "C"
 import (
-	"fmt"
+	"log"
 	"unsafe"
 )
 
-func main() {
-	CText := C.CString("ハプト藻に関する最古の記載はエーレンベルク（1836）によるものである。彼はバルト海周辺の石灰岩層から微細な円板状の構造物（円石＝coccolith）を発見した。しかし彼は、この構造物を生物由来ではなく、化学的、無機的要因によって生成したものと考えた。その後ハクスリー（1858）が同様の構造物を海底の堆積物の中から発見したが、やはり円石は非生物起源であると考えられた。円石を初めて生物起源であるとしたのは ウォーリッチ（1860）と ソービー（1861）である。彼らは円石が多数結合して中空の球を形成したものを発見し、coccosphere と命名した。現在この語は、円石を持つ細胞全体を、原形質を含めて表す単語として用いられている。しかしながら彼は円石藻という微細藻の存在を提唱したのではなく、coccosphere を有孔虫の生活環の一部と考えるに留まった。1870年代に入ると再び エーレンベルク の円石非生物由来説が支持されるようになった。特に円石の幾何学的な形状から、炭酸カルシウムの凝結、結晶化によると考えられる事が多かった。円石の持ち主を微細藻であると提唱したのは ワイヴィル・トムソン（1874）である。この時初めて円石は単細胞藻の外被であると考えられた。その後、coccosphere の中に色素体があるという報告や、Murray とBlackman（1898）による細胞分裂の描写が為されるに至り、単細胞藻としての円石藻－ハプト藻が認識される事となった。分類上のハプト藻は、体制と光合成色素の類似から、古くは不等毛植物門黄金色藻綱に含められていた経緯がある。ハプト植物門として独立したのは近年（1962）である。")
+type Tag struct {
+	WikiID  int
+	TagName string
+	Score   float64
+}
+
+type KeywordExtractorData struct {
+	WikiID     int
+	Text       string
+	NumKeyword int
+}
+
+func KeywordExtractor(text string, num_keyword int, wikiID int) []Tag {
+	CText := C.CString(text)
 	defer C.free(unsafe.Pointer(CText))
 
-	cppData := C.extract(CText, C.int(5))
+	cppData := C.extract(CText, C.int(num_keyword))
 	defer C.free_data_array(cppData)
 
 	tagNames := make([]string, cppData.size)
 	scores := make([]float64, cppData.size)
 
 	for i := 0; i < int(cppData.size); i++ {
-		tagNamesPtr := (**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(cppData.tag_names)) + uintptr(i)*unsafe.Sizeof(cppData.tag_names)))
-		scoresPtr := (*C.double)(unsafe.Pointer(uintptr(unsafe.Pointer(cppData.scores)) + uintptr(i)*unsafe.Sizeof(cppData.scores)))
+		tagNamesPtr := (**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(cppData.tag_names)) + uintptr(i)*unsafe.Sizeof(*cppData.tag_names)))
+		scoresPtr := (*C.double)(unsafe.Pointer(uintptr(unsafe.Pointer(cppData.scores)) + uintptr(i)*unsafe.Sizeof(*cppData.scores)))
 
 		tagNames[i] = C.GoString(*tagNamesPtr)
 		scores[i] = float64(*scoresPtr)
 	}
 
+	log.Println("-----------------")
+	log.Println("num_keyword: ", num_keyword)
+	Tags := make([]Tag, cppData.size)
 	for i := 0; i < int(cppData.size); i++ {
-		fmt.Printf("tag: %s, score: %f\n", tagNames[i], scores[i])
+		Tags[i] = Tag{WikiID: wikiID, TagName: tagNames[i], Score: scores[i]}
+		log.Printf("tag: %s, score: %f", Tags[i].TagName, Tags[i].Score)
 	}
+
+	return Tags
+}
+
+func KeywordExtractorMulti(data []KeywordExtractorData) [][]Tag {
+	var res [][]Tag
+	// C.initialize_python()
+
+	for _, d := range data {
+		res = append(res, KeywordExtractor(d.Text, d.NumKeyword, d.WikiID))
+	}
+
+	C.finalize_python()
+	return res
 }

@@ -20,7 +20,7 @@ type Message struct {
 	UpdatedAt  time.Time `db:"updated_at"`
 	UserTraqID string    `db:"user_traq_id"`
 	ChannelID  string    `db:"channel_id"`
-	MessageID  string    `db:"message_id"`
+	MessageID  string    `db:"message_traq_id"`
 }
 
 type Stamp struct {

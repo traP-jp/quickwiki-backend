@@ -11,6 +11,8 @@ typedef struct {
     size_t size;
 } DataArray;
 
+void initialize_python();
+void finalize_python();
 DataArray extract(const char *text, int num_keywords);
 void free_data_array(DataArray dataArray);
 
