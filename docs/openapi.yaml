@@ -62,6 +62,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/lecture'
+        '400':
+          description: 講習会IDが整数でないと思われる
+        '404':
+          description: 講習会IDに対応する講習会が見つからない
   /lecture/byFolder/id/{folderId}:
     get:
       tags:
@@ -76,11 +80,15 @@ paths:
           description: フォルダID
       responses:
         '200':
-          description: OK
+          description: 成功
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/lectureList'
+        '400':
+          description: フォルダIDが整数でないと思われる
+        '404':
+          description: フォルダIDに対応する講習会が見つからない
   /lecture/byFolder/path:
     get:
       tags:
@@ -101,6 +109,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/lectureList'
+        '404':
+          description: フォルダパスに対応する講習会が見つからない
   /lecture/folder/{folderId}:
     get:
       tags:
@@ -120,6 +130,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/folderList'
+        '400':
+          description: フォルダIDが整数でないと思われる
   /wiki/search:
     post:
       tags:
@@ -176,6 +188,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/sodan'
+        '400':
+          description: wikiIDが整数でないと思われる
+        '404':
+          description: wikiIDに対応するsodanが見つからない or メッセージ or スタンプ or タグが見つからない
       description: answerMessagesには，回答に対してもう一度する質問も含まれる
   /memo:
     get:
