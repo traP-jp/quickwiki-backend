@@ -17,7 +17,12 @@ type IndexData struct {
 }
 
 func main() {
-	index := setting()
+	setting()
+	index, err := bleve.Open("index.bleve")
+	if err != nil {
+		log.Println(err)
+		return
+	}
 
 	// search for some text
 	query := bleve.NewMatchQuery("作る 並行")
@@ -32,9 +37,10 @@ func main() {
 	for _, hit := range searchResults.Hits {
 		log.Printf("ID: %s, Score: %f\n", hit.ID, hit.Score)
 	}
+	index.Close()
 }
 
-func setting() bleve.Index {
+func setting() {
 	// open a new index
 	typeMapping := bleve.NewTextFieldMapping()
 	typeMapping.Analyzer = keyword.Name
@@ -130,6 +136,5 @@ func setting() bleve.Index {
 		panic(err)
 	}
 	log.Printf("doc count: %d\n\n", docCount)
-
-	return index
+	index.Close()
 }

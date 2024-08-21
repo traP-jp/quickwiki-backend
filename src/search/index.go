@@ -92,4 +92,13 @@ func Indexing(data []IndexData) {
 		return
 	}
 	log.Printf("[From search engine] Finish index successfully. doc count: %d\n\n", docCount)
+
+	err = index.Close()
+	if err != nil {
+		log.Printf("[Error from search engine] failed to close index: %v\n", err)
+		return
+	}
+
+	res := Search("windows", 10, 0)
+	log.Println(res)
 }
