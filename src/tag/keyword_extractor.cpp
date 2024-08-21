@@ -27,23 +27,20 @@ void set_path() {
     PyList_Append(path, PyUnicode_DecodeFSDefault("/src/tag"));
 }
 
-void initialize_python() {
-    Py_Initialize();
-    set_path();
-}
-
 void finalize_python() {
-    if (Py_FinalizeEx() < 0) {
-        std::cout << "[Error from cpp] Failed to finalize Python interpreter" << std::endl;
-    }
+    Py_Finalize();
 }
 
-// need initialize_python() and finalize_python() to be called before and after this function
 DataArray extract(const char *text, int num_keywords) {
-    std::cout << "[from cpp] Start keyword extract" << std::endl;
+    static bool is_initialized = false;
+    if (!is_initialized) {
+        Py_Initialize();
+        set_path();
+        is_initialized = true;
+    }
 
     std::vector<Data> dataList;
-    DataArray dataArray;
+    DataArray dataArray = {nullptr, nullptr, 0};
 
     // pythonファイル名からモジュールを読み込む
     PyObject *pName = PyUnicode_DecodeFSDefault("keyword_extractor");
@@ -80,7 +77,7 @@ DataArray extract(const char *text, int num_keywords) {
 
             // 関数の実行
             PyObject *pList = PyObject_CallObject(pFunc, pArgs);
-            //Py_DECREF(pArgs);
+            Py_DECREF(pArgs);
 
             if (pList != nullptr && PyList_Check(pList)) {
                 // 戻り値の処理
@@ -99,7 +96,6 @@ DataArray extract(const char *text, int num_keywords) {
                             dataList.push_back(data);
                         }
                     }
-                    Py_DECREF(pDict);
                 }
 
                 Py_DECREF(pList);
@@ -126,8 +122,6 @@ DataArray extract(const char *text, int num_keywords) {
 
     std::cout << "[from cpp] Finish keyword extract" << std::endl;
 
-
-
     // convert vector to DataArray
     dataArray.size = dataList.size();
     dataArray.tag_names = (char**)malloc(dataList.size() * sizeof(char*));
@@ -148,11 +142,15 @@ DataArray extract(const char *text, int num_keywords) {
 }
 
 void free_data_array(DataArray dataArray) {
-    for (size_t i = 0; i < dataArray.size; i++) {
-        free(dataArray.tag_names[i]);
+    if (dataArray.tag_names != nullptr) {
+        for (size_t i = 0; i < dataArray.size; i++) {
+            free(dataArray.tag_names[i]);
+        }
+        free(dataArray.tag_names);
     }
-    free(dataArray.tag_names);
-    free(dataArray.scores);
+    if (dataArray.scores != nullptr) {
+        free(dataArray.scores);
+    }
 }
 
 } // extern "C"

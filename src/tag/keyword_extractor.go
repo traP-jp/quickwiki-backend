@@ -35,8 +35,8 @@ func KeywordExtractor(text string, num_keyword int, wikiID int) []Tag {
 	scores := make([]float64, cppData.size)
 
 	for i := 0; i < int(cppData.size); i++ {
-		tagNamesPtr := (**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(cppData.tag_names)) + uintptr(i)*unsafe.Sizeof(cppData.tag_names)))
-		scoresPtr := (*C.double)(unsafe.Pointer(uintptr(unsafe.Pointer(cppData.scores)) + uintptr(i)*unsafe.Sizeof(cppData.scores)))
+		tagNamesPtr := (**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(cppData.tag_names)) + uintptr(i)*unsafe.Sizeof(*cppData.tag_names)))
+		scoresPtr := (*C.double)(unsafe.Pointer(uintptr(unsafe.Pointer(cppData.scores)) + uintptr(i)*unsafe.Sizeof(*cppData.scores)))
 
 		tagNames[i] = C.GoString(*tagNamesPtr)
 		scores[i] = float64(*scoresPtr)
@@ -55,7 +55,7 @@ func KeywordExtractor(text string, num_keyword int, wikiID int) []Tag {
 
 func KeywordExtractorMulti(data []KeywordExtractorData) [][]Tag {
 	var res [][]Tag
-	C.initialize_python()
+	// C.initialize_python()
 
 	for _, d := range data {
 		res = append(res, KeywordExtractor(d.Text, d.NumKeyword, d.WikiID))
