@@ -15,4 +15,6 @@ python: spacy model, pkeが必要
 
 python3-dev をインストール
 
-ライブラリパスは適宜調整
+ライブラリパスとpythonバージョンは適宜調整
+
+cannot find module エラーはpython側の問題の可能性

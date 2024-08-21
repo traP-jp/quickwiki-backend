@@ -32,9 +32,13 @@ WORKDIR /src
 
 # Build keyword_extractor.cpp
 RUN g++ ./tag/keyword_extractor.cpp -shared -o ./tag/libkeyword_extractor.so -fPIC `pkg-config python3 --cflags` -lpython$PYTHON_VERSION
-RUN export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/src/tag
 
 # Build Go
-RUN go mod tidy && go build -o main
+RUN go mod tidy && go build -o ./main
+# WORKDIR /src/tag
+# RUN g++ main.cpp -o main.o -L. -lkeyword_extractor `pkg-config python3 --cflags` -lpython$PYTHON_VERSION
 
-ENTRYPOINT ./main
+ENV LD_LIBRARY_PATH=/src/tag:$LD_LIBRARY_PATH
+
+# ENTRYPOINT ./main
+ENTRYPOINT ["./main"]

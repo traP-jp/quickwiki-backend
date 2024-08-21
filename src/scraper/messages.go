@@ -2,11 +2,10 @@ package scraper
 
 import (
 	"context"
-	"log"
-	"regexp"
-
 	"github.com/traPtitech/go-traq"
 	traqwsbot "github.com/traPtitech/traq-ws-bot"
+	"log"
+	"regexp"
 )
 
 func (s *Scraper) GetSodanMessages(bot *traqwsbot.Bot) {
@@ -14,13 +13,17 @@ func (s *Scraper) GetSodanMessages(bot *traqwsbot.Bot) {
 		API().
 		MessageApi.
 		GetMessages(context.Background(), "aff37b5f-0911-4255-81c3-b49985c8943f").
-		Offset(15).
-		Limit(20).
+		Offset(int32(15)).
+		Limit(int32(20)).
 		Execute()
 	if err != nil {
 		log.Println(err)
 	}
 
+	log.Println("--------------------")
+	for _, m := range sodanMessages {
+		log.Println(m.CreatedAt)
+	}
 	//sampleMessages := []traq.Message{}
 	//sampleMessages = append(sampleMessages, traq.Message{
 	//	Id:        "id1",
@@ -66,6 +69,9 @@ func (s *Scraper) GetSodanMessages(bot *traqwsbot.Bot) {
 	s.GetSodanSubMessages(bot, "7ec94f1d-1920-4e15-bfc5-049c9a289692", 5, 18)
 	s.GetSodanSubMessages(bot, "c67abb48-3fb0-4486-98ad-4b6947998ad5", 0, 21)
 	s.GetSodanSubMessages(bot, "eb5a0035-a340-4cf6-a9e0-94ddfabe9337", 0, 2)
+
+	s.updateWikisContent()
+	s.setSodanTags()
 }
 
 func (s *Scraper) GetSodanSubMessages(bot *traqwsbot.Bot, channelId string, offset int, limit int) {
@@ -80,6 +86,11 @@ func (s *Scraper) GetSodanSubMessages(bot *traqwsbot.Bot, channelId string, offs
 		Execute()
 	if err != nil {
 		log.Println(err)
+	}
+
+	log.Println("--------------------")
+	for _, m := range messages {
+		log.Println(m.CreatedAt)
 	}
 
 	// reverse messages slice
@@ -113,6 +124,7 @@ func (s *Scraper) GetWikiIDByMessageId(messageId string) int {
 	var wikiId int
 	err := s.db.Get(&wikiId, "SELECT wiki_id FROM messages WHERE message_traq_id = ?", messageId)
 	if err != nil {
+		log.Println("failed to get wiki id")
 		log.Println(err)
 	}
 	return wikiId
@@ -132,7 +144,7 @@ func (s *Scraper) AddMessageToDB(m traq.Message, wikiId int) {
 		newMessage.WikiID, newMessage.Content, newMessage.CreatedAt, newMessage.UpdatedAt, newMessage.UserTraqID, newMessage.ChannelID, newMessage.MessageID)
 	if err != nil {
 		log.Println("failed to insert message")
-		log.Println(newMessage)
+		log.Printf("%+v\n", newMessage.ID, newMessage)
 		log.Println(err)
 	}
 	messageId, err := result.LastInsertId()
@@ -158,6 +170,35 @@ func (s *Scraper) AddMessageToDB(m traq.Message, wikiId int) {
 		_, err := s.db.Exec("INSERT INTO messageStamps (message_id, stamp_traq_id, count) VALUES (?, ?, ?)",
 			newStamp.MessageID, newStamp.StampTraqID, newStamp.Count)
 		if err != nil {
+			log.Println(err)
+		}
+	}
+}
+
+func (s *Scraper) updateWikisContent() {
+	var wikis []Wiki
+	err := s.db.Select(&wikis, "SELECT * FROM wikis WHERE type = 'sodan'")
+	if err != nil {
+		log.Println("failed to get wikis")
+		log.Println(err)
+	}
+
+	for _, wiki := range wikis {
+		var messages []Message
+		err = s.db.Select(&messages, "SELECT * FROM messages WHERE wiki_id = ?", wiki.ID)
+		if err != nil {
+			log.Println("failed to get messages")
+			log.Println(err)
+		}
+
+		content := ""
+		for _, m := range messages {
+			content += m.Content + "\n"
+		}
+
+		_, err = s.db.Exec("UPDATE wikis SET content = ? WHERE id = ?", content, wiki.ID)
+		if err != nil {
+			log.Println("failed to update wiki")
 			log.Println(err)
 		}
 	}

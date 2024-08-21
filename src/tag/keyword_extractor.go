@@ -8,15 +8,23 @@ package tag
 */
 import "C"
 import (
+	"log"
 	"unsafe"
 )
 
 type Tag struct {
+	WikiID  int
 	TagName string
 	Score   float64
 }
 
-func KeywordExtractor(text string, num_keyword int) []Tag {
+type KeywordExtractorData struct {
+	WikiID     int
+	Text       string
+	NumKeyword int
+}
+
+func KeywordExtractor(text string, num_keyword int, wikiID int) []Tag {
 	CText := C.CString(text)
 	defer C.free(unsafe.Pointer(CText))
 
@@ -34,10 +42,25 @@ func KeywordExtractor(text string, num_keyword int) []Tag {
 		scores[i] = float64(*scoresPtr)
 	}
 
+	log.Println("-----------------")
+	log.Println("num_keyword: ", num_keyword)
 	Tags := make([]Tag, cppData.size)
 	for i := 0; i < int(cppData.size); i++ {
-		Tags[i] = Tag{TagName: tagNames[i], Score: scores[i]}
+		Tags[i] = Tag{WikiID: wikiID, TagName: tagNames[i], Score: scores[i]}
+		log.Printf("tag: %s, score: %f", Tags[i].TagName, Tags[i].Score)
 	}
 
 	return Tags
+}
+
+func KeywordExtractorMulti(data []KeywordExtractorData) [][]Tag {
+	var res [][]Tag
+	C.initialize_python()
+
+	for _, d := range data {
+		res = append(res, KeywordExtractor(d.Text, d.NumKeyword, d.WikiID))
+	}
+
+	C.finalize_python()
+	return res
 }

@@ -24,12 +24,23 @@ extern "C"
 void set_path() {
     PyObject *sys = PyImport_ImportModule("sys");
     PyObject *path = PyObject_GetAttrString(sys, "path");
-    PyList_Append(path, PyUnicode_DecodeFSDefault("."));
+    PyList_Append(path, PyUnicode_DecodeFSDefault("/src/tag"));
 }
 
-DataArray extract(const char *text, int num_keywords) {
+void initialize_python() {
     Py_Initialize();
     set_path();
+}
+
+void finalize_python() {
+    if (Py_FinalizeEx() < 0) {
+        std::cout << "[Error from cpp] Failed to finalize Python interpreter" << std::endl;
+    }
+}
+
+// need initialize_python() and finalize_python() to be called before and after this function
+DataArray extract(const char *text, int num_keywords) {
+    std::cout << "[from cpp] Start keyword extract" << std::endl;
 
     std::vector<Data> dataList;
     DataArray dataArray;
@@ -112,11 +123,10 @@ DataArray extract(const char *text, int num_keywords) {
     } else {
         std::cout << "[Error from cpp] Cannot find module: keyword_extractor.py" << std::endl;
     }
-    
-    if (Py_FinalizeEx() < 0) {
-        std::cout << "[Error from cpp] Failed to finalize Python interpreter" << std::endl;
-        return dataArray;
-    }
+
+    std::cout << "[from cpp] Finish keyword extract" << std::endl;
+
+
 
     // convert vector to DataArray
     dataArray.size = dataList.size();

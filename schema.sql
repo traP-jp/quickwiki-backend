@@ -36,14 +36,10 @@ CREATE TABLE memos (
 );
 CREATE TABLE tags (
     id INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    name TEXT NOT NULL
-);
-CREATE TABLE tags_in_wiki (
     wiki_id INT(11) NOT NULL,
-    tag_id INT(11) NOT NULL,
-    PRIMARY KEY (wiki_id, tag_id),
-    FOREIGN KEY (wiki_id) REFERENCES wikis(id),
-    FOREIGN KEY (tag_id) REFERENCES tags(id)
+    name TEXT NOT NULL,
+    tag_score FLOAT8 NOT NULL,
+    FOREIGN KEY (wiki_id) REFERENCES wikis(id)
 );
 CREATE TABLE lectures (
     id INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
