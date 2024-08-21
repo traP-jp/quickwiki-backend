@@ -153,7 +153,7 @@ func (h *Handler) GetLectureHandler(c echo.Context) error {
 	})
 }
 
-// /sodan/?wiliId=
+// /sodan/?wikiId=
 func (h *Handler) GetSodanHandler(c echo.Context) error {
 
 	Response := NewSodanResponse()
@@ -242,5 +242,55 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 			}
 		}
 	}
+	return c.JSON(http.StatusOK, Response)
+}
+
+// /memo?wikiId=
+func (h *Handler) GetMemoHandler(c echo.Context) error {
+
+	Response := NewMemoResponse()
+
+	wikiId, err := strconv.Atoi(c.QueryParam("wikiId"))
+	if err != nil {
+		log.Printf("failed to convert wikiId to int: %v", err)
+		return c.JSON(http.StatusBadRequest, err)
+	}
+
+	var wikiContent WikiContent_fromDB
+	err = h.db.Get(&wikiContent, "select * from wikis where id = ?", wikiId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return c.NoContent(http.StatusNotFound)
+		}
+		log.Printf("failed to get wikiContent: %s\n", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	if wikiContent.Type == "memo" {
+		Response.WikiID = wikiContent.ID
+		Response.Title = wikiContent.Name
+		Response.Content = wikiContent.Content
+		Response.OwnerTraqID = wikiContent.OwnerTraqID
+		Response.CreatedAt = wikiContent.CreatedAt
+		Response.UpdatedAt = wikiContent.UpdatedAt
+	} else {
+		log.Printf("This wikiId exists, but it is not a 'memo'.")
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	var tags []Tag_fromDB
+	var howManyTags int
+	err = h.db.Select(&tags, "select * from tags where wiki_id = ?", wikiId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return c.NoContent(http.StatusNotFound)
+		}
+		log.Printf("failed to get tags: %s\n", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	howManyTags = len(tags)
+	for i := 0; i < howManyTags; i++ {
+		Response.Tags = append(Response.Tags, tags[i].TagName)
+	}
+
 	return c.JSON(http.StatusOK, Response)
 }
