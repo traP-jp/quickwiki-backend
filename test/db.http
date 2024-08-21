@@ -22,3 +22,6 @@ Content-Type: application/json
 {
   "name": "test"
 }
+
+###
+GET http://localhost:8080/search

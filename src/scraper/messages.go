@@ -65,13 +65,14 @@ func (s *Scraper) GetSodanMessages(bot *traqwsbot.Bot) {
 	}
 
 	s.GetSodanSubMessages(bot, "98ea48da-64e8-4f69-9d0d-80690b682670", 11, 52)
-	s.GetSodanSubMessages(bot, "30c30aa5-c380-4324-b227-0ca85c34801c", 4, 32)
+	s.GetSodanSubMessages(bot, "30c30aa5-c380-4324-b227-0ca85c34801c", 6, 32)
 	s.GetSodanSubMessages(bot, "7ec94f1d-1920-4e15-bfc5-049c9a289692", 5, 18)
 	s.GetSodanSubMessages(bot, "c67abb48-3fb0-4486-98ad-4b6947998ad5", 0, 21)
 	s.GetSodanSubMessages(bot, "eb5a0035-a340-4cf6-a9e0-94ddfabe9337", 0, 2)
 
 	s.updateWikisContent()
 	s.setSodanTags()
+	s.setIndexing()
 }
 
 func (s *Scraper) GetSodanSubMessages(bot *traqwsbot.Bot, channelId string, offset int, limit int) {
