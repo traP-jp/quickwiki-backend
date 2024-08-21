@@ -13,11 +13,11 @@ import (
 )
 
 type IndexData struct {
-	ID      int
-	Type    string
-	Title   string
-	Author  string
-	Content string
+	ID          int
+	Type        string
+	Title       string
+	OwnerTraqID string
+	Content     string
 }
 
 func createIndexMapping() mapping.IndexMapping {
@@ -26,10 +26,10 @@ func createIndexMapping() mapping.IndexMapping {
 	japaneseTextFieldMapping := bleve.NewTextFieldMapping()
 	japaneseTextFieldMapping.Analyzer = "ja_analyzer"
 	documentMapping := bleve.NewDocumentMapping()
-	documentMapping.AddFieldMappingsAt("type", typeMapping)
-	documentMapping.AddFieldMappingsAt("title", japaneseTextFieldMapping)
-	documentMapping.AddFieldMappingsAt("author", typeMapping)
-	documentMapping.AddFieldMappingsAt("content", japaneseTextFieldMapping)
+	documentMapping.AddFieldMappingsAt("Type", typeMapping)
+	documentMapping.AddFieldMappingsAt("Title", japaneseTextFieldMapping)
+	documentMapping.AddFieldMappingsAt("OwnerTraqID", typeMapping)
+	documentMapping.AddFieldMappingsAt("Content", japaneseTextFieldMapping)
 
 	indexMapping := bleve.NewIndexMapping()
 	indexMapping.TypeField = "type"
@@ -41,7 +41,7 @@ func createIndexMapping() mapping.IndexMapping {
 		"stop_tags": true,
 	})
 	if err != nil {
-		log.Printf("failed to add custom tokenizer: %v\n", err)
+		log.Printf("[Error from search engine] failed to add custom tokenizer: %v\n", err)
 		return nil
 	}
 	err = indexMapping.AddCustomAnalyzer("ja_analyzer", map[string]interface{}{
@@ -53,7 +53,7 @@ func createIndexMapping() mapping.IndexMapping {
 		},
 	})
 	if err != nil {
-		log.Printf("failed to add custom analyzer: %v\n", err)
+		log.Printf("[Error from search engine] failed to add custom analyzer: %v\n", err)
 		return nil
 	}
 
@@ -67,29 +67,29 @@ func Indexing(data []IndexData) {
 		indexMapping := createIndexMapping()
 		index, err = bleve.New("index.bleve", indexMapping)
 		if err != nil {
-			log.Printf("failed to create index: %v\n", err)
+			log.Printf("[Error from search engine] failed to create index: %v\n", err)
 			return
 		}
 	} else {
 		// already exists
 		index, err = bleve.Open("index.bleve")
 		if err != nil {
-			log.Printf("failed to open index: %v\n", err)
+			log.Printf("[Error from search engine] failed to open index: %v\n", err)
 			return
 		}
 	}
 	for _, d := range data {
 		err := index.Index(strconv.Itoa(d.ID), d)
 		if err != nil {
-			log.Printf("failed to index: %v\n", err)
+			log.Printf("[Error from search engine] failed to index: %v\n", err)
 			return
 		}
 	}
 
 	docCount, err := index.DocCount()
 	if err != nil {
-		log.Printf("failed to get doc count: %v\n", err)
+		log.Printf("[Error from search engine] failed to get doc count: %v\n", err)
 		return
 	}
-	log.Printf("Finish index successfully. doc count: %d\n\n", docCount)
+	log.Printf("[From search engine] Finish index successfully. doc count: %d\n\n", docCount)
 }
