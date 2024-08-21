@@ -12,6 +12,8 @@ tags:
     description: sodanと備忘録
   - name: user
     description: ユーザー関連
+  - name: other
+    description: その他 TraQとの通信など
 paths:
   /ping:
     get:
@@ -267,7 +269,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/memo'
-  /wiki/user/{userId}:
+  /wiki/user:
     get:
       tags:
         - user
@@ -286,18 +288,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/memoList'
-  /wiki/user/{userId}/favorite:
+  /wiki/user/favorite:
     get:
       tags:
         - user
       summary: ユーザーのお気に入りの備忘録 & sodanの取得
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-          description: ユーザーID
       responses:
         '200':
           description: OK
@@ -388,6 +383,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/user'
+  /files/{fileID}:
+    get:
+      tags:
+        - other
+      summary: ファイルの取得(ダウンロード)
+      parameters:
+        - name: fileID
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ファイルID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
 
 
 components:
@@ -535,6 +550,36 @@ components:
           items:
             $ref: '#/components/schemas/message'
     message:
+      type: object
+      properties:
+        userTraqId:
+          type: string
+          example: kavos
+        content:
+          type: string
+          example: メッセージの中身
+        createdAt:
+          type: string
+          example: 2021-01-01 00:00:00
+        updatedAt:
+          type: string
+          example: 2021-01-01 00:00:00
+        stamps:
+          type: array
+          items:
+            type: object
+            properties:
+              stampId:
+                type: string
+                example: abcd-efgh-ijkl
+              count:
+                type: integer
+                example: 3
+        citations:
+          type: array
+          items:
+            $ref: '#/components/schemas/messageWithoutCitations'
+    messageWithoutCitations:
       type: object
       properties:
         userTraqId:
