@@ -46,9 +46,10 @@ type WikiContent_fromDB struct {
 
 // sqlよりtagを取ってくるときに使う
 type Tag_fromDB struct {
+	TagID int `db:"id"`
 	WikiID  int    `db:"wiki_id"`
-	TagID   int    `db:"tag_id"`
 	TagName string `db:"name"`
+	TagScore float64 `db:"tag_score"`
 }
 
 // sqlのmessagesから情報を取ってくるときに使う

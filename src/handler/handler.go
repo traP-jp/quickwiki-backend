@@ -176,22 +176,20 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 	}
 	Response.Title = wikiContent.Name
 
-	// tagの実装がまだなのでコメントアウト,直下にダミーを実装
-	// var tags []Tag_fromDB
-	// var howManyTags int
-	// err = h.db.Get(&tags, "select * from tags join tags_in_wiki on tag_id where wiki_id = ?", wikiId)
-	// if err != nil {
-	// 	if errors.Is(err, sql.ErrNoRows) {
-	// 		return c.NoContent(http.StatusNotFound)
-	// 	}
-	// 	log.Printf("failed to get tags: %s\n", err)
-	// 	return c.NoContent(http.StatusInternalServerError)
-	// }
-	// howManyTags = len(tags)
-	// for i := 0; i < howManyTags; i++ {
-	// 	Response.Tags = append(Response.Tags, tags[i].TagName)
-	// }
-	Response.Tags = []string{"hoge", "fuga"}
+	var tags []Tag_fromDB
+	var howManyTags int
+	err = h.db.Select(&tags, "select * from tags where wiki_id = ?", wikiId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return c.NoContent(http.StatusNotFound)
+		}
+		log.Printf("failed to get tags: %s\n", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	howManyTags = len(tags)
+	for i := 0; i < howManyTags; i++ {
+		Response.Tags = append(Response.Tags, tags[i].TagName)
+	}
 
 	var messageContents []SodanContent_fromDB
 	var howManyMessages int

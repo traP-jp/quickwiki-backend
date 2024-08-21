@@ -2,10 +2,11 @@ package scraper
 
 import (
 	"context"
-	"github.com/traPtitech/go-traq"
-	traqwsbot "github.com/traPtitech/traq-ws-bot"
 	"log"
 	"regexp"
+
+	"github.com/traPtitech/go-traq"
+	traqwsbot "github.com/traPtitech/traq-ws-bot"
 )
 
 func (s *Scraper) GetSodanMessages(bot *traqwsbot.Bot) {
@@ -13,7 +14,7 @@ func (s *Scraper) GetSodanMessages(bot *traqwsbot.Bot) {
 		API().
 		MessageApi.
 		GetMessages(context.Background(), "aff37b5f-0911-4255-81c3-b49985c8943f").
-		Offset(int32(15)).
+		Offset(int32(16)).
 		Limit(int32(20)).
 		Execute()
 	if err != nil {
@@ -65,7 +66,7 @@ func (s *Scraper) GetSodanMessages(bot *traqwsbot.Bot) {
 	}
 
 	s.GetSodanSubMessages(bot, "98ea48da-64e8-4f69-9d0d-80690b682670", 11, 52)
-	s.GetSodanSubMessages(bot, "30c30aa5-c380-4324-b227-0ca85c34801c", 0, 32)
+	s.GetSodanSubMessages(bot, "30c30aa5-c380-4324-b227-0ca85c34801c", 6, 32)
 	s.GetSodanSubMessages(bot, "7ec94f1d-1920-4e15-bfc5-049c9a289692", 5, 18)
 	s.GetSodanSubMessages(bot, "c67abb48-3fb0-4486-98ad-4b6947998ad5", 0, 21)
 	s.GetSodanSubMessages(bot, "eb5a0035-a340-4cf6-a9e0-94ddfabe9337", 0, 2)
