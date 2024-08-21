@@ -273,6 +273,7 @@ func (h *Handler) GetMemoHandler(c echo.Context) error {
 		Response.CreatedAt = wikiContent.CreatedAt
 		Response.UpdatedAt = wikiContent.UpdatedAt
 	} else {
+		log.Printf("This wikiId exists, but it is not a 'memo'.")
 		return c.NoContent(http.StatusNotFound)
 	}
 
