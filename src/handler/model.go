@@ -41,14 +41,15 @@ type WikiContent_fromDB struct {
 	CreatedAt   time.Time `db:"created_at"`
 	UpdatedAt   time.Time `db:"updated_at"`
 	OwnerTraqID string    `db:"owner_traq_id"`
-	WikiContent string    `db:"content"`
+	Content     string    `db:"content"`
 }
 
 // sqlよりtagを取ってくるときに使う
 type Tag_fromDB struct {
-	WikiID  int    `db:"wiki_id"`
-	TagID   int    `db:"tag_id"`
-	TagName string `db:"name"`
+	TagID    int     `db:"id"`
+	WikiID   int     `db:"wiki_id"`
+	TagName  string  `db:"name"`
+	TagScore float64 `db:"tag_score"`
 }
 
 // sqlのmessagesから情報を取ってくるときに使う
@@ -85,14 +86,15 @@ type MessageContent_SodanResponse struct {
 	UpdatedAt  time.Time              `json:"updatedAt"`
 	Stamps     []Stamp_MessageContent `json:"stamps"`
 }
+
 // MessageContent_SodanResponseのコンストラクタ関数
 func NewMessageContent_SodanResponse() *MessageContent_SodanResponse {
 	return &MessageContent_SodanResponse{
 		UserTraqID: "",
-		Content: "",
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-		Stamps: []Stamp_MessageContent{},
+		Content:    "",
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
+		Stamps:     []Stamp_MessageContent{},
 	}
 }
 
@@ -113,5 +115,39 @@ func NewSodanResponse() *SodanResponse {
 		Tags:            []string{},
 		QuestionMessage: MessageContent_SodanResponse{},
 		AnswerMessages:  []MessageContent_SodanResponse{},
+	}
+}
+
+// sqlのmemosより情報を取ってくるときに使う
+type MemoContent_fromDB struct {
+	ID          int       `db:"id"`
+	WikiID      int       `db:"wiki_id"`
+	CreatedAt   time.Time `db:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at"`
+	OwnerTraqID string    `db:"owner_traq_id"`
+	Content     string    `db:"content"`
+}
+
+// GET/memo?wikiId のResponse構造体
+type MemoResponse struct {
+	WikiID      int       `json:"id"`
+	Title       string    `json:"title"`
+	Content     string    `json:"content"`
+	OwnerTraqID string    `json:"ownerTraqId"`
+	Tags        []string  `json:"tags"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+}
+
+// MemoResponseのコンストラクタ関数
+func NewMemoResponse() *MemoResponse {
+	return &MemoResponse{
+		WikiID:      0,
+		Title:       "",
+		Content:     "",
+		OwnerTraqID: "",
+		Tags:        []string{},
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
 	}
 }

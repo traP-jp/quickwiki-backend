@@ -50,6 +50,7 @@ func main() {
 	e.GET("/lecture/folder/:folderId", h.GetLectureChildFolderHandler)
 	e.GET("/lecture/lectureId", h.GetLectureHandler)
 	e.GET("/sodan", h.GetSodanHandler)
+	e.GET("/memo", h.GetMemoHandler)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
