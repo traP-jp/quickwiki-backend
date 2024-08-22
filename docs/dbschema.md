@@ -7,8 +7,8 @@
 - [citedMessages](#citedmessages)
 - [memos](#memos)
 - [tags](#tags)
-- [lectures](#lectures)
 - [folders](#folders)
+- [lectures](#lectures)
 - [favorites](#favorites)
 ## Tables
 
@@ -59,8 +59,13 @@
 | Column Name | Data Type | Constraints |
 |-------------|-----------|-------------|
 | id | int(11) | not null primary key auto_increment |
-| message_traq_id | char(36) | not null |
 | parent_message_id | int(11) | not null |
+| created_at | timestamp | not null default current_timestamp |
+| updated_at | timestamp | not null default current_timestamp |
+| user_traq_id | char(36) | not null |
+| message_traq_id | char(36) | not null |
+| channel_id | char(36) | not null |
+| content | text | not null |
 
 ##### Foreign Keys
 | Key Name | Reference |
@@ -95,6 +100,15 @@
 | Key Name | Reference |
 |----------|-----------|
 | (wiki_id) | wikis(id) |
+### folders
+
+| Column Name | Data Type | Constraints |
+|-------------|-----------|-------------|
+| id | int(11) | not null primary key auto_increment |
+| name | text | not null |
+| parent_id | int(11) |  |
+| 0 | if | root |
+
 ### lectures
 
 | Column Name | Data Type | Constraints |
@@ -109,15 +123,6 @@
 | Key Name | Reference |
 |----------|-----------|
 | (folder_id) | folders(id) |
-### folders
-
-| Column Name | Data Type | Constraints |
-|-------------|-----------|-------------|
-| id | int(11) | not null primary key auto_increment |
-| name | text | not null |
-| parent_id | int(11) |  |
-| 0 | if | root |
-
 ### favorites
 
 | Column Name | Data Type | Constraints |

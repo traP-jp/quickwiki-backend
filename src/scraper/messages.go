@@ -3,7 +3,7 @@ package scraper
 import (
 	"context"
 	"log"
-	"quickwiki-backend/handler"
+	"quickwiki-backend/model"
 	"regexp"
 
 	"github.com/traPtitech/go-traq"
@@ -25,8 +25,8 @@ func (s *Scraper) GetSodanMessages() {
 	for _, m := range sodanMessages {
 		log.Println(m.CreatedAt)
 	}
-	//sampleMessages := []traq.handler.SodanContent_fromDB{}
-	//sampleMessages = append(sampleMessages, traq.handler.SodanContent_fromDB{
+	//sampleMessages := []traq.model.SodanContent_fromDB{}
+	//sampleMessages = append(sampleMessages, traq.model.SodanContent_fromDB{
 	//	Id:        "id1",
 	//	UserId:    "u1",
 	//	ChannelId: "c1",
@@ -42,7 +42,7 @@ func (s *Scraper) GetSodanMessages() {
 	//})
 
 	for _, m := range sodanMessages {
-		newSodan := handler.WikiContent_fromDB{
+		newSodan := model.WikiContent_fromDB{
 			Name:        m.Content,
 			Type:        "sodan",
 			Content:     m.Content,
@@ -132,7 +132,7 @@ func (s *Scraper) GetWikiIDByMessageId(messageId string) int {
 }
 
 func (s *Scraper) AddMessageToDB(m traq.Message, wikiId int) {
-	newMessage := handler.SodanContent_fromDB{
+	newMessage := model.SodanContent_fromDB{
 		WikiID:         wikiId,
 		MessageContent: m.Content,
 		CreatedAt:      m.CreatedAt,
@@ -164,7 +164,7 @@ func (s *Scraper) AddMessageToDB(m traq.Message, wikiId int) {
 	}
 
 	for stampId, count := range stampCount {
-		newStamp := handler.Stamp_fromDB{
+		newStamp := model.Stamp_fromDB{
 			MessageID:   int(messageId),
 			StampTraqID: stampId,
 			StampCount:  count,
@@ -178,7 +178,7 @@ func (s *Scraper) AddMessageToDB(m traq.Message, wikiId int) {
 }
 
 func (s *Scraper) updateWikisContent() {
-	var wikis []handler.WikiContent_fromDB
+	var wikis []model.WikiContent_fromDB
 	err := s.db.Select(&wikis, "SELECT * FROM wikis WHERE type = 'sodan'")
 	if err != nil {
 		log.Println("failed to get wikis")
@@ -186,7 +186,7 @@ func (s *Scraper) updateWikisContent() {
 	}
 
 	for _, wiki := range wikis {
-		var messages []handler.SodanContent_fromDB
+		var messages []model.SodanContent_fromDB
 		err = s.db.Select(&messages, "SELECT * FROM messages WHERE wiki_id = ?", wiki.ID)
 		if err != nil {
 			log.Println("failed to get messages")
@@ -206,7 +206,7 @@ func (s *Scraper) updateWikisContent() {
 	}
 }
 
-func (s *Scraper) extractCitedMessage(m handler.SodanContent_fromDB) {
+func (s *Scraper) extractCitedMessage(m model.SodanContent_fromDB) {
 	re := regexp.MustCompile(`https://q.trap.jp/messages/([^!*]{36})`)
 	cites := re.FindAllString(m.MessageContent, -1)
 	for _, cite := range cites {
@@ -216,7 +216,7 @@ func (s *Scraper) extractCitedMessage(m handler.SodanContent_fromDB) {
 			log.Println("failed to get cited message")
 			log.Println(err)
 		}
-		citedMessage := handler.CitedMessage_fromDB{
+		citedMessage := model.CitedMessage_fromDB{
 			ParentMessageID: m.ID,
 			CreatedAt:       resp.CreatedAt,
 			UpdatedAt:       resp.UpdatedAt,

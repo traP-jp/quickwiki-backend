@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"quickwiki-backend/model"
 	"quickwiki-backend/scraper"
 	"strconv"
 	"strings"
@@ -36,7 +37,7 @@ func (h *Handler) GetLectureByFolderIDHandler(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	lectures := []LectureFromDB{}
+	lectures := []model.LectureFromDB{}
 	err = h.db.Select(&lectures, "SELECT * FROM lectures WHERE folder_id = ?", folderID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -46,9 +47,9 @@ func (h *Handler) GetLectureByFolderIDHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	lecturesWithFolderPath := []Lecture{}
+	lecturesWithFolderPath := []model.Lecture{}
 	for _, lecture := range lectures {
-		lecturesWithFolderPath = append(lecturesWithFolderPath, Lecture{
+		lecturesWithFolderPath = append(lecturesWithFolderPath, model.Lecture{
 			ID:         lecture.ID,
 			Title:      lecture.Title,
 			Content:    lecture.Content,
@@ -64,7 +65,7 @@ func (h *Handler) GetLectureByFolderPathHandler(c echo.Context) error {
 	folderPath := c.QueryParam("folderPath")
 
 	folderPath = "/" + strings.ReplaceAll(folderPath, "-", " /")
-	lectures := []LectureFromDB{}
+	lectures := []model.LectureFromDB{}
 	err := h.db.Select(&lectures, "SELECT * FROM lectures WHERE folder_path = ?", folderPath)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -74,9 +75,9 @@ func (h *Handler) GetLectureByFolderPathHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	lecturesWithFolderPath := []Lecture{}
+	lecturesWithFolderPath := []model.Lecture{}
 	for _, lecture := range lectures {
-		lecturesWithFolderPath = append(lecturesWithFolderPath, Lecture{
+		lecturesWithFolderPath = append(lecturesWithFolderPath, model.Lecture{
 			ID:         lecture.ID,
 			Title:      lecture.Title,
 			Content:    lecture.Content,
@@ -95,9 +96,9 @@ func (h *Handler) GetLectureChildFolderHandler(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	files := []File{}
+	files := []model.File{}
 
-	childFolders := []FolderFromDB{}
+	childFolders := []model.FolderFromDB{}
 	err = h.db.Select(&childFolders, "SELECT * FROM folders WHERE parent_id = ?", folderID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		log.Printf("failed to get child folders: %v", err)
@@ -105,14 +106,14 @@ func (h *Handler) GetLectureChildFolderHandler(c echo.Context) error {
 	}
 
 	for _, folder := range childFolders {
-		files = append(files, File{
+		files = append(files, model.File{
 			ID:       folder.ID,
 			Name:     folder.Name,
 			IsFolder: true,
 		})
 	}
 
-	childLectures := []LectureOnlyName{}
+	childLectures := []model.LectureOnlyName{}
 	err = h.db.Select(&childLectures, "SELECT id, title FROM lectures WHERE folder_id = ?", folderID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		log.Printf("failed to get child lectures: %v", err)
@@ -120,7 +121,7 @@ func (h *Handler) GetLectureChildFolderHandler(c echo.Context) error {
 	}
 
 	for _, lecture := range childLectures {
-		files = append(files, File{
+		files = append(files, model.File{
 			ID:       lecture.ID,
 			Name:     lecture.Title,
 			IsFolder: false,
@@ -138,7 +139,7 @@ func (h *Handler) GetLectureHandler(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	lecture := LectureFromDB{}
+	lecture := model.LectureFromDB{}
 	err = h.db.Get(&lecture, "SELECT * FROM lectures WHERE id = ?", lectureID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -148,7 +149,7 @@ func (h *Handler) GetLectureHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	return c.JSON(http.StatusOK, Lecture{
+	return c.JSON(http.StatusOK, model.Lecture{
 		ID:         lecture.ID,
 		Title:      lecture.Title,
 		Content:    lecture.Content,
@@ -159,7 +160,7 @@ func (h *Handler) GetLectureHandler(c echo.Context) error {
 // /sodan/?wikiId=
 func (h *Handler) GetSodanHandler(c echo.Context) error {
 
-	Response := NewSodanResponse()
+	Response := model.NewSodanResponse()
 
 	wikiId, err := strconv.Atoi(c.QueryParam("wikiId"))
 	if err != nil {
@@ -168,7 +169,7 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 	}
 	Response.WikiID = wikiId
 
-	var wikiContent WikiContent_fromDB
+	var wikiContent model.WikiContent_fromDB
 	err = h.db.Get(&wikiContent, "select * from wikis where id = ?", wikiId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -180,7 +181,7 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 	Response.Title = wikiContent.Name
 
 	// get tags
-	var tags []Tag_fromDB
+	var tags []model.Tag_fromDB
 	var howManyTags int
 	err = h.db.Select(&tags, "select * from tags where wiki_id = ?", wikiId)
 	if err != nil {
@@ -196,7 +197,7 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 	}
 
 	// get messages
-	var messageContents []SodanContent_fromDB
+	var messageContents []model.SodanContent_fromDB
 	var howManyMessages int
 	err = h.db.Select(&messageContents, "select * from messages where wiki_id = ? order by created_at", wikiId)
 	if err != nil {
@@ -212,16 +213,16 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 	Response.QuestionMessage.Content = messageContents[0].MessageContent
 	Response.QuestionMessage.CreatedAt = messageContents[0].CreatedAt
 	Response.QuestionMessage.UpdatedAt = messageContents[0].UpdatedAt
-	citedMessagesFromDB := []CitedMessage_fromDB{}
+	citedMessagesFromDB := []model.CitedMessage_fromDB{}
 	// get citedMessages for question
 	err = h.db.Select(&citedMessagesFromDB, "select * from citedMessages where parent_message_id = ?", messageContents[0].ID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		log.Printf("failed to get citedMessagesFromDB: %s\n", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
-	citedMessages := []MessageContentForCitations_SodanResponse{}
+	citedMessages := []model.MessageContentForCitations_SodanResponse{}
 	for _, citedMessage := range citedMessagesFromDB {
-		citedMessageContent := MessageContentForCitations_SodanResponse{
+		citedMessageContent := model.MessageContentForCitations_SodanResponse{
 			UserTraqID:     citedMessage.UserTraqID,
 			CreatedAt:      citedMessage.CreatedAt,
 			UpdatedAt:      citedMessage.UpdatedAt,
@@ -231,7 +232,7 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 	}
 	Response.QuestionMessage.Citations = citedMessages
 	for i := 1; i < howManyMessages; i++ {
-		ans_Response := NewMessageContent_SodanResponse()
+		ans_Response := model.NewMessageContent_SodanResponse()
 		ans_Response.UserTraqID = messageContents[i].UserTraqID
 		ans_Response.Content = messageContents[i].MessageContent
 		ans_Response.CreatedAt = messageContents[i].CreatedAt
@@ -242,9 +243,9 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 			log.Printf("failed to get citedMessagesFromDB: %s\n", err)
 			return c.NoContent(http.StatusInternalServerError)
 		}
-		citedMessages := []MessageContentForCitations_SodanResponse{}
+		citedMessages := []model.MessageContentForCitations_SodanResponse{}
 		for _, citedMessage := range citedMessagesFromDB {
-			citedMessageContent := MessageContentForCitations_SodanResponse{
+			citedMessageContent := model.MessageContentForCitations_SodanResponse{
 				UserTraqID:     citedMessage.UserTraqID,
 				CreatedAt:      citedMessage.CreatedAt,
 				UpdatedAt:      citedMessage.UpdatedAt,
@@ -258,7 +259,7 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 
 	// get stamps
 	for i := 0; i < howManyMessages; i++ {
-		var stamps []Stamp_fromDB
+		var stamps []model.Stamp_fromDB
 		err = h.db.Select(&stamps, "select * from messageStamps where message_id = ?", messageContents[i].ID)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
@@ -271,12 +272,12 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 		log.Println("howManyStamps : ", howManyStamps)
 		for j := 0; j < howManyStamps; j++ {
 			if i == 0 {
-				var stamps_Response Stamp_MessageContent
+				var stamps_Response model.Stamp_MessageContent
 				stamps_Response.StampTraqID = stamps[j].StampTraqID
 				stamps_Response.StampCount = stamps[j].StampCount
 				Response.QuestionMessage.Stamps = append(Response.QuestionMessage.Stamps, stamps_Response)
 			} else {
-				var stamps_Response Stamp_MessageContent
+				var stamps_Response model.Stamp_MessageContent
 				stamps_Response.StampTraqID = stamps[j].StampTraqID
 				stamps_Response.StampCount = stamps[j].StampCount
 				Response.AnswerMessages[i-1].Stamps = append(Response.QuestionMessage.Stamps, stamps_Response)
@@ -289,7 +290,7 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 // /memo?wikiId=
 func (h *Handler) GetMemoHandler(c echo.Context) error {
 
-	Response := NewMemoResponse()
+	Response := model.NewMemoResponse()
 
 	wikiId, err := strconv.Atoi(c.QueryParam("wikiId"))
 	if err != nil {
@@ -297,7 +298,7 @@ func (h *Handler) GetMemoHandler(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	var wikiContent WikiContent_fromDB
+	var wikiContent model.WikiContent_fromDB
 	err = h.db.Get(&wikiContent, "select * from wikis where id = ?", wikiId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -318,7 +319,7 @@ func (h *Handler) GetMemoHandler(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	var tags []Tag_fromDB
+	var tags []model.Tag_fromDB
 	var howManyTags int
 	err = h.db.Select(&tags, "select * from tags where wiki_id = ?", wikiId)
 	if err != nil {
