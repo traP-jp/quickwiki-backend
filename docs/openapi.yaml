@@ -578,8 +578,8 @@ components:
         citations:
           type: array
           items:
-            $ref: '#/components/schemas/messageWithoutCitations'
-    messageWithoutCitations:
+            $ref: '#/components/schemas/messageForCitations'
+    messageForCitations:
       type: object
       properties:
         userTraqId:
@@ -594,17 +594,6 @@ components:
         updatedAt:
           type: string
           example: 2021-01-01 00:00:00
-        stamps:
-          type: array
-          items:
-            type: object
-            properties:
-              stampId:
-                type: string
-                example: abcd-efgh-ijkl
-              count:
-                type: integer
-                example: 3
     memo:
       type: object
       properties:

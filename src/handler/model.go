@@ -80,11 +80,19 @@ type Stamp_MessageContent struct {
 
 // SodanResponseで使うMessageの構造体
 type MessageContent_SodanResponse struct {
-	UserTraqID string                 `json:"userTraqId"`
-	Content    string                 `json:"content"`
-	CreatedAt  time.Time              `json:"createdAt"`
-	UpdatedAt  time.Time              `json:"updatedAt"`
-	Stamps     []Stamp_MessageContent `json:"stamps"`
+	UserTraqID string                                     `json:"userTraqId"`
+	Content    string                                     `json:"content"`
+	CreatedAt  time.Time                                  `json:"createdAt"`
+	UpdatedAt  time.Time                                  `json:"updatedAt"`
+	Stamps     []Stamp_MessageContent                     `json:"stamps"`
+	Citations  []MessageContentForCitations_SodanResponse `json:"citations"`
+}
+
+type MessageContentForCitations_SodanResponse struct {
+	UserTraqID     string    `json:"userTraqId"`
+	MessageContent string    `json:"content"`
+	CreatedAt      time.Time `json:"createdAt"`
+	UpdatedAt      time.Time `json:"updatedAt"`
 }
 
 // MessageContent_SodanResponseのコンストラクタ関数
@@ -150,4 +158,15 @@ func NewMemoResponse() *MemoResponse {
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}
+}
+
+type CitedMessage_fromDB struct {
+	ID              int       `db:"id"`
+	ParentMessageID int       `db:"parent_message_id"`
+	CreatedAt       time.Time `db:"created_at"`
+	UpdatedAt       time.Time `db:"updated_at"`
+	UserTraqID      string    `db:"user_traq_id"`
+	MessageTraqID   string    `db:"message_traq_id"`
+	ChannelID       string    `db:"channel_id"`
+	Content         string    `db:"content"`
 }

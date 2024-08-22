@@ -2,11 +2,12 @@ package scraper
 
 import (
 	"log"
+	"quickwiki-backend/handler"
 	"quickwiki-backend/search"
 )
 
 func (s *Scraper) setIndexing() {
-	var wikis []Wiki
+	var wikis []handler.WikiContent_fromDB
 	err := s.db.Select(&wikis, "SELECT * FROM wikis WHERE type = 'sodan'")
 	if err != nil {
 		log.Println("failed to get wikis")

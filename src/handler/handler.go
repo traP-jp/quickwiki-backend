@@ -65,7 +65,7 @@ func (h *Handler) GetLectureByFolderPathHandler(c echo.Context) error {
 
 	folderPath = "/" + strings.ReplaceAll(folderPath, "-", " /")
 	lectures := []LectureFromDB{}
-	err := h.db.Select(&lectures, "SELECT * FROM lectures WHERE folderpath = ?", folderPath)
+	err := h.db.Select(&lectures, "SELECT * FROM lectures WHERE folder_path = ?", folderPath)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return c.JSON(http.StatusNotFound, err)
@@ -179,6 +179,7 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 	}
 	Response.Title = wikiContent.Name
 
+	// get tags
 	var tags []Tag_fromDB
 	var howManyTags int
 	err = h.db.Select(&tags, "select * from tags where wiki_id = ?", wikiId)
@@ -194,6 +195,7 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 		Response.Tags = append(Response.Tags, tags[i].TagName)
 	}
 
+	// get messages
 	var messageContents []SodanContent_fromDB
 	var howManyMessages int
 	err = h.db.Select(&messageContents, "select * from messages where wiki_id = ? order by created_at", wikiId)
@@ -210,15 +212,51 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 	Response.QuestionMessage.Content = messageContents[0].MessageContent
 	Response.QuestionMessage.CreatedAt = messageContents[0].CreatedAt
 	Response.QuestionMessage.UpdatedAt = messageContents[0].UpdatedAt
+	citedMessagesFromDB := []CitedMessage_fromDB{}
+	// get citedMessages for question
+	err = h.db.Select(&citedMessagesFromDB, "select * from citedMessages where parent_message_id = ?", messageContents[0].ID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		log.Printf("failed to get citedMessagesFromDB: %s\n", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	citedMessages := []MessageContentForCitations_SodanResponse{}
+	for _, citedMessage := range citedMessagesFromDB {
+		citedMessageContent := MessageContentForCitations_SodanResponse{
+			UserTraqID:     citedMessage.UserTraqID,
+			CreatedAt:      citedMessage.CreatedAt,
+			UpdatedAt:      citedMessage.UpdatedAt,
+			MessageContent: citedMessage.Content,
+		}
+		citedMessages = append(citedMessages, citedMessageContent)
+	}
+	Response.QuestionMessage.Citations = citedMessages
 	for i := 1; i < howManyMessages; i++ {
 		ans_Response := NewMessageContent_SodanResponse()
 		ans_Response.UserTraqID = messageContents[i].UserTraqID
 		ans_Response.Content = messageContents[i].MessageContent
 		ans_Response.CreatedAt = messageContents[i].CreatedAt
 		ans_Response.UpdatedAt = messageContents[i].UpdatedAt
+		// get citedMessages for answer
+		err = h.db.Select(&citedMessagesFromDB, "select * from citedMessages where parent_message_id = ?", messageContents[i].ID)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			log.Printf("failed to get citedMessagesFromDB: %s\n", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		citedMessages := []MessageContentForCitations_SodanResponse{}
+		for _, citedMessage := range citedMessagesFromDB {
+			citedMessageContent := MessageContentForCitations_SodanResponse{
+				UserTraqID:     citedMessage.UserTraqID,
+				CreatedAt:      citedMessage.CreatedAt,
+				UpdatedAt:      citedMessage.UpdatedAt,
+				MessageContent: citedMessage.Content,
+			}
+			citedMessages = append(citedMessages, citedMessageContent)
+		}
+		ans_Response.Citations = citedMessages
 		Response.AnswerMessages = append(Response.AnswerMessages, *ans_Response)
 	}
 
+	// get stamps
 	for i := 0; i < howManyMessages; i++ {
 		var stamps []Stamp_fromDB
 		err = h.db.Select(&stamps, "select * from messageStamps where message_id = ?", messageContents[i].ID)

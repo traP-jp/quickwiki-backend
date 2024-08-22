@@ -21,7 +21,7 @@ func Search(query string, limit int, offset int) []int {
 	}
 
 	bleveQuery := bleve.NewMatchQuery(query)
-	bleveQuery.SetField("Content")
+	bleveQuery.SetField("MessageContent")
 	search := bleve.NewSearchRequest(bleveQuery)
 	searchResults, err := index.Search(search)
 	if err != nil {
