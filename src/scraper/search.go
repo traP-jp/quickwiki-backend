@@ -6,7 +6,7 @@ import (
 )
 
 func (s *Scraper) setIndexing() {
-	var wikis []Wiki
+	var wikis []Wiki_fromDB
 	err := s.db.Select(&wikis, "SELECT * FROM wikis WHERE type = 'sodan'")
 	if err != nil {
 		log.Println("failed to get wikis")
