@@ -34,7 +34,7 @@ WORKDIR /src
 RUN g++ ./tag/keyword_extractor.cpp -shared -o ./tag/libkeyword_extractor.so -fPIC `pkg-config python3 --cflags` -lpython$PYTHON_VERSION
 
 # Build Go
-RUN go mod tidy && go build -o ./main
+RUN go mod tidy && go build -v -o ./main
 # WORKDIR /src/tag
 # RUN g++ main.cpp -o main.o -L. -lkeyword_extractor `pkg-config python3 --cflags` -lpython$PYTHON_VERSION
 
