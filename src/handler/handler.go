@@ -3,8 +3,10 @@ package handler
 import (
 	"database/sql"
 	"errors"
+	"io"
 	"log"
 	"net/http"
+	"quickwiki-backend/scraper"
 	"strconv"
 	"strings"
 
@@ -13,11 +15,12 @@ import (
 )
 
 type Handler struct {
-	db *sqlx.DB
+	db      *sqlx.DB
+	scraper *scraper.Scraper
 }
 
-func NewHandler(db *sqlx.DB) *Handler {
-	return &Handler{db: db}
+func NewHandler(db *sqlx.DB, s *scraper.Scraper) *Handler {
+	return &Handler{db: db, scraper: s}
 }
 
 // /ping
@@ -293,4 +296,23 @@ func (h *Handler) GetMemoHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, Response)
+}
+
+func (h *Handler) GetFileHandler(c echo.Context) error {
+	fileID := c.Param("fileId")
+
+	resp, err := h.scraper.GetFile(fileID)
+	if err != nil {
+		log.Printf("failed to get file: %v", err)
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	response := c.Response()
+	response.Header().Set("Cache-Control", "no-cache")
+	response.Header().Set(echo.HeaderContentType, echo.MIMEOctetStream)
+	response.Header().Set(echo.HeaderAccessControlExposeHeaders, "Content-Disposition")
+	response.Header().Set(echo.HeaderContentDisposition, "attachment; filename="+fileID)
+	response.WriteHeader(http.StatusOK)
+	io.Copy(response.Writer, resp.Body)
+	return c.NoContent(http.StatusOK)
 }

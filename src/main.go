@@ -40,7 +40,7 @@ func main() {
 	s := scraper.NewScraper(db)
 	s.Scrape()
 
-	h := handler.NewHandler(db)
+	h := handler.NewHandler(db, s)
 	e := echo.New()
 
 	e.GET("/ping", h.PingHandler)
