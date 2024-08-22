@@ -3,13 +3,14 @@ package scraper
 import (
 	"fmt"
 	"log"
+	"quickwiki-backend/handler"
 	"quickwiki-backend/tag"
 	"regexp"
 	"strings"
 )
 
 func (s *Scraper) setSodanTags() {
-	var wikis []Wiki_fromDB
+	var wikis []handler.WikiContent_fromDB
 	err := s.db.Select(&wikis, "SELECT * FROM wikis WHERE type = 'sodan'")
 	if err != nil {
 		log.Println("failed to get wikis")
@@ -19,7 +20,7 @@ func (s *Scraper) setSodanTags() {
 	s.setTag(wikis)
 }
 
-func (s *Scraper) setTag(wikis []Wiki_fromDB) {
+func (s *Scraper) setTag(wikis []handler.WikiContent_fromDB) {
 	var input []tag.KeywordExtractorData
 	for _, wiki := range wikis {
 		text := processMention(processLink(wiki.Content))
