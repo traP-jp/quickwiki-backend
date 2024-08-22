@@ -1,0 +1,77 @@
+@startuml
+
+!theme carbon-gray
+top to bottom direction
+skinparam linetype ortho
+
+class wikis {
+  id : <color:#aaaaaa>int(11)</color>
+  name : <color:#aaaaaa>text</color>
+  type : <color:#aaaaaa>text</color>
+  created_at : <color:#aaaaaa>timestamp</color>
+  updated_at : <color:#aaaaaa>timestamp</color>
+  owner_traq_id : <color:#aaaaaa>char(36)</color>
+  content : <color:#aaaaaa>text</color>
+}
+class messages {
+  id : <color:#aaaaaa>int(11)</color>
+  wiki_id : <color:#aaaaaa>int(11)</color>
+  created_at : <color:#aaaaaa>timestamp</color>
+  updated_at : <color:#aaaaaa>timestamp</color>
+  user_traq_id : <color:#aaaaaa>char(36)</color>
+  message_traq_id : <color:#aaaaaa>char(36)</color>
+  channel_id : <color:#aaaaaa>char(36)</color>
+  content : <color:#aaaaaa>text</color>
+}
+class messageStamps {
+  id : <color:#aaaaaa>int(11)</color>
+  message_id : <color:#aaaaaa>int(11)</color>
+  stamp_traq_id : <color:#aaaaaa>char(36)</color>
+  count : <color:#aaaaaa>int(11)</color>
+}
+class citedMessages {
+  id : <color:#aaaaaa>int(11)</color>
+  message_traq_id : <color:#aaaaaa>char(36)</color>
+  parent_message_id : <color:#aaaaaa>int(11)</color>
+}
+class memos {
+  id : <color:#aaaaaa>int(11)</color>
+  wiki_id : <color:#aaaaaa>int(11)</color>
+  title : <color:#aaaaaa>text</color>
+  created_at : <color:#aaaaaa>timestamp</color>
+  updated_at : <color:#aaaaaa>timestamp</color>
+  owner_traq_id : <color:#aaaaaa>char(36)</color>
+  content : <color:#aaaaaa>text</color>
+}
+class tags {
+  id : <color:#aaaaaa>int(11)</color>
+  wiki_id : <color:#aaaaaa>int(11)</color>
+  name : <color:#aaaaaa>text</color>
+  tag_score : <color:#aaaaaa>float8</color>
+}
+class lectures {
+  id : <color:#aaaaaa>int(11)</color>
+  title : <color:#aaaaaa>text</color>
+  content : <color:#aaaaaa>text</color>
+  folder_id : <color:#aaaaaa>int(11)</color>
+  folder_path : <color:#aaaaaa>text</color>
+}
+class folders {
+  id : <color:#aaaaaa>int(11)</color>
+  name : <color:#aaaaaa>text</color>
+  parent_id : <color:#aaaaaa>int(11)</color>
+  0 : <color:#aaaaaa>if</color>
+}
+class favorites {
+  id : <color:#aaaaaa>int(11)</color>
+  user_traq_id : <color:#aaaaaa>char(36)</color>
+  wiki_id : <color:#aaaaaa>int(11)</color>
+}
+messages -[#595959,plain]-^ wikis : wiki_id -> id
+messageStamps -[#595959,plain]-^ messages : message_id -> id
+citedMessages -[#595959,plain]-^ messages : parent_message_id -> id
+memos -[#595959,plain]-^ wikis : wiki_id -> id
+tags -[#595959,plain]-^ wikis : wiki_id -> id
+lectures -[#595959,plain]-^ folders : folder_id -> id
+favorites -[#595959,plain]-^ wikis : wiki_id -> id
+@enduml
