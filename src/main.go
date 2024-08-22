@@ -51,6 +51,8 @@ func main() {
 	e.GET("/lecture/lectureId", h.GetLectureHandler)
 	e.GET("/sodan", h.GetSodanHandler)
 	e.GET("/memo", h.GetMemoHandler)
+	e.POST("/memo", h.PostMemoHandler)
+	e.PATCH("/memo", h.PatchMemoHandler)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }

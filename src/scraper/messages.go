@@ -66,7 +66,7 @@ func (s *Scraper) GetSodanMessages() {
 	}
 
 	s.GetSodanSubMessages("98ea48da-64e8-4f69-9d0d-80690b682670", 11, 52)
-	s.GetSodanSubMessages("30c30aa5-c380-4324-b227-0ca85c34801c", 13, 32)
+	s.GetSodanSubMessages("30c30aa5-c380-4324-b227-0ca85c34801c", 22, 32)
 	s.GetSodanSubMessages("7ec94f1d-1920-4e15-bfc5-049c9a289692", 5, 18)
 	s.GetSodanSubMessages("c67abb48-3fb0-4486-98ad-4b6947998ad5", 0, 21)
 	s.GetSodanSubMessages("eb5a0035-a340-4cf6-a9e0-94ddfabe9337", 0, 2)

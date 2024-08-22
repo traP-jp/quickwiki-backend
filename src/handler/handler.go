@@ -10,6 +10,7 @@ import (
 	"quickwiki-backend/scraper"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo"
@@ -354,4 +355,167 @@ func (h *Handler) GetFileHandler(c echo.Context) error {
 	response.WriteHeader(http.StatusOK)
 	io.Copy(response.Writer, resp.Body)
 	return c.NoContent(http.StatusOK)
+}
+
+// POST/memoのハンドラー
+func (h *Handler) PostMemoHandler(c echo.Context) error {
+
+	Response := model.NewMemoResponse()
+
+	getMemoBody := model.NewGetMemoBody()
+	err := c.Bind(&getMemoBody)
+	if err != nil {
+		if getMemoBody.ID != 0 {
+			return echo.NewHTTPError(http.StatusBadRequest, "bad request body")
+		}
+	}
+	Response.Title = getMemoBody.Title
+	Response.Content = getMemoBody.Content
+
+	owner, err := GetUserInfo(c)
+	Response.OwnerTraqID = owner.TraqID
+
+	now := time.Now()
+	result, err := h.db.Exec("INSERT INTO wikis (name,type,created_at,updated_at,content,owner_traq_id) VALUES (?, ?, ?, ?,?,?)", getMemoBody.Title, "memo", now, now, getMemoBody.Content, owner.TraqID)
+	if err != nil {
+		log.Printf("DB Error: %s", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
+	}
+
+	WikiID, _ := result.LastInsertId()
+	Response.WikiID = int(WikiID)
+
+	howManyTags := len(getMemoBody.Tags)
+	for i := 0; i < howManyTags; i++ {
+		_, err = h.db.Exec("INSERT INTO tags (name,tag_score,wiki_id) VALUES (?,?,?)", getMemoBody.Tags[i], 1, WikiID)
+		if err != nil {
+			log.Printf("DB Error: %s", err)
+			return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
+		}
+	}
+	copy(Response.Tags, getMemoBody.Tags)
+
+	Response.CreatedAt = now
+	Response.UpdatedAt = now
+
+	return c.JSON(http.StatusOK, Response)
+}
+
+// PATCH/memo のはんどらー
+func (h *Handler) PatchMemoHandler(c echo.Context) error {
+
+	Response := model.NewMemoResponse()
+
+	getMemoBody := model.NewGetMemoBody()
+	err := c.Bind(&getMemoBody)
+	if err != nil {
+		if getMemoBody.ID != 0 {
+			return echo.NewHTTPError(http.StatusBadRequest, "bad request body")
+		}
+	}
+
+	owner, err := GetUserInfo(c)
+
+	if getMemoBody.ID != 0 {
+		var wikiContent model.WikiContent_fromDB
+		wikiContent.OwnerTraqID = ""
+		err = h.db.Get(&wikiContent, "select owner_traq_id from wikis where id = ?", getMemoBody.ID)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return c.NoContent(http.StatusNotFound)
+			}
+			log.Printf("failed to get wikiContent: %s\n", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		if wikiContent.OwnerTraqID != owner.TraqID {
+			return echo.NewHTTPError(http.StatusUnauthorized, "You are not the owner of this memo.")
+		}
+		now := time.Now()
+		_, err := h.db.Exec("UPDATE wikis SET name = ?,updated_at = ?,content = ? where wiki_id = ?", getMemoBody.Title, now, getMemoBody.Content, getMemoBody.ID)
+		if err != nil {
+			log.Printf("DB Error: %s", err)
+			return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
+		}
+		Response.WikiID = getMemoBody.ID
+		Response.Title = getMemoBody.Title
+		Response.Content = getMemoBody.Content
+		Response.OwnerTraqID = owner.TraqID
+		Response.CreatedAt = wikiContent.CreatedAt
+		Response.UpdatedAt = now
+
+		var tags []model.Tag_fromDB
+		err = h.db.Get(&tags, "select * from tags where wiki_id = ?", getMemoBody.ID)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return c.NoContent(http.StatusNotFound)
+			}
+			log.Printf("failed to get wikiContent: %s\n", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		var resTags []string
+		for i := 0; i < len(tags); i++ {
+			resTags[i] = tags[i].TagName
+		}
+	}
+
+	return c.JSON(http.StatusOK, Response)
+}
+
+// DELETE/memo のハンドラー
+func (h *Handler) DeleteMemoHandler(c echo.Context) error {
+
+	Response := model.NewMemoResponse()
+
+	getMemoBody := model.NewGetMemoBody()
+	err := c.Bind(&getMemoBody)
+	if err != nil {
+		if getMemoBody.ID != 0 {
+			return echo.NewHTTPError(http.StatusBadRequest, "bad request body")
+		}
+	}
+
+	owner, err := GetUserInfo(c)
+
+	if getMemoBody.ID != 0 {
+		var wikiContent model.WikiContent_fromDB
+		wikiContent.OwnerTraqID = ""
+		err = h.db.Get(&wikiContent, "select * from wikis where id = ?", getMemoBody.ID)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return c.NoContent(http.StatusNotFound)
+			}
+			log.Printf("failed to get wikiContent: %s\n", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		if wikiContent.OwnerTraqID != owner.TraqID {
+			return echo.NewHTTPError(http.StatusUnauthorized, "You are not the owner of this memo.")
+		}
+		_, err := h.db.Exec("DELETE from wikis where wiki_id = ?", getMemoBody.ID)
+		if err != nil {
+			log.Printf("DB Error: %s", err)
+			return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
+		}
+		Response.WikiID = wikiContent.ID
+		Response.Title = wikiContent.Name
+		Response.Content = wikiContent.Content
+		Response.OwnerTraqID = wikiContent.OwnerTraqID
+		Response.CreatedAt = wikiContent.CreatedAt
+		Response.UpdatedAt = wikiContent.UpdatedAt
+
+		var tags []model.Tag_fromDB
+		err = h.db.Get(&tags, "select * from tags where wiki_id = ?", getMemoBody.ID)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return c.NoContent(http.StatusNotFound)
+			}
+			log.Printf("failed to get wikiContent: %s\n", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		var resTags []string
+		for i := 0; i < len(tags); i++ {
+			resTags[i] = tags[i].TagName
+		}
+	}
+
+	return c.JSON(http.StatusOK, Response)
 }

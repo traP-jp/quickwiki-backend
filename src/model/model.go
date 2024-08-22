@@ -136,8 +136,10 @@ type CitedMessage_fromDB struct {
 	Content         string    `db:"content"`
 }
 
-type Me_Response struct {
-	TraqID  string `json:"traqId"`
-	Name    string `json:"name"`
-	IconUri string `json:"iconUri"`
+// POST,PATCH/memoのbodyから情報を取ってくる型.POSTはIDを使わない
+type GetMemoBody struct {
+	ID      int      `json:"id"`
+	Title   string   `json:"title"`
+	Content string   `json:"content"`
+	Tags    []string `json:"tags"`
 }
