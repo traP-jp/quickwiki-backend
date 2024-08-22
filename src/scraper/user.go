@@ -15,7 +15,7 @@ func (s *Scraper) GetUserDetail(userTraqID string) (model.Me_Response, error) {
 	}
 
 	return model.Me_Response{
-		TraqID: user.Name,
-		Name:   user.DisplayName,
+		TraqID:      user.Name,
+		DisplayName: user.DisplayName,
 	}, nil
 }

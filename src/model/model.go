@@ -143,3 +143,9 @@ type GetMemoBody struct {
 	Content string   `json:"content"`
 	Tags    []string `json:"tags"`
 }
+
+type Me_Response struct {
+	TraqID      string `json:"userTraqId"`
+	DisplayName string `json:"name"`
+	IconUri     string `json:"iconUri"`
+}
