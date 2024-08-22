@@ -27,8 +27,13 @@ CREATE TABLE messageStamps (
 );
 CREATE TABLE citedMessages (
     id INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    message_traq_id CHAR(36) NOT NULL,
     parent_message_id INT(11) NOT NULL,-- = messages.id
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    user_traq_id CHAR(36) NOT NULL,
+    message_traq_id CHAR(36) NOT NULL,
+    channel_id CHAR(36) NOT NULL,
+    content TEXT NOT NULL,
     FOREIGN KEY (parent_message_id) REFERENCES messages(id)
 );
 CREATE TABLE memos (
@@ -48,6 +53,12 @@ CREATE TABLE tags (
     tag_score FLOAT8 NOT NULL,
     FOREIGN KEY (wiki_id) REFERENCES wikis(id)
 );
+CREATE TABLE folders (
+    id INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    name TEXT NOT NULL,
+    parent_id INT(11),-- 0 if root
+    UNIQUE KEY (name, parent_id)
+);
 CREATE TABLE lectures (
     id INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
     title TEXT NOT NULL,
@@ -55,12 +66,6 @@ CREATE TABLE lectures (
     folder_id INT(11),
     folder_path TEXT NOT NULL,
     FOREIGN KEY (folder_id) REFERENCES folders(id)
-);
-CREATE TABLE folders (
-    id INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    name TEXT NOT NULL,
-    parent_id INT(11),-- 0 if root
-    UNIQUE KEY (name, parent_id)
 );
 CREATE TABLE favorites (
     id INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
