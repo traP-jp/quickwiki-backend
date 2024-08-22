@@ -256,8 +256,8 @@ func (h *Handler) GetMemoHandler(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	var wikiContent WikiContent_fromDB
-	err = h.db.Get(&wikiContent, "select * from wikis where id = ?", wikiId)
+	var memoContent MemoContent_fromDB
+	err = h.db.Get(&memoContent, "select * from memos where wiki_id = ?", wikiId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return c.NoContent(http.StatusNotFound)
@@ -265,17 +265,12 @@ func (h *Handler) GetMemoHandler(c echo.Context) error {
 		log.Printf("failed to get wikiContent: %s\n", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
-	if wikiContent.Type == "memo" {
-		Response.WikiID = wikiContent.ID
-		Response.Title = wikiContent.Name
-		Response.Content = wikiContent.Content
-		Response.OwnerTraqID = wikiContent.OwnerTraqID
-		Response.CreatedAt = wikiContent.CreatedAt
-		Response.UpdatedAt = wikiContent.UpdatedAt
-	} else {
-		log.Printf("This wikiId exists, but it is not a 'memo'.")
-		return c.NoContent(http.StatusNotFound)
-	}
+	Response.WikiID = memoContent.ID
+	Response.Title = memoContent.Title
+	Response.Content = memoContent.Content
+	Response.OwnerTraqID = memoContent.OwnerTraqID
+	Response.CreatedAt = memoContent.CreatedAt
+	Response.UpdatedAt = memoContent.UpdatedAt
 
 	var tags []Tag_fromDB
 	var howManyTags int

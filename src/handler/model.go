@@ -122,6 +122,7 @@ func NewSodanResponse() *SodanResponse {
 type MemoContent_fromDB struct {
 	ID          int       `db:"id"`
 	WikiID      int       `db:"wiki_id"`
+	Title       string    `db:"title"`
 	CreatedAt   time.Time `db:"created_at"`
 	UpdatedAt   time.Time `db:"updated_at"`
 	OwnerTraqID string    `db:"owner_traq_id"`
