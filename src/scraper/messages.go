@@ -223,7 +223,7 @@ func (s *Scraper) extractCitedMessage(m handler.SodanContent_fromDB) {
 			UserTraqID:      s.usersMap[resp.UserId].Name,
 			MessageTraqID:   resp.Id,
 			ChannelID:       resp.ChannelId,
-			Content:         resp.Content,
+			Content:         ProcessMention(resp.Content), // リンクはそのまま
 		}
 
 		_, err = s.db.Exec("INSERT INTO citedMessages (parent_message_id, created_at, updated_at, user_traq_id, message_traq_id, channel_id, content) VALUES (?, ?, ?, ?, ?, ?, ?)",
