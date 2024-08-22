@@ -12,6 +12,7 @@ import (
 type Scraper struct {
 	db       *sqlx.DB
 	usersMap map[string]traq.User
+	bot      *traqwsbot.Bot
 }
 
 func NewScraper(db *sqlx.DB) *Scraper {
@@ -30,6 +31,7 @@ func (s *Scraper) Scrape() {
 		panic(err)
 	}
 	log.Println("bot connected")
+	s.bot = bot
 
 	// get users
 	users, resp, err := bot.API().UserApi.GetUsers(context.Background()).Execute()
@@ -42,5 +44,5 @@ func (s *Scraper) Scrape() {
 		s.usersMap[u.Id] = u
 	}
 
-	s.GetSodanMessages(bot)
+	s.GetSodanMessages()
 }
