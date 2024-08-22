@@ -31,8 +31,13 @@ class messageStamps {
 }
 class citedMessages {
   id : <color:#aaaaaa>int(11)</color>
-  message_traq_id : <color:#aaaaaa>char(36)</color>
   parent_message_id : <color:#aaaaaa>int(11)</color>
+  created_at : <color:#aaaaaa>timestamp</color>
+  updated_at : <color:#aaaaaa>timestamp</color>
+  user_traq_id : <color:#aaaaaa>char(36)</color>
+  message_traq_id : <color:#aaaaaa>char(36)</color>
+  channel_id : <color:#aaaaaa>char(36)</color>
+  content : <color:#aaaaaa>text</color>
 }
 class memos {
   id : <color:#aaaaaa>int(11)</color>
@@ -49,18 +54,18 @@ class tags {
   name : <color:#aaaaaa>text</color>
   tag_score : <color:#aaaaaa>float8</color>
 }
+class folders {
+  id : <color:#aaaaaa>int(11)</color>
+  name : <color:#aaaaaa>text</color>
+  parent_id : <color:#aaaaaa>int(11)</color>
+  0 : <color:#aaaaaa>if</color>
+}
 class lectures {
   id : <color:#aaaaaa>int(11)</color>
   title : <color:#aaaaaa>text</color>
   content : <color:#aaaaaa>text</color>
   folder_id : <color:#aaaaaa>int(11)</color>
   folder_path : <color:#aaaaaa>text</color>
-}
-class folders {
-  id : <color:#aaaaaa>int(11)</color>
-  name : <color:#aaaaaa>text</color>
-  parent_id : <color:#aaaaaa>int(11)</color>
-  0 : <color:#aaaaaa>if</color>
 }
 class favorites {
   id : <color:#aaaaaa>int(11)</color>
