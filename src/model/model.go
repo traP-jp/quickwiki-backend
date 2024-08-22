@@ -1,4 +1,4 @@
-package handler
+package model
 
 import "time"
 
@@ -95,17 +95,6 @@ type MessageContentForCitations_SodanResponse struct {
 	UpdatedAt      time.Time `json:"updatedAt"`
 }
 
-// MessageContent_SodanResponseのコンストラクタ関数
-func NewMessageContent_SodanResponse() *MessageContent_SodanResponse {
-	return &MessageContent_SodanResponse{
-		UserTraqID: "",
-		Content:    "",
-		CreatedAt:  time.Now(),
-		UpdatedAt:  time.Now(),
-		Stamps:     []Stamp_MessageContent{},
-	}
-}
-
 // /sodan?wikiId= の Response
 type SodanResponse struct {
 	WikiID          int                            `json:"id"`
@@ -113,17 +102,6 @@ type SodanResponse struct {
 	Tags            []string                       `json:"tags"`
 	QuestionMessage MessageContent_SodanResponse   `json:"questionMessage"`
 	AnswerMessages  []MessageContent_SodanResponse `json:"answerMessages"`
-}
-
-// SodanResponseのコンストラクタ関数
-func NewSodanResponse() *SodanResponse {
-	return &SodanResponse{
-		WikiID:          0,
-		Title:           "",
-		Tags:            []string{},
-		QuestionMessage: MessageContent_SodanResponse{},
-		AnswerMessages:  []MessageContent_SodanResponse{},
-	}
 }
 
 // sqlのmemosより情報を取ってくるときに使う
@@ -145,19 +123,6 @@ type MemoResponse struct {
 	Tags        []string  `json:"tags"`
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
-}
-
-// MemoResponseのコンストラクタ関数
-func NewMemoResponse() *MemoResponse {
-	return &MemoResponse{
-		WikiID:      0,
-		Title:       "",
-		Content:     "",
-		OwnerTraqID: "",
-		Tags:        []string{},
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
-	}
 }
 
 type CitedMessage_fromDB struct {

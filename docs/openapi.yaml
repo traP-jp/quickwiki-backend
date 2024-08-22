@@ -152,18 +152,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/wikiList'
-  /wiki/tag/{tag}:
+  /wiki/tag:
     get:
       tags:
         - wiki
       summary: タグに対応するsodanと備忘録のリストを取得
       parameters:
         - name: tag
-          in: path
+          in: query
           required: true
           schema:
             type: string
-          description: タグ
+          description: タグ 複数あってもよい
       responses:
         '200':
           description: OK
