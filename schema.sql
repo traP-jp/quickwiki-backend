@@ -53,7 +53,8 @@ CREATE TABLE lectures (
     title TEXT NOT NULL,
     content TEXT NOT NULL,
     folder_id INT(11),
-    folder_path TEXT NOT NULL
+    folder_path TEXT NOT NULL,
+    FOREIGN KEY (folder_id) REFERENCES folders(id)
 );
 CREATE TABLE folders (
     id INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
