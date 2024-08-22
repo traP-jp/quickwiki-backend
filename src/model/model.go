@@ -135,3 +135,9 @@ type CitedMessage_fromDB struct {
 	ChannelID       string    `db:"channel_id"`
 	Content         string    `db:"content"`
 }
+
+type Me_Response struct {
+	TraqID  string `json:"traqId"`
+	Name    string `json:"name"`
+	IconUri string `json:"iconUri"`
+}
