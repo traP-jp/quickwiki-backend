@@ -36,3 +36,12 @@ func NewMessageContent_SodanResponse() *MessageContent_SodanResponse {
 		Stamps:     []Stamp_MessageContent{},
 	}
 }
+
+// memoのbodyから情報を取ってくる型のコンストラクタ
+func NewGetMemoBody() *GetMemoBody {
+	return &GetMemoBody{
+		ID:          0,
+		Title:       "",
+		Content:     "",
+	}
+}

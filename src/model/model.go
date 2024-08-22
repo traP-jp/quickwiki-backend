@@ -135,3 +135,11 @@ type CitedMessage_fromDB struct {
 	ChannelID       string    `db:"channel_id"`
 	Content         string    `db:"content"`
 }
+
+// POST,PATCH/memoのbodyから情報を取ってくる型.POSTはIDを使わない
+type GetMemoBody struct {
+	ID      int      `json:"id"`
+	Title   string   `json:"title"`
+	Content string   `json:"content"`
+	Tags    []string `json:"tags"`
+}

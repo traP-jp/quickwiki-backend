@@ -488,9 +488,11 @@ components:
         content:
           type: string
           example: This is an introductory course to computer science
-        ownerTraqId:
-          type: string
-          example: kavos
+        tags: 
+          type: array
+          items:
+            type: string
+            example: "hoadsoih"
     updateMemo:
       type: object
       properties:
@@ -503,9 +505,6 @@ components:
         content:
           type: string
           example: This is an introductory course to computer science
-        ownerTraqId:
-          type: string
-          example: kavos
     searchRequest:
       type: object
       properties:
