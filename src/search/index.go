@@ -29,7 +29,7 @@ func createIndexMapping() mapping.IndexMapping {
 	documentMapping.AddFieldMappingsAt("Type", typeMapping)
 	documentMapping.AddFieldMappingsAt("Title", japaneseTextFieldMapping)
 	documentMapping.AddFieldMappingsAt("OwnerTraqID", typeMapping)
-	documentMapping.AddFieldMappingsAt("Content", japaneseTextFieldMapping)
+	documentMapping.AddFieldMappingsAt("MessageContent", japaneseTextFieldMapping)
 
 	indexMapping := bleve.NewIndexMapping()
 	indexMapping.TypeField = "type"

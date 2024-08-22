@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/blevesearch/bleve/v2"
 	"github.com/blevesearch/bleve/v2/analysis/analyzer/custom"
 	"github.com/blevesearch/bleve/v2/analysis/analyzer/keyword"
 	"github.com/blevesearch/bleve/v2/analysis/token/lowercase"
@@ -26,7 +25,7 @@ func main() {
 
 	// search for some text
 	query := bleve.NewMatchQuery("作る 並行")
-	query.SetField("Content")
+	query.SetField("MessageContent")
 	search := bleve.NewSearchRequest(query)
 	searchResults, err := index.Search(search)
 	if err != nil {

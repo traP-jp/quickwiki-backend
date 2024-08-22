@@ -30,7 +30,7 @@ func (s *Scraper) GetSodanMessages() {
 	//	Id:        "id1",
 	//	UserId:    "u1",
 	//	ChannelId: "c1",
-	//	Content:   "sample message",
+	//	MessageContent:   "sample message",
 	//	CreatedAt: time.Now(),
 	//	UpdatedAt: time.Now(),
 	//	Pinned:    false,

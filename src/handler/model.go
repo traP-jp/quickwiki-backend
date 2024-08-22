@@ -80,20 +80,19 @@ type Stamp_MessageContent struct {
 
 // SodanResponseで使うMessageの構造体
 type MessageContent_SodanResponse struct {
-	UserTraqID string                                         `json:"userTraqId"`
-	Content    string                                         `json:"content"`
-	CreatedAt  time.Time                                      `json:"createdAt"`
-	UpdatedAt  time.Time                                      `json:"updatedAt"`
-	Stamps     []Stamp_MessageContent                         `json:"stamps"`
-	Citations  []MessageContentWithoutCitations_SodanResponse `json:"citations"`
+	UserTraqID string                                     `json:"userTraqId"`
+	Content    string                                     `json:"content"`
+	CreatedAt  time.Time                                  `json:"createdAt"`
+	UpdatedAt  time.Time                                  `json:"updatedAt"`
+	Stamps     []Stamp_MessageContent                     `json:"stamps"`
+	Citations  []MessageContentForCitations_SodanResponse `json:"citations"`
 }
 
-type MessageContentWithoutCitations_SodanResponse struct {
-	UserTraqID string                 `json:"userTraqId"`
-	Content    string                 `json:"content"`
-	CreatedAt  time.Time              `json:"createdAt"`
-	UpdatedAt  time.Time              `json:"updatedAt"`
-	Stamps     []Stamp_MessageContent `json:"stamps"`
+type MessageContentForCitations_SodanResponse struct {
+	UserTraqID     string    `json:"userTraqId"`
+	MessageContent string    `json:"content"`
+	CreatedAt      time.Time `json:"createdAt"`
+	UpdatedAt      time.Time `json:"updatedAt"`
 }
 
 // MessageContent_SodanResponseのコンストラクタ関数
