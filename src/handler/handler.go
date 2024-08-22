@@ -372,7 +372,7 @@ func (h *Handler) PostMemoHandler(c echo.Context) error {
 	Response.Title = getMemoBody.Title
 	Response.Content = getMemoBody.Content
 
-	owner, err := GetUserInfo(c)
+	owner, err := h.GetUserInfo(c)
 	Response.OwnerTraqID = owner.TraqID
 
 	now := time.Now()
@@ -414,7 +414,7 @@ func (h *Handler) PatchMemoHandler(c echo.Context) error {
 		}
 	}
 
-	owner, err := GetUserInfo(c)
+	owner, err := h.GetUserInfo(c)
 
 	if getMemoBody.ID != 0 {
 		var wikiContent model.WikiContent_fromDB
@@ -474,7 +474,7 @@ func (h *Handler) DeleteMemoHandler(c echo.Context) error {
 		}
 	}
 
-	owner, err := GetUserInfo(c)
+	owner, err := h.GetUserInfo(c)
 
 	if getMemoBody.ID != 0 {
 		var wikiContent model.WikiContent_fromDB
