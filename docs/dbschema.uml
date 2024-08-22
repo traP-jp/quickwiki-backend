@@ -39,15 +39,6 @@ class citedMessages {
   channel_id : <color:#aaaaaa>char(36)</color>
   content : <color:#aaaaaa>text</color>
 }
-class memos {
-  id : <color:#aaaaaa>int(11)</color>
-  wiki_id : <color:#aaaaaa>int(11)</color>
-  title : <color:#aaaaaa>text</color>
-  created_at : <color:#aaaaaa>timestamp</color>
-  updated_at : <color:#aaaaaa>timestamp</color>
-  owner_traq_id : <color:#aaaaaa>char(36)</color>
-  content : <color:#aaaaaa>text</color>
-}
 class tags {
   id : <color:#aaaaaa>int(11)</color>
   wiki_id : <color:#aaaaaa>int(11)</color>
@@ -75,7 +66,6 @@ class favorites {
 messages -[#595959,plain]-^ wikis : wiki_id -> id
 messageStamps -[#595959,plain]-^ messages : message_id -> id
 citedMessages -[#595959,plain]-^ messages : parent_message_id -> id
-memos -[#595959,plain]-^ wikis : wiki_id -> id
 tags -[#595959,plain]-^ wikis : wiki_id -> id
 lectures -[#595959,plain]-^ folders : folder_id -> id
 favorites -[#595959,plain]-^ wikis : wiki_id -> id

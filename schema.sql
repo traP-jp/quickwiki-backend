@@ -36,16 +36,6 @@ CREATE TABLE citedMessages (
     content TEXT NOT NULL,
     FOREIGN KEY (parent_message_id) REFERENCES messages(id)
 );
-CREATE TABLE memos (
-    id INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    wiki_id INT(11) NOT NULL,
-    title TEXT NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    owner_traq_id CHAR(36) NOT NULL,
-    content TEXT NOT NULL,
-    FOREIGN KEY (wiki_id) REFERENCES wikis(id)
-);
 CREATE TABLE tags (
     id INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
     wiki_id INT(11) NOT NULL,

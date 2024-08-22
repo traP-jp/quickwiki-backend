@@ -5,7 +5,6 @@
 - [messages](#messages)
 - [messageStamps](#messagestamps)
 - [citedMessages](#citedmessages)
-- [memos](#memos)
 - [tags](#tags)
 - [folders](#folders)
 - [lectures](#lectures)
@@ -71,22 +70,6 @@
 | Key Name | Reference |
 |----------|-----------|
 | (parent_message_id) | messages(id) |
-### memos
-
-| Column Name | Data Type | Constraints |
-|-------------|-----------|-------------|
-| id | int(11) | not null primary key auto_increment |
-| wiki_id | int(11) | not null |
-| title | text | not null |
-| created_at | timestamp | not null default current_timestamp |
-| updated_at | timestamp | not null default current_timestamp |
-| owner_traq_id | char(36) | not null |
-| content | text | not null |
-
-##### Foreign Keys
-| Key Name | Reference |
-|----------|-----------|
-| (wiki_id) | wikis(id) |
 ### tags
 
 | Column Name | Data Type | Constraints |
