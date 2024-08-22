@@ -62,7 +62,7 @@ func (h *Handler) GetLectureByFolderPathHandler(c echo.Context) error {
 
 	folderPath = "/" + strings.ReplaceAll(folderPath, "-", " /")
 	lectures := []LectureFromDB{}
-	err := h.db.Select(&lectures, "SELECT * FROM lectures WHERE folderpath = ?", folderPath)
+	err := h.db.Select(&lectures, "SELECT * FROM lectures WHERE folder_path = ?", folderPath)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return c.JSON(http.StatusNotFound, err)
@@ -176,6 +176,7 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 	}
 	Response.Title = wikiContent.Name
 
+	// get tags
 	var tags []Tag_fromDB
 	var howManyTags int
 	err = h.db.Select(&tags, "select * from tags where wiki_id = ?", wikiId)
@@ -191,6 +192,7 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 		Response.Tags = append(Response.Tags, tags[i].TagName)
 	}
 
+	// get messages
 	var messageContents []SodanContent_fromDB
 	var howManyMessages int
 	err = h.db.Select(&messageContents, "select * from messages where wiki_id = ? order by created_at", wikiId)
@@ -207,6 +209,7 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 	Response.QuestionMessage.Content = messageContents[0].MessageContent
 	Response.QuestionMessage.CreatedAt = messageContents[0].CreatedAt
 	Response.QuestionMessage.UpdatedAt = messageContents[0].UpdatedAt
+	citedMessages := []CitedMessage_fromDB{}
 	for i := 1; i < howManyMessages; i++ {
 		ans_Response := NewMessageContent_SodanResponse()
 		ans_Response.UserTraqID = messageContents[i].UserTraqID
@@ -216,6 +219,7 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 		Response.AnswerMessages = append(Response.AnswerMessages, *ans_Response)
 	}
 
+	// get stamps
 	for i := 0; i < howManyMessages; i++ {
 		var stamps []Stamp_fromDB
 		err = h.db.Select(&stamps, "select * from messageStamps where message_id = ?", messageContents[i].ID)

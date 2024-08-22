@@ -3,6 +3,7 @@ package scraper
 import (
 	"context"
 	"log"
+	"quickwiki-backend/handler"
 	"regexp"
 
 	"github.com/traPtitech/go-traq"
@@ -24,8 +25,8 @@ func (s *Scraper) GetSodanMessages() {
 	for _, m := range sodanMessages {
 		log.Println(m.CreatedAt)
 	}
-	//sampleMessages := []traq.Message_fromDB{}
-	//sampleMessages = append(sampleMessages, traq.Message_fromDB{
+	//sampleMessages := []traq.handler.SodanContent_fromDB{}
+	//sampleMessages = append(sampleMessages, traq.handler.SodanContent_fromDB{
 	//	Id:        "id1",
 	//	UserId:    "u1",
 	//	ChannelId: "c1",
@@ -41,7 +42,7 @@ func (s *Scraper) GetSodanMessages() {
 	//})
 
 	for _, m := range sodanMessages {
-		newSodan := Wiki_fromDB{
+		newSodan := handler.WikiContent_fromDB{
 			Name:        m.Content,
 			Type:        "sodan",
 			Content:     m.Content,
@@ -131,17 +132,17 @@ func (s *Scraper) GetWikiIDByMessageId(messageId string) int {
 }
 
 func (s *Scraper) AddMessageToDB(m traq.Message, wikiId int) {
-	newMessage := Message_fromDB{
-		WikiID:     wikiId,
-		Content:    m.Content,
-		CreatedAt:  m.CreatedAt,
-		UpdatedAt:  m.UpdatedAt,
-		UserTraqID: s.usersMap[m.UserId].Name,
-		ChannelID:  m.ChannelId,
-		MessageID:  m.Id,
+	newMessage := handler.SodanContent_fromDB{
+		WikiID:         wikiId,
+		MessageContent: m.Content,
+		CreatedAt:      m.CreatedAt,
+		UpdatedAt:      m.UpdatedAt,
+		UserTraqID:     s.usersMap[m.UserId].Name,
+		ChannelID:      m.ChannelId,
+		MessageID:      m.Id,
 	}
 	result, err := s.db.Exec("INSERT INTO messages (wiki_id, content, created_at, updated_at, user_traq_id, channel_id, message_traq_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
-		newMessage.WikiID, newMessage.Content, newMessage.CreatedAt, newMessage.UpdatedAt, newMessage.UserTraqID, newMessage.ChannelID, newMessage.MessageID)
+		newMessage.WikiID, newMessage.MessageContent, newMessage.CreatedAt, newMessage.UpdatedAt, newMessage.UserTraqID, newMessage.ChannelID, newMessage.MessageID)
 	if err != nil {
 		log.Println("failed to insert message")
 		log.Printf("%+v\n", newMessage.ID, newMessage)
@@ -164,13 +165,13 @@ func (s *Scraper) AddMessageToDB(m traq.Message, wikiId int) {
 	}
 
 	for stampId, count := range stampCount {
-		newStamp := Stamp_fromDB{
+		newStamp := handler.Stamp_fromDB{
 			MessageID:   int(messageId),
 			StampTraqID: stampId,
-			Count:       count,
+			StampCount:  count,
 		}
 		_, err := s.db.Exec("INSERT INTO messageStamps (message_id, stamp_traq_id, count) VALUES (?, ?, ?)",
-			newStamp.MessageID, newStamp.StampTraqID, newStamp.Count)
+			newStamp.MessageID, newStamp.StampTraqID, newStamp.StampCount)
 		if err != nil {
 			log.Println(err)
 		}
@@ -178,7 +179,7 @@ func (s *Scraper) AddMessageToDB(m traq.Message, wikiId int) {
 }
 
 func (s *Scraper) updateWikisContent() {
-	var wikis []Wiki_fromDB
+	var wikis []handler.WikiContent_fromDB
 	err := s.db.Select(&wikis, "SELECT * FROM wikis WHERE type = 'sodan'")
 	if err != nil {
 		log.Println("failed to get wikis")
@@ -186,7 +187,7 @@ func (s *Scraper) updateWikisContent() {
 	}
 
 	for _, wiki := range wikis {
-		var messages []Message_fromDB
+		var messages []handler.SodanContent_fromDB
 		err = s.db.Select(&messages, "SELECT * FROM messages WHERE wiki_id = ?", wiki.ID)
 		if err != nil {
 			log.Println("failed to get messages")
@@ -195,7 +196,7 @@ func (s *Scraper) updateWikisContent() {
 
 		content := ""
 		for _, m := range messages {
-			content += m.Content + "\n"
+			content += m.MessageContent + "\n"
 		}
 
 		_, err = s.db.Exec("UPDATE wikis SET content = ? WHERE id = ?", content, wiki.ID)
@@ -206,9 +207,9 @@ func (s *Scraper) updateWikisContent() {
 	}
 }
 
-func (s *Scraper) extractCitedMessage(m Message_fromDB) {
+func (s *Scraper) extractCitedMessage(m handler.SodanContent_fromDB) {
 	re := regexp.MustCompile(`https://q.trap.jp/messages/([^!*]{36})`)
-	cites := re.FindAllString(m.Content, -1)
+	cites := re.FindAllString(m.MessageContent, -1)
 	for _, cite := range cites {
 		messageId := cite[len("https://q.trap.jp/messages/"):]
 		resp, _, err := s.bot.API().MessageApi.GetMessage(context.Background(), messageId).Execute()
@@ -216,7 +217,7 @@ func (s *Scraper) extractCitedMessage(m Message_fromDB) {
 			log.Println("failed to get cited message")
 			log.Println(err)
 		}
-		citedMessage := CitedMessage_fromDB{
+		citedMessage := handler.CitedMessage_fromDB{
 			ParentMessageID: m.ID,
 			CreatedAt:       resp.CreatedAt,
 			UpdatedAt:       resp.UpdatedAt,
