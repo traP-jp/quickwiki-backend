@@ -149,3 +149,24 @@ type Me_Response struct {
 	DisplayName string `json:"name"`
 	IconUri     string `json:"iconUri"`
 }
+
+// POST/wiki/search のResponse構造体
+type WikiContentResponse struct {
+	ID          int       `json:"id"`
+	Type        string    `json:"type"`
+	Title       string    `json:"title"`
+	Abstract    string    `json:"Abstract"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+	OwnerTraqID string    `json:"ownerTraqId"`
+	Content     string    `json:"content"`
+	Tags        []string  `json:"tags"`
+}
+
+// POST/wiki/search の body 受取構造体
+type WikiSearchBody struct {
+	Query       string   `json:"query"`
+	Tags        []string `json:"tags"`
+	From        int      `json:"from"`
+	ResultCount int      `json:"resultCount"`
+}

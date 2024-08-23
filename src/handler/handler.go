@@ -8,9 +8,11 @@ import (
 	"net/http"
 	"quickwiki-backend/model"
 	"quickwiki-backend/scraper"
+	"quickwiki-backend/search"
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo"
@@ -517,5 +519,71 @@ func (h *Handler) DeleteMemoHandler(c echo.Context) error {
 		}
 	}
 
+	return c.JSON(http.StatusOK, Response)
+}
+
+// はじめの10文字を返す関数
+func firstTenChars(s string) string {
+	// 文字列の長さが10文字未満の場合、そのまま返す
+	if utf8.RuneCountInString(s) <= 10 {
+		return s
+	}
+
+	// 10文字分のルーン（文字）をスライスする
+	r := []rune(s)
+	return string(r[:10])
+}
+
+// POST/wiki/search の検索はんどら
+func (h *Handler) SearchHandler(c echo.Context) error {
+	var Response []model.WikiContentResponse
+	var request model.WikiSearchBody
+	err := c.Bind(&request)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "bad request body")
+	}
+
+	var searchResults []int
+	searchResults = search.Search(request.Query, request.ResultCount, request.From)
+	if len(searchResults) == 0 {
+		return echo.NewHTTPError(echo.ErrNotFound.Code, "Some error occurred during the search.")
+	}
+
+	for i := 0; i < len(searchResults); i++ {
+		wikiId := searchResults[i]
+		var wikiContent model.WikiContent_fromDB
+		tmpSearchContent := model.NewWikiContentResponse()
+		err = h.db.Get(&wikiContent, "select * from wikis where id = ?", wikiId)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return c.NoContent(http.StatusNotFound)
+			}
+			log.Printf("failed to get wikiContent: %s\n", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		tmpSearchContent.ID = wikiId
+		tmpSearchContent.Type = wikiContent.Type
+		tmpSearchContent.Title = wikiContent.Name
+		tmpSearchContent.Abstract = firstTenChars(wikiContent.Content) //Abstractを入れるべき
+		tmpSearchContent.CreatedAt = wikiContent.CreatedAt
+		tmpSearchContent.UpdatedAt = wikiContent.UpdatedAt
+		tmpSearchContent.OwnerTraqID = wikiContent.OwnerTraqID
+
+		var tags []model.Tag_fromDB
+		var howManyTags int
+		err = h.db.Select(&tags, "select * from tags where wiki_id = ?", wikiId)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return c.NoContent(http.StatusNotFound)
+			}
+			log.Printf("failed to get tags: %s\n", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		howManyTags = len(tags)
+		for j := 0; j < howManyTags; j++ {
+			tmpSearchContent.Tags = append(tmpSearchContent.Tags, tags[j].TagName)
+		}
+		Response = append(Response, *tmpSearchContent)
+	}
 	return c.JSON(http.StatusOK, Response)
 }

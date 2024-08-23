@@ -40,8 +40,23 @@ func NewMessageContent_SodanResponse() *MessageContent_SodanResponse {
 // memoのbodyから情報を取ってくる型のコンストラクタ
 func NewGetMemoBody() *GetMemoBody {
 	return &GetMemoBody{
+		ID:      0,
+		Title:   "",
+		Content: "",
+	}
+}
+
+// WikiContentResponseのコンストラクタ
+func NewWikiContentResponse() *WikiContentResponse {
+	return &WikiContentResponse{
 		ID:          0,
+		Type:        "",
 		Title:       "",
+		Abstract:    "",
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+		OwnerTraqID: "",
 		Content:     "",
+		Tags:        []string{},
 	}
 }
