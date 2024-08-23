@@ -149,3 +149,8 @@ type Me_Response struct {
 	DisplayName string `json:"name"`
 	IconUri     string `json:"iconUri"`
 }
+
+type Tag_Post struct {
+	WikiID int    `json:"wikiId"`
+	Tag    string `json:"tag"`
+}
