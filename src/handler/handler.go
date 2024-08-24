@@ -536,3 +536,15 @@ func (h *Handler) PostTagHandler(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, tagRequest)
 }
+
+// /tag
+func (h *Handler) GetTagsHandler(c echo.Context) error {
+	tags := []string{}
+	err := h.db.Select(&tags, "SELECT DISTINCT name FROM tags")
+	if err != nil {
+		log.Printf("failed to get tags: %v", err)
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	return c.JSON(http.StatusOK, tags)
+}
