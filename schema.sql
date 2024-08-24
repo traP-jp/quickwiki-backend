@@ -63,3 +63,4 @@ CREATE TABLE favorites (
     wiki_id INT(11) NOT NULL,
     FOREIGN KEY (wiki_id) REFERENCES wikis(id)
 );
+INSERT INTO folders (name, parent_id) VALUES ('root', 0);
