@@ -55,6 +55,7 @@ func main() {
 	e.PATCH("/memo", h.PatchMemoHandler)
 	e.DELETE("/memo", h.DeleteMemoHandler)
 	e.POST("/wiki/tag", h.PostTagHandler)
+	e.GET("/tag", h.GetTagsHandler)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
