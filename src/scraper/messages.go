@@ -45,7 +45,7 @@ func (s *Scraper) GetSodanMessages() {
 		newSodan := model.WikiContent_fromDB{
 			Name:        m.Content,
 			Type:        "sodan",
-			Content:     m.Content,
+			Content:     ProcessMention(m.Content),
 			CreatedAt:   m.CreatedAt,
 			UpdatedAt:   m.UpdatedAt,
 			OwnerTraqID: s.usersMap[m.UserId].Name,
@@ -72,7 +72,7 @@ func (s *Scraper) GetSodanMessages() {
 	s.GetSodanSubMessages("eb5a0035-a340-4cf6-a9e0-94ddfabe9337", 0, 2)
 
 	s.updateWikisContent()
-	s.setSodanTags()
+	//s.setSodanTags()
 	s.setIndexing()
 }
 
@@ -134,7 +134,7 @@ func (s *Scraper) GetWikiIDByMessageId(messageId string) int {
 func (s *Scraper) AddMessageToDB(m traq.Message, wikiId int) {
 	newMessage := model.SodanContent_fromDB{
 		WikiID:         wikiId,
-		MessageContent: m.Content,
+		MessageContent: ProcessMention(m.Content),
 		CreatedAt:      m.CreatedAt,
 		UpdatedAt:      m.UpdatedAt,
 		UserTraqID:     s.usersMap[m.UserId].Name,
