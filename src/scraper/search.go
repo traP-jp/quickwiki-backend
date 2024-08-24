@@ -17,11 +17,11 @@ func (s *Scraper) setIndexing() {
 	var IndexData []search.IndexData
 	for _, wiki := range wikis {
 		IndexData = append(IndexData, search.IndexData{
-			ID:          wiki.ID,
-			Type:        wiki.Type,
-			Title:       wiki.Name,
-			OwnerTraqID: wiki.OwnerTraqID,
-			Content:     wiki.Content,
+			ID:             wiki.ID,
+			Type:           wiki.Type,
+			Title:          wiki.Name,
+			OwnerTraqID:    wiki.OwnerTraqID,
+			MessageContent: wiki.Content,
 		})
 	}
 

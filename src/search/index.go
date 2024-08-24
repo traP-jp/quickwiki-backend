@@ -13,11 +13,11 @@ import (
 )
 
 type IndexData struct {
-	ID          int
-	Type        string
-	Title       string
-	OwnerTraqID string
-	Content     string
+	ID             int
+	Type           string
+	Title          string
+	OwnerTraqID    string
+	MessageContent string
 }
 
 func createIndexMapping() mapping.IndexMapping {
