@@ -56,6 +56,7 @@ func main() {
 	e.DELETE("/memo", h.DeleteMemoHandler)
 	e.POST("/wiki/tag", h.PostTagHandler)
 	e.GET("/me", h.GetMeHandler)
+	e.POST("/lecture", h.PostLectureHandler)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }

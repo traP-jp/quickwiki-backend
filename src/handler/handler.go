@@ -545,3 +545,60 @@ func (h *Handler) GetMeHandler(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, user)
 }
+
+// /lecture
+func (h *Handler) PostLectureHandler(c echo.Context) error {
+	lecturePost := model.Lecture_Post{}
+	err := c.Bind(&lecturePost)
+	if err != nil {
+		log.Printf("failed to bind lecturePost: %v", err)
+		return echo.NewHTTPError(http.StatusBadRequest, "bad request body")
+	}
+
+	folderTree := strings.Split(lecturePost.FolderPath, "/")
+	folderTree[0] = "root"
+
+	// insert folder if not exists
+	for i, folder := range folderTree {
+		if i == 0 {
+			continue
+		}
+
+		err := h.db.Get(&folder, "SELECT id FROM folders WHERE name = ? AND parent_id = ?", folder, folderTree[i-1])
+		if errors.Is(err, sql.ErrNoRows) {
+			_, err = h.db.Exec("INSERT INTO folders (name, parent_id) VALUES (?, ?)", folder, folderTree[i-1])
+			if err != nil {
+				log.Printf("failed to insert folder: %v", err)
+				return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
+			}
+		} else if err != nil {
+			log.Printf("failed to get folder: %v", err)
+			return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
+		}
+	}
+
+	// insert lecture
+	folderID := 0
+	err = h.db.Get(&folderID, "SELECT id FROM folders WHERE name = ? AND parent_id = ?", folderTree[len(folderTree)-1], folderTree[len(folderTree)-2])
+	if err != nil {
+		log.Printf("failed to get folder: %v", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
+	}
+
+	result, err := h.db.Exec("INSERT INTO lectures (title, content, folder_path, folder_id) VALUES (?, ?, ?, ?)",
+		lecturePost.Title, lecturePost.Content, lecturePost.FolderPath, folderID)
+	if err != nil {
+		log.Printf("failed to insert lecture: %v", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
+	}
+
+	lectureID, _ := result.LastInsertId()
+	res := model.Lecture{
+		ID:         int(lectureID),
+		Title:      lecturePost.Title,
+		Content:    lecturePost.Content,
+		FolderPath: lecturePost.FolderPath,
+	}
+
+	return c.JSON(http.StatusOK, res)
+}
