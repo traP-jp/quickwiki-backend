@@ -171,6 +171,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/wikiList'
+    post:
+      tags:
+        - wiki
+      summary: wikiにタグを追加
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/wikiTag'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/wikiTag'
   /sodan:
     get:
       tags:
@@ -354,23 +371,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/tagList'
-    post:
-      tags:
-        - wiki
-      summary: タグの追加
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/tag'
-      responses:
-        '201':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/tag'
   /me:
     get:
       tags:
@@ -642,3 +642,12 @@ components:
       type: array
       items:
         $ref: '#/components/schemas/tag'
+    wikiTag:
+      type: object
+      properties:
+        wikiId:
+          type: string
+          example: 123
+        tag:
+          type: string
+          example: ComputerScience

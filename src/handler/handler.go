@@ -519,3 +519,20 @@ func (h *Handler) DeleteMemoHandler(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, Response)
 }
+
+// /wiki/tag
+func (h *Handler) PostTagHandler(c echo.Context) error {
+	tagRequest := model.Tag_Post{}
+	err := c.Bind(&tagRequest)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "bad request body")
+	}
+
+	_, err = h.db.Exec("INSERT INTO tags (name,tag_score,wiki_id) VALUES (?,?,?)", tagRequest.Tag, 1, tagRequest.WikiID)
+	if err != nil {
+		log.Printf("failed to insert tag: %+v", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
+	}
+
+	return c.JSON(http.StatusOK, tagRequest)
+}
