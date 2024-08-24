@@ -536,3 +536,12 @@ func (h *Handler) PostTagHandler(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, tagRequest)
 }
+
+// /me
+func (h *Handler) GetMeHandler(c echo.Context) error {
+	user, err := h.GetUserInfo(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, err)
+	}
+	return c.JSON(http.StatusOK, user)
+}
