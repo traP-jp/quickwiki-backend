@@ -57,6 +57,7 @@ func main() {
 	e.POST("/wiki/tag", h.PostTagHandler)
 	e.GET("/me", h.GetMeHandler)
 	e.POST("/lecture", h.PostLectureHandler)
+	e.GET("/tag", h.GetTagsHandler)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
