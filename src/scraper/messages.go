@@ -72,7 +72,7 @@ func (s *Scraper) GetSodanMessages() {
 	s.GetSodanSubMessages("eb5a0035-a340-4cf6-a9e0-94ddfabe9337", 0, 2)
 
 	s.updateWikisContent()
-	//s.setSodanTags()
+	s.setSodanTags()
 	s.setIndexing()
 }
 

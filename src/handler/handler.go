@@ -283,7 +283,7 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 				var stamps_Response model.Stamp_MessageContent
 				stamps_Response.StampTraqID = stamps[j].StampTraqID
 				stamps_Response.StampCount = stamps[j].StampCount
-				Response.AnswerMessages[i-1].Stamps = append(Response.QuestionMessage.Stamps, stamps_Response)
+				Response.AnswerMessages[i-1].Stamps = append(Response.AnswerMessages[i-1].Stamps, stamps_Response)
 			}
 		}
 	}
@@ -395,7 +395,9 @@ func (h *Handler) PostMemoHandler(c echo.Context) error {
 			return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
 		}
 	}
-	copy(Response.Tags, getMemoBody.Tags)
+	for i := 0; i < howManyTags; i++ {
+		Response.Tags = append(Response.Tags, getMemoBody.Tags[i])
+	}
 
 	Response.CreatedAt = now
 	Response.UpdatedAt = now
@@ -522,38 +524,69 @@ func (h *Handler) DeleteMemoHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, Response)
 }
 
-// はじめの10文字を返す関数
-func firstTenChars(s string) string {
-	// 文字列の長さが10文字未満の場合、そのまま返す
-	if utf8.RuneCountInString(s) <= 10 {
+// はじめのn文字を返す関数
+func firstTenChars(s string, n int) string {
+	// 文字列の長さがn文字未満の場合、そのまま返す
+	if utf8.RuneCountInString(s) <= n {
 		return s
 	}
 
-	// 10文字分のルーン（文字）をスライスする
+	// n文字分のルーン（文字）をスライスする
 	r := []rune(s)
-	return string(r[:10])
+	return string(r[:n])
 }
 
-// POST/wiki/search の検索はんどら
-func (h *Handler) SearchHandler(c echo.Context) error {
+// mapを使用して積集合を求める関数
+func intersectUsingMap(set1, set2 []int) []int {
+	// マップを使ってset1の要素を記録
+	setMap := make(map[int]bool)
+	for _, v := range set1 {
+		setMap[v] = true
+	}
+
+	// 共通部分を格納するスライス
+	var intersection []int
+	for _, v := range set2 {
+		if setMap[v] {
+			intersection = append(intersection, v)
+		}
+	}
+	return intersection
+}
+
+// mapを使用して和集合を求める関数
+func unionUsingMap(set1, set2 []int) []int {
+	// マップを使って要素を一意に保持
+	setMap := make(map[int]bool)
+	var union []int
+
+	// set1の要素をマップに追加
+	for _, v := range set1 {
+		if !setMap[v] {
+			union = append(union, v)
+			setMap[v] = true
+		}
+	}
+
+	// set2の要素をマップに追加
+	for _, v := range set2 {
+		if !setMap[v] {
+			union = append(union, v)
+			setMap[v] = true
+		}
+	}
+
+	return union
+}
+
+// wikiIdからsearchのResponseを完成させる関数
+func WikiIdToResponse(h *Handler, c echo.Context, wikiIds []int) error {
 	var Response []model.WikiContentResponse
-	var request model.WikiSearchBody
-	err := c.Bind(&request)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "bad request body")
-	}
-
-	var searchResults []int
-	searchResults = search.Search(request.Query, request.ResultCount, request.From)
-	if len(searchResults) == 0 {
-		return echo.NewHTTPError(echo.ErrNotFound.Code, "Some error occurred during the search.")
-	}
-
-	for i := 0; i < len(searchResults); i++ {
-		wikiId := searchResults[i]
+	for i := 0; i < len(wikiIds); i++ {
+		wikiId := wikiIds[i]
 		var wikiContent model.WikiContent_fromDB
 		tmpSearchContent := model.NewWikiContentResponse()
-		err = h.db.Get(&wikiContent, "select * from wikis where id = ?", wikiId)
+		err := h.db.Get(&wikiContent, "select * from wikis where id = ?", wikiId)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return c.NoContent(http.StatusNotFound)
@@ -564,7 +597,7 @@ func (h *Handler) SearchHandler(c echo.Context) error {
 		tmpSearchContent.ID = wikiId
 		tmpSearchContent.Type = wikiContent.Type
 		tmpSearchContent.Title = wikiContent.Name
-		tmpSearchContent.Abstract = firstTenChars(wikiContent.Content) //Abstractを入れるべき
+		tmpSearchContent.Abstract = firstTenChars(wikiContent.Content, 20) //Abstractを入れるべき
 		tmpSearchContent.CreatedAt = wikiContent.CreatedAt
 		tmpSearchContent.UpdatedAt = wikiContent.UpdatedAt
 		tmpSearchContent.OwnerTraqID = wikiContent.OwnerTraqID
@@ -586,4 +619,76 @@ func (h *Handler) SearchHandler(c echo.Context) error {
 		Response = append(Response, *tmpSearchContent)
 	}
 	return c.JSON(http.StatusOK, Response)
+}
+
+// POST/wiki/search の検索はんどら
+func (h *Handler) SearchHandler(c echo.Context) error {
+	var request model.WikiSearchBody
+	err := c.Bind(&request)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "bad request body")
+	}
+
+	// query検索
+	var searchResults_Query []int
+	if request.Query != "" {
+		searchResults_Query = search.Search(request.Query, request.ResultCount, request.From)
+		if len(searchResults_Query) == 0 {
+			return echo.NewHTTPError(echo.ErrNotFound.Code, "Some error occurred during the search.")
+		}
+	}
+	// tag検索
+	var searchResults_Tags []int
+	if len(request.Tags) != 0 {
+		log.Println("request.Tags : ", len(request.Tags))
+		var searchResultWikiIds [][]int
+		for i := 0; i < len(request.Tags); i++ {
+			searchResultWikiIds = append(searchResultWikiIds, []int{})
+			var tags []model.Tag_fromDB
+			err = h.db.Select(&tags, "select * from tags where name = ?", request.Tags[i])
+			if err != nil {
+				if errors.Is(err, sql.ErrNoRows) {
+					return c.NoContent(http.StatusNotFound)
+				}
+				log.Printf("failed to get tags: %s\n", err)
+				return c.NoContent(http.StatusInternalServerError)
+			}
+			for j := 0; j < len(tags); j++ {
+				searchResultWikiIds[i] = append(searchResultWikiIds[i], tags[j].WikiID)
+			}
+		}
+		log.Println("searchResultWikiIds : ", searchResultWikiIds)
+
+		intersection := searchResultWikiIds[0]
+		unionSet := searchResultWikiIds[0]
+		log.Println("len(searchResultWikiIds)", len(searchResultWikiIds))
+		for i := 0; i < len(searchResultWikiIds); i++ {
+			intersection = intersectUsingMap(intersection, searchResultWikiIds[i])
+			unionSet = unionUsingMap(unionSet, searchResultWikiIds[i])
+		}
+		if len(intersection) == 0 {
+			return c.NoContent(http.StatusNotFound)
+		}
+		if len(unionSet) == 0 {
+			return c.NoContent(http.StatusNotFound)
+		}
+		for i := 0; i < len(intersection); i++ {
+			searchResults_Tags = append(searchResults_Tags, intersection[i]) //ここでtagの検索結果の積集合を選択している
+		}
+		log.Println("searchResults_Tags", searchResults_Tags)
+	}
+
+	//検索結果の調整
+	var Response_WikiId []int
+	if searchResults_Query != nil && searchResults_Tags != nil {
+		for i := 0; i < len(intersectUsingMap(searchResults_Query, searchResults_Tags)); i++ {
+			Response_WikiId = append(Response_WikiId, intersectUsingMap(searchResults_Query, searchResults_Tags)[i]) //ここでqueryとtagの結果の積集合を選択している
+		}
+	} else {
+		for i := 0; i < len(unionUsingMap(searchResults_Query, searchResults_Tags)); i++ {
+			Response_WikiId = append(Response_WikiId, unionUsingMap(searchResults_Query, searchResults_Tags)[i])
+		}
+	}
+
+	return WikiIdToResponse(h, c, Response_WikiId)
 }
