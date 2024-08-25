@@ -276,7 +276,7 @@ paths:
             schema:
               type: object
               properties:
-                memoId:
+                wikiId:
                   type: string
                   example: 123
       responses:
@@ -291,20 +291,13 @@ paths:
       tags:
         - user
       summary: ユーザーの備忘録 & sodanの取得
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-          description: ユーザーID
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/memoList'
+                $ref: '#/components/schemas/wikiList'
   /wiki/user/favorite:
     get:
       tags:
@@ -316,7 +309,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/memoList'
+                $ref: '#/components/schemas/wikiList'
     post:
       tags:
         - user
@@ -328,7 +321,7 @@ paths:
             schema:
               type: object
               properties:
-                memoId:
+                wikiId:
                   type: string
                   example: 123
       responses:
@@ -337,7 +330,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/memo'
+                $ref: '#/components/schemas/wikiAbstract'
     delete:
       tags:
         - user
@@ -349,7 +342,7 @@ paths:
             schema:
               type: object
               properties:
-                memoId:
+                wikiId:
                   type: string
                   example: 123
       responses:
@@ -358,7 +351,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/memo'
+                $ref: '#/components/schemas/wikiAbstract'
   /tag:
     get:
       tags:
