@@ -692,3 +692,51 @@ func (h *Handler) SearchHandler(c echo.Context) error {
 
 	return WikiIdToResponse(h, c, Response_WikiId)
 }
+
+// /wiki/tag?tag=&tag=...のtagからwikiを返すはんどら
+func (h *Handler) GetWikiByTagHandler(c echo.Context) error {
+	params := c.QueryParams()
+	requestTags := params["tag"]
+	var searchResults_Tags []int
+	if len(requestTags) == 0 {
+		return echo.NewHTTPError(http.StatusBadRequest, "bad request query")
+	}
+	log.Println("tags : ", len(requestTags))
+	var searchResultWikiIds [][]int
+	for i := 0; i < len(requestTags); i++ {
+		searchResultWikiIds = append(searchResultWikiIds, []int{})
+		var tags []model.Tag_fromDB
+		err := h.db.Select(&tags, "select * from tags where name = ?", requestTags[i])
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return c.NoContent(http.StatusNotFound)
+			}
+			log.Printf("failed to get tags: %s\n", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		for j := 0; j < len(tags); j++ {
+			searchResultWikiIds[i] = append(searchResultWikiIds[i], tags[j].WikiID)
+		}
+	}
+	log.Println("searchResultWikiIds : ", searchResultWikiIds)
+
+	intersection := searchResultWikiIds[0]
+	unionSet := searchResultWikiIds[0]
+	log.Println("len(searchResultWikiIds)", len(searchResultWikiIds))
+	for i := 0; i < len(searchResultWikiIds); i++ {
+		intersection = intersectUsingMap(intersection, searchResultWikiIds[i])
+		unionSet = unionUsingMap(unionSet, searchResultWikiIds[i])
+	}
+	if len(intersection) == 0 {
+		return c.NoContent(http.StatusNotFound)
+	}
+	if len(unionSet) == 0 {
+		return c.NoContent(http.StatusNotFound)
+	}
+	for i := 0; i < len(intersection); i++ {
+		searchResults_Tags = append(searchResults_Tags, intersection[i]) //ここでtagの検索結果の積集合を選択している
+	}
+	log.Println("searchResults_Tags", searchResults_Tags)
+
+	return WikiIdToResponse(h, c, searchResults_Tags)
+}
