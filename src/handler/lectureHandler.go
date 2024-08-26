@@ -46,7 +46,7 @@ func (h *Handler) GetLectureByFolderIDHandler(c echo.Context) error {
 func (h *Handler) GetLectureByFolderPathHandler(c echo.Context) error {
 	folderPath := c.QueryParam("folderpath")
 
-	folderPath = "/" + strings.ReplaceAll(folderPath, "-", " /")
+	folderPath = "/" + strings.ReplaceAll(folderPath, "-", "/")
 	var lectures []model.LectureFromDB
 	err := h.db.Select(&lectures, "SELECT * FROM lectures WHERE folder_path = ?", folderPath)
 	if err != nil {
