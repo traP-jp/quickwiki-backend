@@ -48,7 +48,7 @@ const requests = [
     },
     {
         method: 'GET',
-        url: 'http://localhost:8080/lecture/byFolder/id/2',
+        url: 'http://localhost:8080/lecture/byFolder/id/3',
         example: [
             {
                 id: 1,
@@ -376,10 +376,13 @@ async function executeRequests() {
             };
             const response = await fetch(req.url, options);
             const data = await response.json();
-            results += `### ${req.method} ${req.url} ${response.status} ${response.statusText}\nresponse: ${JSON.stringify(data, null, "\t")}\nexpected: ${JSON.stringify(req.example, null, "\t")}\n\n`;
+            results += `### ${req.method} ${req.url} ${response.status} ${response.statusText}\n`
+            results += "```json\n"
+            results += `response: ${JSON.stringify(data, null, "\t")}\nexpected: ${JSON.stringify(req.example, null, "\t")}\n\n`;
+            results += "```\n";
             //console.log(`Response from ${ req.method } ${ req.url }:`, data);
         } catch (error) {
-            results += `### ${req.method} ${req.url} ${response.status} ${response.statusText}\nERROR: ${error.message}\n\n`;
+            results += `### ${req.method} ${req.url}\nERROR: ${error.message}\n\n`;
             //console.error(`Error in ${ req.method } ${ req.url }:`, error.message);
         }
     }

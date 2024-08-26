@@ -238,9 +238,6 @@ func (h *Handler) SearchHandler(c echo.Context) error {
 			Response_WikiId = append(Response_WikiId, tmp) //queryとtagの積集合で検索
 		}
 	} else {
-		for i := 0; i < len(unionUsingMap(searchResults_Query, searchResults_Tags)); i++ {
-			Response_WikiId = append(Response_WikiId, unionUsingMap(searchResults_Query, searchResults_Tags)[i])
-		}
 		for _, tmp := range unionUsingMap(searchResults_Query, searchResults_Tags) {
 			Response_WikiId = append(Response_WikiId, tmp) //queryとtagのどちらかしかなかったらそのどちらかで検索
 		}
