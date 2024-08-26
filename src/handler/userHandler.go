@@ -6,12 +6,20 @@ import (
 	"github.com/labstack/echo"
 	"log"
 	"net/http"
+	"os"
 	"quickwiki-backend/model"
 	"strconv"
 )
 
 // /me
 func (h *Handler) GetMeHandler(c echo.Context) error {
+	if os.Getenv("DEV_MODE") == "true" {
+		return c.JSON(http.StatusOK, model.Me_Response{
+			TraqID:      "kavos",
+			DisplayName: "kavos",
+			IconUri:     "https://q.trap.jp/api/v3/public/icon/kavos",
+		})
+	}
 	user, err := h.GetUserInfo(c)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, err)
