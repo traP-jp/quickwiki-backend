@@ -169,6 +169,8 @@ type WikiSearchBody struct {
 	Tags        []string `json:"tags"`
 	From        int      `json:"from"`
 	ResultCount int      `json:"resultCount"`
+}
+
 type Tag_Post struct {
 	WikiID int    `json:"wikiId"`
 	Tag    string `json:"tag"`
