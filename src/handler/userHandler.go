@@ -131,6 +131,7 @@ func (h *Handler) PostUserFavoriteWikiHandelr(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	if wikiCount == 0 {
+		log.Printf("wikiid: %d", wikiID)
 		return c.JSON(http.StatusNotFound, "wiki not found")
 	}
 

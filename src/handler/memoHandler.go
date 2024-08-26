@@ -28,7 +28,7 @@ func (h *Handler) GetMemoHandler(c echo.Context) error {
 		if errors.Is(err, sql.ErrNoRows) {
 			return c.NoContent(http.StatusNotFound)
 		}
-		log.Printf("failed to get wikiContent: %s\n", err)
+		log.Printf("[in get memo]failed to get wikiContent: %s\n", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 	if wikiContent.Type == "memo" {
@@ -127,7 +127,7 @@ func (h *Handler) PatchMemoHandler(c echo.Context) error {
 			if errors.Is(err, sql.ErrNoRows) {
 				return c.NoContent(http.StatusNotFound)
 			}
-			log.Printf("failed to get wikiContent: %s\n", err)
+			log.Printf("[in patch memo]failed to get wikiContent: %s\n", err)
 			return c.NoContent(http.StatusInternalServerError)
 		}
 		if wikiContent.OwnerTraqID != owner.TraqID {
@@ -149,7 +149,7 @@ func (h *Handler) PatchMemoHandler(c echo.Context) error {
 		var tags []model.Tag_fromDB
 		err = h.db.Get(&tags, "select * from tags where wiki_id = ?", getMemoBody.ID)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
-			log.Printf("failed to get wikiContent: %s\n", err)
+			log.Printf("[in patch memo]failed to get wikiContent: %s\n", err)
 			return c.NoContent(http.StatusInternalServerError)
 		}
 		var resTags []string
@@ -184,7 +184,7 @@ func (h *Handler) DeleteMemoHandler(c echo.Context) error {
 			if errors.Is(err, sql.ErrNoRows) {
 				return c.NoContent(http.StatusNotFound)
 			}
-			log.Printf("failed to get wikiContent: %s\n", err)
+			log.Printf("[in delete memo]failed to get wikiContent: %s\n", err)
 			return c.NoContent(http.StatusInternalServerError)
 		}
 		if wikiContent.OwnerTraqID != owner.TraqID {
@@ -205,7 +205,7 @@ func (h *Handler) DeleteMemoHandler(c echo.Context) error {
 		var tags []model.Tag_fromDB
 		err = h.db.Get(&tags, "select * from tags where wiki_id = ?", getMemoBody.ID)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
-			log.Printf("failed to get wikiContent: %s\n", err)
+			log.Printf("[in delete memo]failed to get wikiContent: %s\n", err)
 			return c.NoContent(http.StatusInternalServerError)
 		}
 		var resTags []string
