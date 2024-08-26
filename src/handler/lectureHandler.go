@@ -174,6 +174,14 @@ func (h *Handler) PostLectureHandler(c echo.Context) error {
 		} else if err != nil {
 			log.Printf("failed to get folder: %v", err)
 			return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
+		} else {
+			folderId := 0
+			err := h.db.Get(&folderId, "SELECT id FROM folders WHERE name = ? AND parent_id = ?", folder, folderTreeIds[i-1])
+			if err != nil {
+				log.Printf("failed to get folder: %v", err)
+				return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
+			}
+			folderTreeIds = append(folderTreeIds, folderId)
 		}
 	}
 
