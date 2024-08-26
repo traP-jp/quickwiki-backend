@@ -122,9 +122,9 @@ const requests = [
     {
         method: 'POST',
         url: 'http://localhost:8080/wiki/tag',
-        data: { wikiId: '1', tag: 'ComputerScience' },
+        data: { wikiId: 1, tag: 'ComputerScience' },
         example: {
-            "wikiId": "1",
+            "wikiId": 1,
             "tag": "ComputerScience"
         }
     },
