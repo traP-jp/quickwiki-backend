@@ -150,6 +150,7 @@ func (h *Handler) PostLectureHandler(c echo.Context) error {
 
 	folderTree := strings.Split(lecturePost.FolderPath, "/")
 	folderTree[0] = "root"
+	folderTreeIds := []int{1}
 
 	// insert folder if not exists
 	for i, folder := range folderTree {
@@ -157,13 +158,19 @@ func (h *Handler) PostLectureHandler(c echo.Context) error {
 			continue
 		}
 
-		err := h.db.Get(&folder, "SELECT id FROM folders WHERE name = ? AND parent_id = ?", folder, folderTree[i-1])
+		err := h.db.Get(&folder, "SELECT id FROM folders WHERE name = ? AND parent_id = ?", folder, folderTreeIds[i-1])
 		if errors.Is(err, sql.ErrNoRows) {
-			_, err = h.db.Exec("INSERT INTO folders (name, parent_id) VALUES (?, ?)", folder, folderTree[i-1])
+			res, err := h.db.Exec("INSERT INTO folders (name, parent_id) VALUES (?, ?)", folder, folderTreeIds[i-1])
 			if err != nil {
 				log.Printf("failed to insert folder: %v", err)
 				return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
 			}
+			folderId, err := res.LastInsertId()
+			if err != nil {
+				log.Printf("failed to get folderId: %v", err)
+				return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
+			}
+			folderTreeIds = append(folderTreeIds, int(folderId))
 		} else if err != nil {
 			log.Printf("failed to get folder: %v", err)
 			return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
@@ -172,7 +179,7 @@ func (h *Handler) PostLectureHandler(c echo.Context) error {
 
 	// insert lecture
 	folderID := 0
-	err = h.db.Get(&folderID, "SELECT id FROM folders WHERE name = ? AND parent_id = ?", folderTree[len(folderTree)-1], folderTree[len(folderTree)-2])
+	err = h.db.Get(&folderID, "SELECT id FROM folders WHERE name = ? AND parent_id = ?", folderTree[len(folderTree)-1], folderTreeIds[len(folderTree)-2])
 	if err != nil {
 		log.Printf("failed to get folder: %v", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
