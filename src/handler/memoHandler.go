@@ -154,8 +154,8 @@ func (h *Handler) PatchMemoHandler(c echo.Context) error {
 			return c.NoContent(http.StatusInternalServerError)
 		}
 		var resTags []string
-		for i := 0; i < len(tags); i++ {
-			resTags[i] = tags[i].TagName
+		for _, tag := range tags {
+			resTags = append(resTags, tag.TagName)
 		}
 	}
 
