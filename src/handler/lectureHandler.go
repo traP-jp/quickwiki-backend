@@ -57,6 +57,7 @@ func (h *Handler) GetLectureByFolderPathHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
+	log.Printf("lectures: %v", lectures)
 	lecturesWithFolderPath := []model.Lecture{}
 	for _, lecture := range lectures {
 		lecturesWithFolderPath = append(lecturesWithFolderPath, model.Lecture{

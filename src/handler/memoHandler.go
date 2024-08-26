@@ -123,7 +123,7 @@ func (h *Handler) PatchMemoHandler(c echo.Context) error {
 	if getMemoBody.ID != 0 {
 		var wikiContent model.WikiContent_fromDB
 		wikiContent.OwnerTraqID = ""
-		err = h.db.Select(&wikiContent, "select * from wikis where id = ?", getMemoBody.ID)
+		err = h.db.Get(&wikiContent, "select * from wikis where id = ?", getMemoBody.ID)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return c.NoContent(http.StatusNotFound)
