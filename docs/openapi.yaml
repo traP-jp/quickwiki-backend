@@ -171,6 +171,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/wikiList'
+    post:
+      tags:
+        - wiki
+      summary: wikiにタグを追加
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/wikiTag'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/wikiTag'
   /sodan:
     get:
       tags:
@@ -259,7 +276,7 @@ paths:
             schema:
               type: object
               properties:
-                memoId:
+                wikiId:
                   type: string
                   example: 123
       responses:
@@ -274,20 +291,13 @@ paths:
       tags:
         - user
       summary: ユーザーの備忘録 & sodanの取得
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-          description: ユーザーID
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/memoList'
+                $ref: '#/components/schemas/wikiList'
   /wiki/user/favorite:
     get:
       tags:
@@ -299,7 +309,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/memoList'
+                $ref: '#/components/schemas/wikiList'
     post:
       tags:
         - user
@@ -311,7 +321,7 @@ paths:
             schema:
               type: object
               properties:
-                memoId:
+                wikiId:
                   type: string
                   example: 123
       responses:
@@ -320,7 +330,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/memo'
+                $ref: '#/components/schemas/wikiAbstract'
     delete:
       tags:
         - user
@@ -332,7 +342,7 @@ paths:
             schema:
               type: object
               properties:
-                memoId:
+                wikiId:
                   type: string
                   example: 123
       responses:
@@ -341,7 +351,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/memo'
+                $ref: '#/components/schemas/wikiAbstract'
   /tag:
     get:
       tags:
@@ -354,23 +364,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/tagList'
-    post:
-      tags:
-        - wiki
-      summary: タグの追加
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/tag'
-      responses:
-        '201':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/tag'
   /me:
     get:
       tags:
@@ -642,3 +635,12 @@ components:
       type: array
       items:
         $ref: '#/components/schemas/tag'
+    wikiTag:
+      type: object
+      properties:
+        wikiId:
+          type: string
+          example: 123
+        tag:
+          type: string
+          example: ComputerScience

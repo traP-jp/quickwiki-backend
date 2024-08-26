@@ -55,6 +55,11 @@ func main() {
 	e.PATCH("/memo", h.PatchMemoHandler)
 	e.POST("/wiki/search",h.SearchHandler)
 	e.GET("/wiki/tag",h.GetWikiByTagHandler)
+	e.DELETE("/memo", h.DeleteMemoHandler)
+	e.POST("/wiki/tag", h.PostTagHandler)
+	e.GET("/me", h.GetMeHandler)
+	e.POST("/lecture", h.PostLectureHandler)
+	e.GET("/tag", h.GetTagsHandler)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }

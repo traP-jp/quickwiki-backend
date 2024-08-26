@@ -169,4 +169,19 @@ type WikiSearchBody struct {
 	Tags        []string `json:"tags"`
 	From        int      `json:"from"`
 	ResultCount int      `json:"resultCount"`
+type Tag_Post struct {
+	WikiID int    `json:"wikiId"`
+	Tag    string `json:"tag"`
+}
+
+type Lecture_Post struct {
+	Title      string `json:"title"`
+	Content    string `json:"content"`
+	FolderPath string `json:"folderpath"`
+}
+
+type Folder_fromDB struct {
+	ID       int    `db:"id"`
+	Name     string `db:"name"`
+	ParentID int    `db:"parent_id"`
 }
