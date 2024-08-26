@@ -46,10 +46,7 @@ func (h *Handler) GetMemoHandler(c echo.Context) error {
 	var tags []model.Tag_fromDB
 	var howManyTags int
 	err = h.db.Select(&tags, "select * from tags where wiki_id = ?", wikiId)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return c.NoContent(http.StatusNotFound)
-		}
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		log.Printf("failed to get tags: %s\n", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
@@ -137,7 +134,7 @@ func (h *Handler) PatchMemoHandler(c echo.Context) error {
 			return echo.NewHTTPError(http.StatusUnauthorized, "You are not the owner of this memo.")
 		}
 		now := time.Now()
-		_, err := h.db.Exec("UPDATE wikis SET name = ?,updated_at = ?,content = ? where wiki_id = ?", getMemoBody.Title, now, getMemoBody.Content, getMemoBody.ID)
+		_, err := h.db.Exec("UPDATE wikis SET name = ?,updated_at = ?,content = ? where id = ?", getMemoBody.Title, now, getMemoBody.Content, getMemoBody.ID)
 		if err != nil {
 			log.Printf("DB Error: %s", err)
 			return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
@@ -151,10 +148,7 @@ func (h *Handler) PatchMemoHandler(c echo.Context) error {
 
 		var tags []model.Tag_fromDB
 		err = h.db.Get(&tags, "select * from tags where wiki_id = ?", getMemoBody.ID)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				return c.NoContent(http.StatusNotFound)
-			}
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			log.Printf("failed to get wikiContent: %s\n", err)
 			return c.NoContent(http.StatusInternalServerError)
 		}
@@ -196,7 +190,7 @@ func (h *Handler) DeleteMemoHandler(c echo.Context) error {
 		if wikiContent.OwnerTraqID != owner.TraqID {
 			return echo.NewHTTPError(http.StatusUnauthorized, "You are not the owner of this memo.")
 		}
-		_, err := h.db.Exec("DELETE from wikis where wiki_id = ?", getMemoBody.ID)
+		_, err := h.db.Exec("DELETE from wikis where id = ?", getMemoBody.ID)
 		if err != nil {
 			log.Printf("DB Error: %s", err)
 			return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
@@ -210,10 +204,7 @@ func (h *Handler) DeleteMemoHandler(c echo.Context) error {
 
 		var tags []model.Tag_fromDB
 		err = h.db.Get(&tags, "select * from tags where wiki_id = ?", getMemoBody.ID)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				return c.NoContent(http.StatusNotFound)
-			}
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			log.Printf("failed to get wikiContent: %s\n", err)
 			return c.NoContent(http.StatusInternalServerError)
 		}
