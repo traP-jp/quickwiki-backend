@@ -196,9 +196,16 @@ func (h *Handler) DeleteMemoHandler(c echo.Context) error {
 	if wikiContent.OwnerTraqID != owner.TraqID {
 		return echo.NewHTTPError(http.StatusUnauthorized, "You are not the owner of this memo.")
 	}
+
+	// delete tags
+	_, err = h.db.Exec("DELETE from tags where wiki_id = ?", wikiID)
+	if err != nil {
+		log.Printf("failed to delete tags: %s", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
+	}
 	_, err = h.db.Exec("DELETE from wikis where id = ?", wikiID)
 	if err != nil {
-		log.Printf("DB Error: %s", err)
+		log.Printf("failed to delete memo: %s", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
 	}
 	Response.WikiID = wikiContent.ID
