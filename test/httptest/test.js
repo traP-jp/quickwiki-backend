@@ -255,6 +255,46 @@ const requests = [
         ]
     },
     {
+        method: 'POST',
+        url: 'http://localhost:8080/memo',
+        data: {
+            title: 'sfsdfsdf',
+            content: 'This is an introductory course to computer science',
+            tags: ['hoadsoih']
+        },
+        example: {
+            "id": 21,
+            "title": "Introduction to Computer Science",
+            "content": "This is an introductory course to computer science",
+            "ownerTraqId": "kavos",
+            "tags": [
+                "hoadsoih"
+            ],
+            "createdAt": "2021-01-01 00:00:00",
+            "updatedAt": "2021-01-01 00:00:00"
+        }
+    },
+    {
+        method: 'POST',
+        url: 'http://localhost:8080/memo',
+        data: {
+            title: 'Introduction to Computer Science',
+            content: 'This is an introductory course to computer science',
+            tags: ['hoadsoih']
+        },
+        example: {
+            "id": 22,
+            "title": "Introduction to Computer Science",
+            "content": "This is an introductory course to computer science",
+            "ownerTraqId": "kavos",
+            "tags": [
+                "hoadsoih"
+            ],
+            "createdAt": "2021-01-01 00:00:00",
+            "updatedAt": "2021-01-01 00:00:00"
+        }
+    },
+    {
         method: 'GET',
         url: 'http://localhost:8080/wiki/user',
         example: [
@@ -274,9 +314,9 @@ const requests = [
     },
     {
         method: 'POST',
-        url: 'http://localhost:8080/wiki/user/favorite', data: { wikiId: '3' },
+        url: 'http://localhost:8080/wiki/user/favorite', data: { wikiId: '10' },
         example: {
-            "id": 3,
+            "id": 10,
             "type": "sodan",
             "title": "Introduction to Computer Science",
             "Abstract": "This is an introductory course to computer science",
@@ -293,7 +333,7 @@ const requests = [
         url: 'http://localhost:8080/wiki/user/favorite',
         example: [
             {
-                "id": 3,
+                "id": 10,
                 "type": "sodan",
                 "title": "Introduction to Computer Science",
                 "Abstract": "This is an introductory course to computer science",
@@ -309,9 +349,9 @@ const requests = [
     {
         method: 'DELETE',
         url: 'http://localhost:8080/wiki/user/favorite',
-        data: { wikiId: '3' },
+        data: { wikiId: '10' },
         example: {
-            "id": 3,
+            "id": 10,
             "type": "sodan",
             "title": "Introduction to Computer Science",
             "Abstract": "This is an introductory course to computer science",
@@ -336,7 +376,7 @@ async function executeRequests() {
             };
             const response = await fetch(req.url, options);
             const data = await response.json();
-            results += `===============${req.method} ${req.url}================\nresponse: ${JSON.stringify(data, null, "\t")}\nexpected: ${JSON.stringify(req.example, null, "\t")}\n\n`;
+            results += `===============${req.method} ${req.url}===${response.status}:${response.statusText}=============\nresponse: ${JSON.stringify(data, null, "\t")}\nexpected: ${JSON.stringify(req.example, null, "\t")}\n\n`;
             //console.log(`Response from ${ req.method } ${ req.url }:`, data);
         } catch (error) {
             results += `===============${req.method} ${req.url}================\nERROR: ${error.message}\n\n`;
