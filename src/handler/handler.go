@@ -634,7 +634,7 @@ func (h *Handler) SearchHandler(c echo.Context) error {
 	if request.Query != "" {
 		searchResults_Query = search.Search(request.Query, request.ResultCount, request.From)
 		if len(searchResults_Query) == 0 {
-			return echo.NewHTTPError(echo.ErrNotFound.Code, "Some error occurred during the search.")
+			return echo.NewHTTPError(http.StatusNotFound, "No results were found matching that query.")
 		}
 	}
 	// tag検索
@@ -653,8 +653,8 @@ func (h *Handler) SearchHandler(c echo.Context) error {
 				log.Printf("failed to get tags: %s\n", err)
 				return c.NoContent(http.StatusInternalServerError)
 			}
-			for j := 0; j < len(tags); j++ {
-				searchResultWikiIds[i] = append(searchResultWikiIds[i], tags[j].WikiID)
+			for _, tag := range tags {
+				searchResultWikiIds[i] = append(searchResultWikiIds[i], tag.WikiID)
 			}
 		}
 		log.Println("searchResultWikiIds : ", searchResultWikiIds)
@@ -672,8 +672,8 @@ func (h *Handler) SearchHandler(c echo.Context) error {
 		if len(unionSet) == 0 {
 			return c.NoContent(http.StatusNotFound)
 		}
-		for i := 0; i < len(intersection); i++ {
-			searchResults_Tags = append(searchResults_Tags, intersection[i]) //ここでtagの検索結果の積集合を選択している
+		for _, tmp := range intersection {
+			searchResults_Tags = append(searchResults_Tags, tmp) //ここでtagの検索結果の積集合を選択している
 		}
 		log.Println("searchResults_Tags", searchResults_Tags)
 	}
@@ -681,12 +681,15 @@ func (h *Handler) SearchHandler(c echo.Context) error {
 	//検索結果の調整
 	var Response_WikiId []int
 	if searchResults_Query != nil && searchResults_Tags != nil {
-		for i := 0; i < len(intersectUsingMap(searchResults_Query, searchResults_Tags)); i++ {
-			Response_WikiId = append(Response_WikiId, intersectUsingMap(searchResults_Query, searchResults_Tags)[i]) //ここでqueryとtagの結果の積集合を選択している
+		for _, tmp := range intersectUsingMap(searchResults_Query, searchResults_Tags) {
+			Response_WikiId = append(Response_WikiId, tmp) //queryとtagの積集合で検索
 		}
 	} else {
 		for i := 0; i < len(unionUsingMap(searchResults_Query, searchResults_Tags)); i++ {
 			Response_WikiId = append(Response_WikiId, unionUsingMap(searchResults_Query, searchResults_Tags)[i])
+		}
+		for _, tmp := range unionUsingMap(searchResults_Query, searchResults_Tags) {
+			Response_WikiId = append(Response_WikiId, tmp) //queryとtagのどちらかしかなかったらそのどちらかで検索
 		}
 	}
 
@@ -703,10 +706,10 @@ func (h *Handler) GetWikiByTagHandler(c echo.Context) error {
 	}
 	log.Println("tags : ", len(requestTags))
 	var searchResultWikiIds [][]int
-	for i := 0; i < len(requestTags); i++ {
+	for i, requestTag := range requestTags {
 		searchResultWikiIds = append(searchResultWikiIds, []int{})
 		var tags []model.Tag_fromDB
-		err := h.db.Select(&tags, "select * from tags where name = ?", requestTags[i])
+		err := h.db.Select(&tags, "select * from tags where name = ?", requestTag)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return c.NoContent(http.StatusNotFound)
@@ -714,8 +717,8 @@ func (h *Handler) GetWikiByTagHandler(c echo.Context) error {
 			log.Printf("failed to get tags: %s\n", err)
 			return c.NoContent(http.StatusInternalServerError)
 		}
-		for j := 0; j < len(tags); j++ {
-			searchResultWikiIds[i] = append(searchResultWikiIds[i], tags[j].WikiID)
+		for _, tag := range tags {
+			searchResultWikiIds[i] = append(searchResultWikiIds[i], tag.WikiID)
 		}
 	}
 	log.Println("searchResultWikiIds : ", searchResultWikiIds)
@@ -733,8 +736,8 @@ func (h *Handler) GetWikiByTagHandler(c echo.Context) error {
 	if len(unionSet) == 0 {
 		return c.NoContent(http.StatusNotFound)
 	}
-	for i := 0; i < len(intersection); i++ {
-		searchResults_Tags = append(searchResults_Tags, intersection[i]) //ここでtagの検索結果の積集合を選択している
+	for _, tmp := range intersection {
+		searchResults_Tags = append(searchResults_Tags, tmp) //ここでtagの検索結果の積集合を選択している
 	}
 	log.Println("searchResults_Tags", searchResults_Tags)
 
