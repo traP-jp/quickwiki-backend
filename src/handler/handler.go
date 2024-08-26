@@ -742,6 +742,8 @@ func (h *Handler) GetWikiByTagHandler(c echo.Context) error {
 	log.Println("searchResults_Tags", searchResults_Tags)
 
 	return WikiIdToResponse(h, c, searchResults_Tags)
+}
+
 // /wiki/tag
 func (h *Handler) PostTagHandler(c echo.Context) error {
 	tagRequest := model.Tag_Post{}
