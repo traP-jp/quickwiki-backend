@@ -379,7 +379,7 @@ async function executeRequests() {
             results += `### ${req.method} ${req.url} ${response.status} ${response.statusText}\nresponse: ${JSON.stringify(data, null, "\t")}\nexpected: ${JSON.stringify(req.example, null, "\t")}\n\n`;
             //console.log(`Response from ${ req.method } ${ req.url }:`, data);
         } catch (error) {
-            results += `### ${req.method} ${req.url}\nERROR: ${error.message}\n\n`;
+            results += `### ${req.method} ${req.url} ${response.status} ${response.statusText}\nERROR: ${error.message}\n\n`;
             //console.error(`Error in ${ req.method } ${ req.url }:`, error.message);
         }
     }
