@@ -23,7 +23,7 @@ func (s *Scraper) setSodanTags() {
 func (s *Scraper) setTag(wikis []model.WikiContent_fromDB) {
 	var input []tag.KeywordExtractorData
 	for _, wiki := range wikis {
-		text := ProcessMention(ProcessLink(wiki.Content))
+		text := ProcessMentionAll(ProcessLink(wiki.Content))
 		input = append(input, tag.KeywordExtractorData{WikiID: wiki.ID, Text: text, NumKeyword: 5})
 	}
 
@@ -60,5 +60,11 @@ func ProcessMention(content string) string {
 		mentionRaw = mentionRaw[:quoteIndex]
 		res = strings.Replace(res, mention, mentionRaw, 1)
 	}
+	return res
+}
+
+func ProcessMentionAll(content string) string {
+	re := regexp.MustCompile(`!{"type":([^!]*)}`)
+	res := re.ReplaceAllString(content, "")
 	return res
 }

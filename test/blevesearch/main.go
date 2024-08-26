@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/blevesearch/bleve/v2"
 	"github.com/blevesearch/bleve/v2/analysis/analyzer/custom"
 	"github.com/blevesearch/bleve/v2/analysis/analyzer/keyword"
 	"github.com/blevesearch/bleve/v2/analysis/token/lowercase"
@@ -24,8 +25,8 @@ func main() {
 	}
 
 	// search for some text
-	query := bleve.NewMatchQuery("作る 並行")
-	query.SetField("MessageContent")
+	query := bleve.NewMatchQuery("作る")
+	query.SetField("Content")
 	search := bleve.NewSearchRequest(query)
 	searchResults, err := index.Search(search)
 	if err != nil {
@@ -46,13 +47,13 @@ func setting() {
 	japaneseTextFieldMapping := bleve.NewTextFieldMapping()
 	japaneseTextFieldMapping.Analyzer = "ja_analyzer"
 	documentMapping := bleve.NewDocumentMapping()
-	documentMapping.AddFieldMappingsAt("type", typeMapping)
-	documentMapping.AddFieldMappingsAt("title", japaneseTextFieldMapping)
-	documentMapping.AddFieldMappingsAt("author", typeMapping)
-	documentMapping.AddFieldMappingsAt("content", japaneseTextFieldMapping)
+	documentMapping.AddFieldMappingsAt("Type", typeMapping)
+	documentMapping.AddFieldMappingsAt("Title", japaneseTextFieldMapping)
+	documentMapping.AddFieldMappingsAt("Author", typeMapping)
+	documentMapping.AddFieldMappingsAt("Content", japaneseTextFieldMapping)
 
 	indexMapping := bleve.NewIndexMapping()
-	indexMapping.TypeField = "type"
+	indexMapping.TypeField = "Type"
 	indexMapping.AddDocumentMapping("sodan", documentMapping)
 	err := indexMapping.AddCustomTokenizer("ja_tokenizer", map[string]interface{}{
 		"type":      ja.Name,

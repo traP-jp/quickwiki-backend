@@ -8,9 +8,11 @@ import (
 	"net/http"
 	"quickwiki-backend/model"
 	"quickwiki-backend/scraper"
+	"quickwiki-backend/search"
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo"
@@ -281,7 +283,7 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 				var stamps_Response model.Stamp_MessageContent
 				stamps_Response.StampTraqID = stamps[j].StampTraqID
 				stamps_Response.StampCount = stamps[j].StampCount
-				Response.AnswerMessages[i-1].Stamps = append(Response.QuestionMessage.Stamps, stamps_Response)
+				Response.AnswerMessages[i-1].Stamps = append(Response.AnswerMessages[i-1].Stamps, stamps_Response)
 			}
 		}
 	}
@@ -393,7 +395,9 @@ func (h *Handler) PostMemoHandler(c echo.Context) error {
 			return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
 		}
 	}
-	copy(Response.Tags, getMemoBody.Tags)
+	for i := 0; i < howManyTags; i++ {
+		Response.Tags = append(Response.Tags, getMemoBody.Tags[i])
+	}
 
 	Response.CreatedAt = now
 	Response.UpdatedAt = now
@@ -520,6 +524,224 @@ func (h *Handler) DeleteMemoHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, Response)
 }
 
+// はじめのn文字を返す関数
+func firstTenChars(s string, n int) string {
+	// 文字列の長さがn文字未満の場合、そのまま返す
+	if utf8.RuneCountInString(s) <= n {
+		return s
+	}
+
+	// n文字分のルーン（文字）をスライスする
+	r := []rune(s)
+	return string(r[:n])
+}
+
+// mapを使用して積集合を求める関数
+func intersectUsingMap(set1, set2 []int) []int {
+	// マップを使ってset1の要素を記録
+	setMap := make(map[int]bool)
+	for _, v := range set1 {
+		setMap[v] = true
+	}
+
+	// 共通部分を格納するスライス
+	var intersection []int
+	for _, v := range set2 {
+		if setMap[v] {
+			intersection = append(intersection, v)
+		}
+	}
+	return intersection
+}
+
+// mapを使用して和集合を求める関数
+func unionUsingMap(set1, set2 []int) []int {
+	// マップを使って要素を一意に保持
+	setMap := make(map[int]bool)
+	var union []int
+
+	// set1の要素をマップに追加
+	for _, v := range set1 {
+		if !setMap[v] {
+			union = append(union, v)
+			setMap[v] = true
+		}
+	}
+
+	// set2の要素をマップに追加
+	for _, v := range set2 {
+		if !setMap[v] {
+			union = append(union, v)
+			setMap[v] = true
+		}
+	}
+
+	return union
+}
+
+// wikiIdからsearchのResponseを完成させる関数
+func WikiIdToResponse(h *Handler, c echo.Context, wikiIds []int) error {
+	var Response []model.WikiContentResponse
+	for i := 0; i < len(wikiIds); i++ {
+		wikiId := wikiIds[i]
+		var wikiContent model.WikiContent_fromDB
+		tmpSearchContent := model.NewWikiContentResponse()
+		err := h.db.Get(&wikiContent, "select * from wikis where id = ?", wikiId)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return c.NoContent(http.StatusNotFound)
+			}
+			log.Printf("failed to get wikiContent: %s\n", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		tmpSearchContent.ID = wikiId
+		tmpSearchContent.Type = wikiContent.Type
+		tmpSearchContent.Title = wikiContent.Name
+		tmpSearchContent.Abstract = firstTenChars(wikiContent.Content, 20) //Abstractを入れるべき
+		tmpSearchContent.CreatedAt = wikiContent.CreatedAt
+		tmpSearchContent.UpdatedAt = wikiContent.UpdatedAt
+		tmpSearchContent.OwnerTraqID = wikiContent.OwnerTraqID
+
+		var tags []model.Tag_fromDB
+		var howManyTags int
+		err = h.db.Select(&tags, "select * from tags where wiki_id = ?", wikiId)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return c.NoContent(http.StatusNotFound)
+			}
+			log.Printf("failed to get tags: %s\n", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		howManyTags = len(tags)
+		for j := 0; j < howManyTags; j++ {
+			tmpSearchContent.Tags = append(tmpSearchContent.Tags, tags[j].TagName)
+		}
+		Response = append(Response, *tmpSearchContent)
+	}
+	return c.JSON(http.StatusOK, Response)
+}
+
+// POST/wiki/search の検索はんどら
+func (h *Handler) SearchHandler(c echo.Context) error {
+	var request model.WikiSearchBody
+	err := c.Bind(&request)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "bad request body")
+	}
+
+	// query検索
+	var searchResults_Query []int
+	if request.Query != "" {
+		searchResults_Query = search.Search(request.Query, request.ResultCount, request.From)
+		if len(searchResults_Query) == 0 {
+			return echo.NewHTTPError(http.StatusNotFound, "No results were found matching that query.")
+		}
+	}
+	// tag検索
+	var searchResults_Tags []int
+	if len(request.Tags) != 0 {
+		log.Println("request.Tags : ", len(request.Tags))
+		var searchResultWikiIds [][]int
+		for i := 0; i < len(request.Tags); i++ {
+			searchResultWikiIds = append(searchResultWikiIds, []int{})
+			var tags []model.Tag_fromDB
+			err = h.db.Select(&tags, "select * from tags where name = ?", request.Tags[i])
+			if err != nil {
+				if errors.Is(err, sql.ErrNoRows) {
+					return c.NoContent(http.StatusNotFound)
+				}
+				log.Printf("failed to get tags: %s\n", err)
+				return c.NoContent(http.StatusInternalServerError)
+			}
+			for _, tag := range tags {
+				searchResultWikiIds[i] = append(searchResultWikiIds[i], tag.WikiID)
+			}
+		}
+		log.Println("searchResultWikiIds : ", searchResultWikiIds)
+
+		intersection := searchResultWikiIds[0]
+		unionSet := searchResultWikiIds[0]
+		log.Println("len(searchResultWikiIds)", len(searchResultWikiIds))
+		for i := 0; i < len(searchResultWikiIds); i++ {
+			intersection = intersectUsingMap(intersection, searchResultWikiIds[i])
+			unionSet = unionUsingMap(unionSet, searchResultWikiIds[i])
+		}
+		if len(intersection) == 0 {
+			return c.NoContent(http.StatusNotFound)
+		}
+		if len(unionSet) == 0 {
+			return c.NoContent(http.StatusNotFound)
+		}
+		for _, tmp := range intersection {
+			searchResults_Tags = append(searchResults_Tags, tmp) //ここでtagの検索結果の積集合を選択している
+		}
+		log.Println("searchResults_Tags", searchResults_Tags)
+	}
+
+	//検索結果の調整
+	var Response_WikiId []int
+	if searchResults_Query != nil && searchResults_Tags != nil {
+		for _, tmp := range intersectUsingMap(searchResults_Query, searchResults_Tags) {
+			Response_WikiId = append(Response_WikiId, tmp) //queryとtagの積集合で検索
+		}
+	} else {
+		for i := 0; i < len(unionUsingMap(searchResults_Query, searchResults_Tags)); i++ {
+			Response_WikiId = append(Response_WikiId, unionUsingMap(searchResults_Query, searchResults_Tags)[i])
+		}
+		for _, tmp := range unionUsingMap(searchResults_Query, searchResults_Tags) {
+			Response_WikiId = append(Response_WikiId, tmp) //queryとtagのどちらかしかなかったらそのどちらかで検索
+		}
+	}
+
+	return WikiIdToResponse(h, c, Response_WikiId)
+}
+
+// /wiki/tag?tag=&tag=...のtagからwikiを返すはんどら
+func (h *Handler) GetWikiByTagHandler(c echo.Context) error {
+	params := c.QueryParams()
+	requestTags := params["tag"]
+	var searchResults_Tags []int
+	if len(requestTags) == 0 {
+		return echo.NewHTTPError(http.StatusBadRequest, "bad request query")
+	}
+	log.Println("tags : ", len(requestTags))
+	var searchResultWikiIds [][]int
+	for i, requestTag := range requestTags {
+		searchResultWikiIds = append(searchResultWikiIds, []int{})
+		var tags []model.Tag_fromDB
+		err := h.db.Select(&tags, "select * from tags where name = ?", requestTag)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return c.NoContent(http.StatusNotFound)
+			}
+			log.Printf("failed to get tags: %s\n", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		for _, tag := range tags {
+			searchResultWikiIds[i] = append(searchResultWikiIds[i], tag.WikiID)
+		}
+	}
+	log.Println("searchResultWikiIds : ", searchResultWikiIds)
+
+	intersection := searchResultWikiIds[0]
+	unionSet := searchResultWikiIds[0]
+	log.Println("len(searchResultWikiIds)", len(searchResultWikiIds))
+	for i := 0; i < len(searchResultWikiIds); i++ {
+		intersection = intersectUsingMap(intersection, searchResultWikiIds[i])
+		unionSet = unionUsingMap(unionSet, searchResultWikiIds[i])
+	}
+	if len(intersection) == 0 {
+		return c.NoContent(http.StatusNotFound)
+	}
+	if len(unionSet) == 0 {
+		return c.NoContent(http.StatusNotFound)
+	}
+	for _, tmp := range intersection {
+		searchResults_Tags = append(searchResults_Tags, tmp) //ここでtagの検索結果の積集合を選択している
+	}
+	log.Println("searchResults_Tags", searchResults_Tags)
+
+	return WikiIdToResponse(h, c, searchResults_Tags)
 // /wiki/tag
 func (h *Handler) PostTagHandler(c echo.Context) error {
 	tagRequest := model.Tag_Post{}

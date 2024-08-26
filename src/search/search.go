@@ -35,9 +35,10 @@ func Search(query string, limit int, offset int) []int {
 	}
 
 	returnCount := min(limit, int(searchResults.Total)-offset)
-	res := make([]int, returnCount)
+	var res []int
 	for i := offset; i < offset+returnCount; i++ {
-		res[i-offset], err = strconv.Atoi(searchResults.Hits[i].ID)
+		result, err := strconv.Atoi(searchResults.Hits[i].ID)
+		res = append(res, result)
 		if err != nil {
 			log.Printf("[Error from search] failed to convert ID to int: %v\n", err)
 			return []int{}

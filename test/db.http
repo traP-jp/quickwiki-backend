@@ -24,4 +24,12 @@ Content-Type: application/json
 }
 
 ###
-GET http://localhost:8080/search
+POST http://localhost:8080/wiki/search
+Content-Type: application/json
+
+{
+  "query": "Microsoft",
+  "tags": [],
+  "ResultCount":10,
+  "from":0
+}
