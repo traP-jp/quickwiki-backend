@@ -112,13 +112,15 @@ func (h *Handler) PostUserFavoriteWikiHandler(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, err)
 	}
 
-	wikiIDStr := ""
-	err = c.Bind(&wikiIDStr)
+	wikiIDPost := struct {
+		WikiID string `json:"wikiId"`
+	}{}
+	err = c.Bind(&wikiIDPost)
 	if err != nil {
 		log.Printf("failed to bind wikiID: %v", err)
 		return c.JSON(http.StatusBadRequest, err)
 	}
-	wikiID, err := strconv.Atoi(wikiIDStr)
+	wikiID, err := strconv.Atoi(wikiIDPost.WikiID)
 	if err != nil {
 		log.Printf("failed to convert wikiID to int: %v", err)
 		return c.JSON(http.StatusBadRequest, err)
@@ -182,13 +184,15 @@ func (h *Handler) DeleteUserFavoriteWikiHandler(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, err)
 	}
 
-	wikiIDStr := ""
-	err = c.Bind(&wikiIDStr)
+	wikiIDPost := struct {
+		WikiID string `json:"wikiId"`
+	}{}
+	err = c.Bind(&wikiIDPost)
 	if err != nil {
 		log.Printf("failed to bind wikiID: %v", err)
 		return c.JSON(http.StatusBadRequest, err)
 	}
-	wikiID, err := strconv.Atoi(wikiIDStr)
+	wikiID, err := strconv.Atoi(wikiIDPost.WikiID)
 	if err != nil {
 		log.Printf("failed to convert wikiID to int: %v", err)
 		return c.JSON(http.StatusBadRequest, err)
