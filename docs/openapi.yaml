@@ -212,6 +212,56 @@ paths:
         '404':
           description: wikiIDに対応するsodanが見つからない or メッセージ or スタンプ or タグが見つからない
       description: answerMessagesには，回答に対してもう一度する質問も含まれる
+
+    post:
+      tags:
+        - wiki
+      summary: 匿名のsodanの作成
+      description: Endpoint to create a new anonymous sodan.
+      requestBody:
+        description: JSON object containing the content of the sodan.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  example: "This is example content."
+      responses:
+        '200':
+          description: Successfully created sodan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sodan'
+    patch:
+      tags:
+        - wiki
+      summary: sodanの編集
+      description: Endpoint to edit an existing anonymous sodan.
+      requestBody:
+        description: JSON object containing the ID and new content of the sodan.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                wikiId:
+                  type: integer
+                  example: 123
+                content:
+                  type: string
+                  example: "This is edited content."
+      responses:
+        '200':
+          description: Successfully edited sodan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sodan'
   /memo:
     get:
       tags:
