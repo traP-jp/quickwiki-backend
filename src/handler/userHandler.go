@@ -63,7 +63,7 @@ func (h *Handler) GetUserWikiHandelr(c echo.Context) error {
 }
 
 // /wiki/user/favoite
-func (h *Handler) GetUserFavoriteWikiHandelr(c echo.Context) error {
+func (h *Handler) GetUserFavoriteWikiHandler(c echo.Context) error {
 	user, err := h.GetUserInfo(c)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, err)
@@ -106,7 +106,7 @@ func (h *Handler) GetUserFavoriteWikiHandelr(c echo.Context) error {
 }
 
 // /wiki/user/favoite POST
-func (h *Handler) PostUserFavoriteWikiHandelr(c echo.Context) error {
+func (h *Handler) PostUserFavoriteWikiHandler(c echo.Context) error {
 	user, err := h.GetUserInfo(c)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, err)
@@ -176,7 +176,7 @@ func (h *Handler) PostUserFavoriteWikiHandelr(c echo.Context) error {
 }
 
 // /wiki/user/favoite DELETE
-func (h *Handler) DeleteUserFavoriteWikiHandelr(c echo.Context) error {
+func (h *Handler) DeleteUserFavoriteWikiHandler(c echo.Context) error {
 	user, err := h.GetUserInfo(c)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, err)
