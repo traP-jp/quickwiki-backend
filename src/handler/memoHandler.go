@@ -26,6 +26,7 @@ func (h *Handler) GetMemoHandler(c echo.Context) error {
 	err = h.db.Get(&wikiContent, "select * from wikis where id = ?", wikiId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
+			log.Printf("wikiid: %d does not exist.", wikiId)
 			return c.NoContent(http.StatusNotFound)
 		}
 		log.Printf("[in get memo]failed to get wikiContent: %s\n", err)
@@ -122,7 +123,7 @@ func (h *Handler) PatchMemoHandler(c echo.Context) error {
 	if getMemoBody.ID != 0 {
 		var wikiContent model.WikiContent_fromDB
 		wikiContent.OwnerTraqID = ""
-		err = h.db.Get(&wikiContent, "select * from wikis where id = ?", getMemoBody.ID)
+		err = h.db.Select(&wikiContent, "select * from wikis where id = ?", getMemoBody.ID)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return c.NoContent(http.StatusNotFound)
@@ -147,7 +148,7 @@ func (h *Handler) PatchMemoHandler(c echo.Context) error {
 		Response.UpdatedAt = now
 
 		var tags []model.Tag_fromDB
-		err = h.db.Get(&tags, "select * from tags where wiki_id = ?", getMemoBody.ID)
+		err = h.db.Select(&tags, "select * from tags where wiki_id = ?", getMemoBody.ID)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			log.Printf("[in patch memo]failed to get tag: %s\n", err)
 			return c.NoContent(http.StatusInternalServerError)
@@ -203,7 +204,7 @@ func (h *Handler) DeleteMemoHandler(c echo.Context) error {
 		Response.UpdatedAt = wikiContent.UpdatedAt
 
 		var tags []model.Tag_fromDB
-		err = h.db.Get(&tags, "select * from tags where wiki_id = ?", getMemoBody.ID)
+		err = h.db.Select(&tags, "select * from tags where wiki_id = ?", getMemoBody.ID)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			log.Printf("[in delete memo]failed to get tag: %s\n", err)
 			return c.NoContent(http.StatusInternalServerError)

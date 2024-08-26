@@ -158,7 +158,8 @@ func (h *Handler) PostLectureHandler(c echo.Context) error {
 			continue
 		}
 
-		err := h.db.Get(&folder, "SELECT id FROM folders WHERE name = ? AND parent_id = ?", folder, folderTreeIds[i-1])
+		id := 0
+		err := h.db.Get(&id, "SELECT id FROM folders WHERE name = ? AND parent_id = ?", folder, folderTreeIds[i-1])
 		if errors.Is(err, sql.ErrNoRows) {
 			res, err := h.db.Exec("INSERT INTO folders (name, parent_id) VALUES (?, ?)", folder, folderTreeIds[i-1])
 			if err != nil {
