@@ -203,7 +203,7 @@ const requests = [
     },
     {
         method: 'GET',
-        url: 'http://localhost:8080/memo/21',
+        url: 'http://localhost:8080/memo?wikiId=21',
         example: {
             "id": 21,
             "title": "Introduction to Computer Science",
