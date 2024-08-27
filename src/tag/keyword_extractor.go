@@ -9,6 +9,9 @@ package tag
 import "C"
 import (
 	"log"
+	"strconv"
+	"strings"
+	"time"
 	"unsafe"
 )
 
@@ -28,39 +31,53 @@ func KeywordExtractor(text string, num_keyword int, wikiID int) []Tag {
 	CText := C.CString(text)
 	defer C.free(unsafe.Pointer(CText))
 
-	cppData := C.extract(CText, C.int(num_keyword))
-	defer C.free_data_array(cppData)
+	tagsStr := C.GoString(C.extract(CText, C.int(num_keyword)))
 
-	tagNames := make([]string, cppData.size)
-	scores := make([]float64, cppData.size)
+	log.Println(tagsStr)
 
-	for i := 0; i < int(cppData.size); i++ {
-		tagNamesPtr := (**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(cppData.tag_names)) + uintptr(i)*unsafe.Sizeof(*cppData.tag_names)))
-		scoresPtr := (*C.double)(unsafe.Pointer(uintptr(unsafe.Pointer(cppData.scores)) + uintptr(i)*unsafe.Sizeof(*cppData.scores)))
+	tagsData := strings.Split(tagsStr, ",")
 
-		tagNames[i] = C.GoString(*tagNamesPtr)
-		scores[i] = float64(*scoresPtr)
+	var tags []Tag
+
+	for _, tagData := range tagsData {
+		tagDataSplit := strings.Split(tagData, ":")
+		if len(tagDataSplit) != 2 {
+			continue
+		}
+
+		tagName := tagDataSplit[0]
+		tagScoreStr := tagDataSplit[1]
+		tagScore, err := strconv.ParseFloat(tagScoreStr, 64)
+		if err != nil {
+			log.Printf("failed to convert tagScore to float: %v", err)
+			continue
+		}
+
+		tag := Tag{
+			WikiID:  wikiID,
+			TagName: tagName,
+			Score:   tagScore,
+		}
+
+		log.Printf("tag: %v\n", tag)
+
+		tags = append(tags, tag)
 	}
 
-	log.Println("-----------------")
-	log.Println("num_keyword: ", num_keyword)
-	Tags := make([]Tag, cppData.size)
-	for i := 0; i < int(cppData.size); i++ {
-		Tags[i] = Tag{WikiID: wikiID, TagName: tagNames[i], Score: scores[i]}
-		log.Printf("tag: %s, score: %f", Tags[i].TagName, Tags[i].Score)
-	}
-
-	return Tags
+	return tags
 }
 
 func KeywordExtractorMulti(data []KeywordExtractorData) [][]Tag {
 	var res [][]Tag
-	// C.initialize_python()
+	C.initialize_python()
 
 	for _, d := range data {
-		res = append(res, KeywordExtractor(d.Text, d.NumKeyword, d.WikiID))
+		log.Printf("d: %v\n", d)
+		keywords := KeywordExtractor(d.Text, d.NumKeyword, d.WikiID)
+		res = append(res, keywords)
+		time.Sleep(500 * time.Millisecond)
 	}
 
-	C.finalize_python()
+	//C.finalize_python()
 	return res
 }

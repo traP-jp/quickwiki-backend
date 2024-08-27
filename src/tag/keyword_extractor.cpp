@@ -5,18 +5,6 @@
 #include <cstring>
 #include <cstdlib>
 
-struct Data {
-    std::string tag_name;
-    double score;
-};
-
-// Goとのデータのやり取り用構造体
-struct DataArray {
-    char** tag_names;
-    double* scores;
-    size_t size;
-};
-
 extern "C"
 {
 
@@ -25,22 +13,22 @@ void set_path() {
     PyObject *sys = PyImport_ImportModule("sys");
     PyObject *path = PyObject_GetAttrString(sys, "path");
     PyList_Append(path, PyUnicode_DecodeFSDefault("/src/tag"));
+    PyList_Append(path, PyUnicode_DecodeFSDefault("."));  // debug
 }
 
 void finalize_python() {
     Py_Finalize();
 }
 
-DataArray extract(const char *text, int num_keywords) {
-    static bool is_initialized = false;
-    if (!is_initialized) {
-        Py_Initialize();
-        set_path();
-        is_initialized = true;
-    }
+void initialize_python() {
+    Py_Initialize();
+    set_path();
+}
 
-    std::vector<Data> dataList;
-    DataArray dataArray = {nullptr, nullptr, 0};
+std::string result = "";
+
+// return: "tagname:score,tagname:score..."
+const char* extract(const char *text, int num_keywords) {
 
     // pythonファイル名からモジュールを読み込む
     PyObject *pName = PyUnicode_DecodeFSDefault("keyword_extractor");
@@ -60,7 +48,7 @@ DataArray extract(const char *text, int num_keywords) {
                 Py_DECREF(pArgs);
                 Py_DECREF(pModule);
                 std::cout << "Cannot convert argument" << std::endl;
-                return dataArray;
+                return result.c_str();
             }
             PyTuple_SetItem(pArgs, 0, pValue);
 
@@ -69,7 +57,7 @@ DataArray extract(const char *text, int num_keywords) {
                 Py_DECREF(pArgs);
                 Py_DECREF(pModule);
                 std::cout << "Cannot convert argument" << std::endl;
-                return dataArray;
+                return result.c_str();
             }
             PyTuple_SetItem(pArgs, 1, pValue);
 
@@ -90,10 +78,9 @@ DataArray extract(const char *text, int num_keywords) {
                         PyObject *pScore = PyDict_GetItemString(pDict, "score");
 
                         if (PyUnicode_Check(pTagName) && PyFloat_Check(pScore)) {
-                            Data data;
-                            data.tag_name = PyUnicode_AsUTF8(pTagName);
-                            data.score = PyFloat_AsDouble(pScore);
-                            dataList.push_back(data);
+                            std::string tag_name = PyUnicode_AsUTF8(pTagName);
+                            double score = PyFloat_AsDouble(pScore);
+                            result += tag_name + ":" + std::to_string(score) + ",";
                         }
                     }
                 }
@@ -105,7 +92,7 @@ DataArray extract(const char *text, int num_keywords) {
                 Py_DECREF(pModule);
                 std::cout << "[Error from cpp] Function returned unexpected value" << std::endl;
                 PyErr_Print();
-                return dataArray;
+                return result.c_str();
             }
 
         } else {
@@ -120,37 +107,11 @@ DataArray extract(const char *text, int num_keywords) {
         std::cout << "[Error from cpp] Cannot find module: keyword_extractor.py" << std::endl;
     }
 
+    result = result.substr(0, result.size() - 1);  // 最後の","を削除
     std::cout << "[from cpp] Finish keyword extract" << std::endl;
+    printf("%s\n", result.c_str());
 
-    // convert vector to DataArray
-    dataArray.size = dataList.size();
-    dataArray.tag_names = (char**)malloc(dataList.size() * sizeof(char*));
-    dataArray.scores = (double*)malloc(dataList.size() * sizeof(double));
-
-    if (dataArray.tag_names == nullptr || dataArray.scores == nullptr) {
-        std::cout << "Failed to allocate memory" << std::endl;
-        dataArray.size = 0;
-        return dataArray;
-    }
-
-    for (size_t i = 0; i < dataArray.size; i++) {
-        dataArray.tag_names[i] = strdup(dataList[i].tag_name.c_str());
-        dataArray.scores[i] = dataList[i].score;
-    }
-
-    return dataArray;
-}
-
-void free_data_array(DataArray dataArray) {
-    if (dataArray.tag_names != nullptr) {
-        for (size_t i = 0; i < dataArray.size; i++) {
-            free(dataArray.tag_names[i]);
-        }
-        free(dataArray.tag_names);
-    }
-    if (dataArray.scores != nullptr) {
-        free(dataArray.scores);
-    }
+    return result.c_str();
 }
 
 } // extern "C"
