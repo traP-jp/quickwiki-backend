@@ -38,10 +38,7 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 	var tags []model.Tag_fromDB
 	var howManyTags int
 	err = h.db.Select(&tags, "select * from tags where wiki_id = ?", wikiId)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return c.NoContent(http.StatusNotFound)
-		}
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		log.Printf("failed to get tags: %s\n", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
@@ -167,10 +164,7 @@ func WikiIdToResponse(h *Handler, c echo.Context, wikiIds []int) error {
 		var tags []model.Tag_fromDB
 		var howManyTags int
 		err = h.db.Select(&tags, "select * from tags where wiki_id = ?", wikiId)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				return c.NoContent(http.StatusNotFound)
-			}
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			log.Printf("failed to get tags: %s\n", err)
 			return c.NoContent(http.StatusInternalServerError)
 		}
@@ -208,10 +202,7 @@ func (h *Handler) SearchHandler(c echo.Context) error {
 			searchResultWikiIds = append(searchResultWikiIds, []int{})
 			var tags []model.Tag_fromDB
 			err = h.db.Select(&tags, "select * from tags where name = ?", request.Tags[i])
-			if err != nil {
-				if errors.Is(err, sql.ErrNoRows) {
-					return c.NoContent(http.StatusNotFound)
-				}
+			if err != nil && !errors.Is(err, sql.ErrNoRows) {
 				log.Printf("failed to get tags: %s\n", err)
 				return c.NoContent(http.StatusInternalServerError)
 			}
@@ -247,9 +238,6 @@ func (h *Handler) SearchHandler(c echo.Context) error {
 			Response_WikiId = append(Response_WikiId, tmp) //queryとtagの積集合で検索
 		}
 	} else {
-		for i := 0; i < len(unionUsingMap(searchResults_Query, searchResults_Tags)); i++ {
-			Response_WikiId = append(Response_WikiId, unionUsingMap(searchResults_Query, searchResults_Tags)[i])
-		}
 		for _, tmp := range unionUsingMap(searchResults_Query, searchResults_Tags) {
 			Response_WikiId = append(Response_WikiId, tmp) //queryとtagのどちらかしかなかったらそのどちらかで検索
 		}
@@ -272,10 +260,7 @@ func (h *Handler) GetWikiByTagHandler(c echo.Context) error {
 		searchResultWikiIds = append(searchResultWikiIds, []int{})
 		var tags []model.Tag_fromDB
 		err := h.db.Select(&tags, "select * from tags where name = ?", requestTag)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				return c.NoContent(http.StatusNotFound)
-			}
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			log.Printf("failed to get tags: %s\n", err)
 			return c.NoContent(http.StatusInternalServerError)
 		}

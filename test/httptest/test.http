@@ -1,0 +1,100 @@
+###
+GET http://localhost:8080/ping
+
+###
+POST http://localhost:8080/lecture
+Content-Type: application/json
+
+{
+  "title": "Introduction to Computer Science",
+  "content": "マークダウン形式 資料へのリンク",
+  "folderpath": "/School/ComputerScience"
+}
+
+###
+GET http://localhost:8080/lecture/1
+
+###
+GET http://localhost:8080/lecture/byFolder/id/2
+
+###
+GET http://localhost:8080/lecture/byFolder/path?folderpath=School-ComputerScience
+
+###
+POST http://localhost:8080/wiki/search
+Content-Type: application/json
+
+{
+  "query": "Microsoft",
+  "tags": [],
+  "resultCount": 10,
+  "from": 0
+}
+
+###
+GET http://localhost:8080/wiki/tag?tag=windows
+
+###
+POST http://localhost:8080/wiki/tag
+Content-Type: application/json
+
+{
+  "wikiId": "1",
+  "tag": "ComputerScience"
+}
+
+###
+GET http://localhost:8080/sodan?wikiId=1
+
+###
+POST http://localhost:8080/memo
+Content-Type: application/json
+
+{
+  "title": "Introduction to Computer Science",
+  "content": "This is an introductory course to computer science",
+  "tags": [
+    "hoadsoih"
+  ]
+}
+
+###
+GET http://localhost:8080/memo/21
+
+###
+PATCH http://localhost:8080/memo
+Content-Type: application/json
+
+{
+  "id": 21,
+  "title": "askdaosjdoa",
+  "content": "This is an introductory course to computer science"
+}
+
+###
+DELETE http://localhost:8080/memo
+Content-Type: application/json
+
+{
+  "memoId": "21"
+}
+
+###
+GET http://localhost:8080/tag
+
+###
+GET http://localhost:8080/wiki/user
+
+###
+POST http://localhost:8080/wiki/user/favorite
+Content-Type: application/json
+
+{
+  "memoId": "3"
+}
+
+###
+GET http://localhost:8080/wiki/user/favorite
+
+###
+DELETE http://localhost:8080/wiki/user/favorite
