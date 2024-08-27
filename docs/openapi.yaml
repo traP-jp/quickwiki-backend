@@ -10,6 +10,8 @@ tags:
     description: 講習会情報
   - name: wiki
     description: sodanと備忘録
+  - name: sodan
+    description: 匿名sodan
   - name: user
     description: ユーザー関連
   - name: other
@@ -215,7 +217,7 @@ paths:
 
     post:
       tags:
-        - wiki
+        - sodan
       summary: 匿名のsodanの作成
       description: Endpoint to create a new anonymous sodan.
       requestBody:
@@ -238,8 +240,8 @@ paths:
                 $ref: '#/components/schemas/sodan'
     patch:
       tags:
-        - wiki
-      summary: sodanの編集
+        - sodan
+      summary: 匿名sodanの編集
       description: Endpoint to edit an existing anonymous sodan.
       requestBody:
         description: JSON object containing the ID and new content of the sodan.
