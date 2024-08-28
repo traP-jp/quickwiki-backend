@@ -22,7 +22,7 @@ func (s *Scraper) setSodanTags() {
 
 func (s *Scraper) setTag(wikis []model.WikiContent_fromDB) {
 	var input []tag.KeywordExtractorData
-	for i, wiki := range wikis {
+	for _, wiki := range wikis {
 		text := ProcessMentionAll(ProcessLink(removeNewLine(wiki.Content)))
 		input = append(input, tag.KeywordExtractorData{WikiID: wiki.ID, Text: text})
 	}
