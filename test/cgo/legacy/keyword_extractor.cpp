@@ -25,11 +25,9 @@ void initialize_python() {
     set_path();
 }
 
-std::string result = "";
-
 // return: "tagname:score,tagname:score..."
 const char* extract(const char *text, int num_keywords) {
-
+    std::string result = "";
     // pythonファイル名からモジュールを読み込む
     PyObject *pName = PyUnicode_DecodeFSDefault("keyword_extractor");
     PyObject *pModule = PyImport_Import(pName);
@@ -111,7 +109,10 @@ const char* extract(const char *text, int num_keywords) {
     std::cout << "[from cpp] Finish keyword extract" << std::endl;
     printf("%s\n", result.c_str());
 
-    return result.c_str();
+    const char* result_c = (const char*)malloc(result.size() + 1);
+    std::strcpy((char*)result_c, result.c_str());
+
+    return result_c;
 }
 
 } // extern "C"

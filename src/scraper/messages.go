@@ -195,7 +195,7 @@ func (s *Scraper) updateWikisContent() {
 
 		content := ""
 		for _, m := range messages {
-			content += m.MessageContent + "\n"
+			content += m.MessageContent
 		}
 
 		_, err = s.db.Exec("UPDATE wikis SET content = ? WHERE id = ?", content, wiki.ID)
