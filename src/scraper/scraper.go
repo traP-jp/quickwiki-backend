@@ -56,8 +56,10 @@ func (s *Scraper) Scrape() {
 		}
 	})
 
-	err = bot.Start()
-	if err != nil {
-		panic(err)
+	if os.Getenv("DEV_MODE") == "false" {
+		err = bot.Start()
+		if err != nil {
+			panic(err)
+		}
 	}
 }
