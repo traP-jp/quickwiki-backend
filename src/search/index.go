@@ -2,11 +2,7 @@ package search
 
 import (
 	"github.com/blevesearch/bleve/v2"
-	"github.com/blevesearch/bleve/v2/analysis/analyzer/custom"
-	"github.com/blevesearch/bleve/v2/analysis/analyzer/keyword"
-	"github.com/blevesearch/bleve/v2/analysis/token/lowercase"
-	"github.com/blevesearch/bleve/v2/mapping"
-	"github.com/ikawaha/bleveplugin/analysis/lang/ja"
+	"github.com/shogo82148/go-mecab"
 	"log"
 	"os"
 	"strconv"
@@ -20,51 +16,28 @@ type IndexData struct {
 	MessageContent string
 }
 
-func createIndexMapping() mapping.IndexMapping {
-	typeMapping := bleve.NewTextFieldMapping()
-	typeMapping.Analyzer = keyword.Name
-	japaneseTextFieldMapping := bleve.NewTextFieldMapping()
-	japaneseTextFieldMapping.Analyzer = "ja_analyzer"
-	documentMapping := bleve.NewDocumentMapping()
-	documentMapping.AddFieldMappingsAt("Type", typeMapping)
-	documentMapping.AddFieldMappingsAt("Title", japaneseTextFieldMapping)
-	documentMapping.AddFieldMappingsAt("OwnerTraqID", typeMapping)
-	documentMapping.AddFieldMappingsAt("MessageContent", japaneseTextFieldMapping)
-
-	indexMapping := bleve.NewIndexMapping()
-	indexMapping.TypeField = "type"
-	indexMapping.AddDocumentMapping("sodan", documentMapping)
-	err := indexMapping.AddCustomTokenizer("ja_tokenizer", map[string]interface{}{
-		"type":      ja.Name,
-		"dict":      ja.DictIPA,
-		"base_form": true,
-		"stop_tags": true,
-	})
-	if err != nil {
-		log.Printf("[Error from search engine] failed to add custom tokenizer: %v\n", err)
-		return nil
-	}
-	err = indexMapping.AddCustomAnalyzer("ja_analyzer", map[string]interface{}{
-		"type":      custom.Name,
-		"tokenizer": "ja_tokenizer",
-		"token_filters": []string{
-			ja.StopWordsName,
-			lowercase.Name,
-		},
-	})
-	if err != nil {
-		log.Printf("[Error from search engine] failed to add custom analyzer: %v\n", err)
-		return nil
-	}
-
-	return indexMapping
-}
-
 func Indexing(data []IndexData) {
+	tagger, err := mecab.New(map[string]string{"output-format-type": "wakati"})
+	if err != nil {
+		log.Println("[Error from search engine] failed to create mecab tagger: %v\n", err)
+		return
+	}
+	defer tagger.Destroy()
+
+	for i, d := range data {
+		result, err := tagger.Parse(d.MessageContent)
+		if err != nil {
+			log.Println("[Error from search engine] failed to parse: %v\n", err)
+			return
+		}
+		log.Println(result)
+		data[i].MessageContent = result
+	}
+
 	var index bleve.Index
 	if _, err := os.Stat("index.bleve"); err != nil {
 		// new
-		indexMapping := createIndexMapping()
+		indexMapping := bleve.NewIndexMapping()
 		index, err = bleve.New("index.bleve", indexMapping)
 		if err != nil {
 			log.Printf("[Error from search engine] failed to create index: %v\n", err)

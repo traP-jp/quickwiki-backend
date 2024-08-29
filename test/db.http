@@ -28,7 +28,7 @@ POST http://localhost:8080/wiki/search
 Content-Type: application/json
 
 {
-  "query": "論文",
+  "query": "大学",
   "tags": [],
   "ResultCount":10,
   "from":0
