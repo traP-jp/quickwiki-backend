@@ -1,7 +1,6 @@
 package scraper
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"quickwiki-backend/model"
@@ -25,7 +24,7 @@ func (s *Scraper) setSodanTags() {
 func (s *Scraper) setTag(wikis []model.WikiContent_fromDB) {
 	var input []tag.KeywordExtractorData
 	for _, wiki := range wikis {
-		text := ProcessMentionAll(ProcessLink(removeNewLine(wiki.Content)))
+		text := ProcessMentionAll(ProcessLink(removeNewLine(removeCodeBlock(removeTeX(wiki.Content)))))
 		input = append(input, tag.KeywordExtractorData{WikiID: wiki.ID, Text: text})
 	}
 
@@ -59,7 +58,6 @@ func ProcessMention(content string) string {
 	mentions := re.FindAllString(content, -1)
 	res := content
 	for _, mention := range mentions {
-		fmt.Println(mention)
 		re = regexp.MustCompile(`"raw":"(.*)",( *)"id"`)
 		mentionRaw := re.FindString(mention)
 		mentionRaw = mentionRaw[8 : len(mentionRaw)-1]
@@ -78,4 +76,14 @@ func ProcessMentionAll(content string) string {
 
 func removeNewLine(content string) string {
 	return strings.Replace(content, "\n", "", -1)
+}
+
+func removeCodeBlock(content string) string {
+	re := regexp.MustCompile("```[^```]*```")
+	return re.ReplaceAllString(content, "")
+}
+
+func removeTeX(content string) string {
+	re := regexp.MustCompile("\\$[^\\$]*\\$")
+	return re.ReplaceAllString(content, "")
 }
