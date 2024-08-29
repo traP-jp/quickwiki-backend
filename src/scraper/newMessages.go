@@ -39,6 +39,22 @@ func (s *Scraper) SodanSubMessageCreated(p *payload.MessageCreated) {
 
 	channelId := p.Message.ChannelID
 
+	var wikiId int
+	urlOffset := len("https://q.trap.jp/messages/")
+	re := regexp.MustCompile(`https://q.trap.jp/messages/([^!*]{36})`)
+	cites := re.FindAllString(p.Message.Text, -1)
+	if len(cites) > 0 {
+		citedMessageId := cites[0][urlOffset:]
+		citedMessage, _, err := s.bot.API().MessageApi.GetMessage(context.Background(), citedMessageId).Execute()
+		if err != nil {
+			log.Println("failed to get cited message")
+			log.Println(err)
+		}
+		if citedMessage.ChannelId == rsodanChannelId {
+			wikiId = s.GetWikiIDByMessageId(citedMessageId)
+		}
+	}
+
 	var messages []model.SodanContent_fromDB
 	err := s.db.Select(&messages, "SELECT * FROM messages WHERE channel_id = ? ORDER BY created_at DESC LIMIT 30", channelId)
 	if err != nil {
@@ -46,8 +62,6 @@ func (s *Scraper) SodanSubMessageCreated(p *payload.MessageCreated) {
 		log.Println(err)
 	}
 
-	var wikiId int
-	urlOffset := len("https://q.trap.jp/messages/")
 	for _, m := range messages {
 		re := regexp.MustCompile(`https://q.trap.jp/messages/([^!*]{36})`)
 		cites := re.FindAllString(m.MessageContent, -1)
