@@ -3,9 +3,11 @@ package scraper
 import (
 	"fmt"
 	"log"
+	"os"
 	"quickwiki-backend/model"
 	"quickwiki-backend/tag"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -27,7 +29,12 @@ func (s *Scraper) setTag(wikis []model.WikiContent_fromDB) {
 		input = append(input, tag.KeywordExtractorData{WikiID: wiki.ID, Text: text})
 	}
 
-	tags := tag.KeywordExtractorMulti(input, 5)
+	numKeyword, err := strconv.Atoi(os.Getenv("NUM_KEYWORD"))
+	if err != nil {
+		log.Println("please set NUM_KEYWORD correctly")
+		numKeyword = 5
+	}
+	tags := tag.KeywordExtractorMulti(input, numKeyword)
 	for _, tg := range tags {
 		for _, t := range tg {
 			s.insertTag(t)
