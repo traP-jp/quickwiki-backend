@@ -6,6 +6,7 @@ import (
 	"github.com/traPtitech/traq-ws-bot/payload"
 	"log"
 	"quickwiki-backend/model"
+	"quickwiki-backend/search"
 	"regexp"
 )
 
@@ -32,6 +33,8 @@ func (s *Scraper) SodanMessageCreated(p *payload.MessageCreated) {
 	}
 
 	s.AddMessageToDB(newSodan, int(wikiId))
+	s.addMessageTag(int(wikiId))
+	s.addMessageIndex(int(wikiId))
 }
 
 func (s *Scraper) SodanSubMessageCreated(p *payload.MessageCreated) {
@@ -88,4 +91,38 @@ func (s *Scraper) SodanSubMessageCreated(p *payload.MessageCreated) {
 		UpdatedAt: p.Message.UpdatedAt,
 		Stamps:    []traq.MessageStamp{},
 	}, wikiId)
+	s.addMessageTag(wikiId)
+	s.addMessageIndex(wikiId)
+}
+
+func (s *Scraper) addMessageTag(wikiId int) {
+	var wiki model.WikiContent_fromDB
+	err := s.db.Get(&wiki, "SELECT * FROM wikis WHERE id = ?", wikiId)
+	if err != nil {
+		log.Println("failed to get wiki")
+		log.Println(err)
+	}
+
+	s.setTag([]model.WikiContent_fromDB{wiki})
+}
+
+func (s *Scraper) addMessageIndex(wikiId int) {
+	var wiki model.WikiContent_fromDB
+	err := s.db.Get(&wiki, "SELECT * FROM wikis WHERE id = ?", wikiId)
+	if err != nil {
+		log.Println("failed to get wiki")
+		log.Println(err)
+	}
+
+	indexData := []search.IndexData{
+		{
+			ID:             wiki.ID,
+			Type:           wiki.Type,
+			Title:          wiki.Name,
+			OwnerTraqID:    wiki.OwnerTraqID,
+			MessageContent: wiki.Content,
+		},
+	}
+
+	search.Indexing(indexData)
 }
