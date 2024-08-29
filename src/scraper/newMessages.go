@@ -1,9 +1,12 @@
 package scraper
 
 import (
+	"context"
 	"github.com/traPtitech/go-traq"
 	"github.com/traPtitech/traq-ws-bot/payload"
 	"log"
+	"quickwiki-backend/model"
+	"regexp"
 )
 
 func (s *Scraper) SodanMessageCreated(p *payload.MessageCreated) {
@@ -31,6 +34,44 @@ func (s *Scraper) SodanMessageCreated(p *payload.MessageCreated) {
 	s.AddMessageToDB(newSodan, int(wikiId))
 }
 
-func SodanSubMessageCreated(p *payload.MessageCreated) {
+func (s *Scraper) SodanSubMessageCreated(p *payload.MessageCreated) {
+	rsodanChannelId := "aff37b5f-0911-4255-81c3-b49985c8943f"
 
+	channelId := p.Message.ChannelID
+
+	var messages []model.SodanContent_fromDB
+	err := s.db.Select(&messages, "SELECT * FROM messages WHERE channel_id = ? ORDER BY created_at DESC LIMIT 30", channelId)
+	if err != nil {
+		log.Println("failed to get messages")
+		log.Println(err)
+	}
+
+	var wikiId int
+	urlOffset := len("https://q.trap.jp/messages/")
+	for _, m := range messages {
+		re := regexp.MustCompile(`https://q.trap.jp/messages/([^!*]{36})`)
+		cites := re.FindAllString(m.MessageContent, -1)
+		if len(cites) > 0 {
+			citedMessageId := cites[0][urlOffset:]
+			citedMessage, _, err := s.bot.API().MessageApi.GetMessage(context.Background(), citedMessageId).Execute()
+			if err != nil {
+				log.Println("failed to get cited message")
+				log.Println(err)
+			}
+			if citedMessage.ChannelId == rsodanChannelId {
+				wikiId = m.WikiID
+				break
+			}
+		}
+	}
+
+	s.AddMessageToDB(traq.Message{
+		Id:        p.Message.ID,
+		UserId:    p.Message.User.ID,
+		ChannelId: p.Message.ChannelID,
+		Content:   p.Message.Text,
+		CreatedAt: p.Message.CreatedAt,
+		UpdatedAt: p.Message.UpdatedAt,
+		Stamps:    []traq.MessageStamp{},
+	}, wikiId)
 }

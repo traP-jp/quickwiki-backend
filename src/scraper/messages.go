@@ -50,11 +50,17 @@ func (s *Scraper) GetSodanMessages() {
 		s.AddMessageToDB(m, int(wikiId))
 	}
 
+	log.Println("sodan messages scraped")
 	s.GetSodanSubMessages("98ea48da-64e8-4f69-9d0d-80690b682670", 40, 52)
+	log.Println("sodan sub messages 1 scraped")
 	s.GetSodanSubMessages("30c30aa5-c380-4324-b227-0ca85c34801c", 22, 32)
+	log.Println("sodan sub messages 2 scraped")
 	s.GetSodanSubMessages("7ec94f1d-1920-4e15-bfc5-049c9a289692", 5, 18)
+	log.Println("sodan sub messages 3 scraped")
 	s.GetSodanSubMessages("c67abb48-3fb0-4486-98ad-4b6947998ad5", 0, 21)
+	log.Println("sodan sub messages 4 scraped")
 	s.GetSodanSubMessages("eb5a0035-a340-4cf6-a9e0-94ddfabe9337", 0, 2)
+	log.Println("sodan sub messages 5 scraped")
 
 	s.updateWikisContent()
 	s.setSodanTags()
@@ -91,7 +97,6 @@ func (s *Scraper) GetSodanSubMessages(channelId string, offset int, limit int) {
 		cites := re.FindAllString(m.Content, -1)
 		if len(cites) > 0 {
 			citedMessageId := cites[0][urlOffset:]
-			log.Println(citedMessageId)
 			citedMessage, _, err := s.bot.API().MessageApi.GetMessage(context.Background(), citedMessageId).Execute()
 			if err != nil {
 				log.Println("failed to get cited message")
