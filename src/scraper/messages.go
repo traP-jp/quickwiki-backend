@@ -25,21 +25,6 @@ func (s *Scraper) GetSodanMessages() {
 	for _, m := range sodanMessages {
 		log.Println(m.CreatedAt)
 	}
-	//sampleMessages := []traq.model.SodanContent_fromDB{}
-	//sampleMessages = append(sampleMessages, traq.model.SodanContent_fromDB{
-	//	Id:        "id1",
-	//	UserId:    "u1",
-	//	ChannelId: "c1",
-	//	MessageContent:   "sample message",
-	//	CreatedAt: time.Now(),
-	//	UpdatedAt: time.Now(),
-	//	Pinned:    false,
-	//	Stamps: []traq.MessageStamp{
-	//		{"u1", "s1", 2, time.Now(), time.Now()},
-	//		{"u2", "s1", 4, time.Now(), time.Now()},
-	//		{"u3", "s2", 12, time.Now(), time.Now()},
-	//	},
-	//})
 
 	for _, m := range sodanMessages {
 		newSodan := model.WikiContent_fromDB{
