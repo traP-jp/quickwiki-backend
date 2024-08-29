@@ -135,7 +135,7 @@ func (s *Scraper) AddMessageToDB(m traq.Message, wikiId int) {
 		newMessage.WikiID, newMessage.MessageContent, newMessage.CreatedAt, newMessage.UpdatedAt, newMessage.UserTraqID, newMessage.ChannelID, newMessage.MessageID)
 	if err != nil {
 		log.Println("failed to insert message")
-		log.Printf("%+v\nerr:%+v\n", newMessage.ID, newMessage, err)
+		log.Printf("%+v\nerr:%+v\n", newMessage.ID, err)
 	}
 	messageId, err := result.LastInsertId()
 	if err != nil {
