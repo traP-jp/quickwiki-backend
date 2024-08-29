@@ -30,7 +30,7 @@ func (s *Scraper) GetSodanMessages() {
 		newSodan := model.WikiContent_fromDB{
 			Name:        m.Content,
 			Type:        "sodan",
-			Content:     ProcessMention(m.Content),
+			Content:     m.Content,
 			CreatedAt:   m.CreatedAt,
 			UpdatedAt:   m.UpdatedAt,
 			OwnerTraqID: s.usersMap[m.UserId].Name,
@@ -62,8 +62,9 @@ func (s *Scraper) GetSodanMessages() {
 	s.GetSodanSubMessages("eb5a0035-a340-4cf6-a9e0-94ddfabe9337", 0, 2)
 	log.Println("sodan sub messages 5 scraped")
 
-	s.updateWikisContent()
+	s.mergeWikisContent()
 	s.setSodanTags()
+	s.removeMentions()
 	s.setIndexing()
 }
 
@@ -124,7 +125,7 @@ func (s *Scraper) GetWikiIDByMessageId(messageId string) int {
 func (s *Scraper) AddMessageToDB(m traq.Message, wikiId int) {
 	newMessage := model.SodanContent_fromDB{
 		WikiID:         wikiId,
-		MessageContent: ProcessMention(m.Content),
+		MessageContent: m.Content,
 		CreatedAt:      m.CreatedAt,
 		UpdatedAt:      m.UpdatedAt,
 		UserTraqID:     s.usersMap[m.UserId].Name,
@@ -167,7 +168,7 @@ func (s *Scraper) AddMessageToDB(m traq.Message, wikiId int) {
 	}
 }
 
-func (s *Scraper) updateWikisContent() {
+func (s *Scraper) mergeWikisContent() {
 	var wikis []model.WikiContent_fromDB
 	err := s.db.Select(&wikis, "SELECT * FROM wikis WHERE type = 'sodan'")
 	if err != nil {
@@ -188,6 +189,24 @@ func (s *Scraper) updateWikisContent() {
 			content += m.MessageContent
 		}
 
+		_, err = s.db.Exec("UPDATE wikis SET content = ? WHERE id = ?", content, wiki.ID)
+		if err != nil {
+			log.Println("failed to update wiki")
+			log.Println(err)
+		}
+	}
+}
+
+func (s *Scraper) removeMentions() {
+	var wikis []model.WikiContent_fromDB
+	err := s.db.Select(&wikis, "SELECT * FROM wikis WHERE type = 'sodan'")
+	if err != nil {
+		log.Println("failed to get wikis")
+		log.Println(err)
+	}
+
+	for _, wiki := range wikis {
+		content := ProcessMention(wiki.Content)
 		_, err = s.db.Exec("UPDATE wikis SET content = ? WHERE id = ?", content, wiki.ID)
 		if err != nil {
 			log.Println("failed to update wiki")
