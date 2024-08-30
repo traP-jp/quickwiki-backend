@@ -46,7 +46,7 @@ func (s *Scraper) Scrape() {
 		s.usersMap[u.Id] = u
 	}
 
-	s.GetSodanMessages()
+	//s.GetSodanMessages()
 
 	bot.OnMessageCreated(func(p *payload.MessageCreated) {
 		channelId := p.Message.ChannelID
@@ -62,9 +62,5 @@ func (s *Scraper) Scrape() {
 		if err != nil {
 			panic(err)
 		}
-	}
-
-	if err := bot.Start(); err != nil {
-		log.Println("BOT start err : ", err)
 	}
 }
