@@ -29,9 +29,10 @@ func (h *Handler) PostMessageToTraQ(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized WebSocket access.")
 	}
 
+	botChannelId := "01913f8b-8c05-76a2-b51f-bb83e9e93615"
 	_, _, err = bot.API().
 		MessageApi.
-		PostMessage(context.Background(), "1aec50b2-0cdf-46d2-8877-5f0eebd11bd4").
+		PostMessage(context.Background(), botChannelId).
 		PostMessageRequest(traq.PostMessageRequest{
 			Content: message.Content,
 		}).
