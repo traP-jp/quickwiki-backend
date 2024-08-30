@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 	"quickwiki-backend/model"
 
 	"github.com/labstack/echo"
@@ -20,8 +21,7 @@ func (h *Handler) PostMessageToTraQ(c echo.Context) error {
 	}
 
 	bot, err := traqwsbot.NewBot(&traqwsbot.Options{
-		//AccessToken: os.Getenv("TRAQ_BOT_TOKEN"),
-		AccessToken:          "fX6iHTxwkZR7zle4vXzlxQIZbSWXFbnbj5GA",
+		AccessToken:          os.Getenv("TRAQ_BOT_TOKEN_BN256"),
 		DisableAutoReconnect: true,
 	})
 	if err != nil {
