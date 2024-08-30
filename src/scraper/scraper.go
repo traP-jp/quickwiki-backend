@@ -2,12 +2,13 @@ package scraper
 
 import (
 	"context"
+	"log"
+	"os"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/traPtitech/go-traq"
 	traqwsbot "github.com/traPtitech/traq-ws-bot"
 	"github.com/traPtitech/traq-ws-bot/payload"
-	"log"
-	"os"
 )
 
 type Scraper struct {
@@ -61,5 +62,9 @@ func (s *Scraper) Scrape() {
 		if err != nil {
 			panic(err)
 		}
+	}
+
+	if err := bot.Start(); err != nil {
+		log.Println("BOT start err : ", err)
 	}
 }
