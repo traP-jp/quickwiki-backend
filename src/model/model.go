@@ -187,3 +187,7 @@ type Folder_fromDB struct {
 	Name     string `db:"name"`
 	ParentID int    `db:"parent_id"`
 }
+
+type MessageToTraQ_POST struct {
+	Content string `json:"content"`
+}

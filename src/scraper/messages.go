@@ -14,7 +14,7 @@ func (s *Scraper) GetSodanMessages() {
 		API().
 		MessageApi.
 		GetMessages(context.Background(), "aff37b5f-0911-4255-81c3-b49985c8943f").
-		Offset(int32(17)).
+		Offset(int32(18)).
 		Limit(int32(20)).
 		Execute()
 	if err != nil {
@@ -51,7 +51,7 @@ func (s *Scraper) GetSodanMessages() {
 	}
 
 	log.Println("sodan messages scraped")
-	s.GetSodanSubMessages("98ea48da-64e8-4f69-9d0d-80690b682670", 40, 52)
+	s.GetSodanSubMessages("98ea48da-64e8-4f69-9d0d-80690b682670", 48, 52)
 	log.Println("sodan sub messages 1 scraped")
 	s.GetSodanSubMessages("30c30aa5-c380-4324-b227-0ca85c34801c", 22, 32)
 	log.Println("sodan sub messages 2 scraped")
@@ -135,7 +135,7 @@ func (s *Scraper) AddMessageToDB(m traq.Message, wikiId int) {
 		newMessage.WikiID, newMessage.MessageContent, newMessage.CreatedAt, newMessage.UpdatedAt, newMessage.UserTraqID, newMessage.ChannelID, newMessage.MessageID)
 	if err != nil {
 		log.Println("failed to insert message")
-		log.Printf("%+v\nerr:%+v\n", newMessage.ID, newMessage, err)
+		log.Printf("%+v\nerr:%+v\n", newMessage.ID, err)
 	}
 	messageId, err := result.LastInsertId()
 	if err != nil {
