@@ -92,6 +92,7 @@ func (s *Scraper) SodanSubMessageCreated(p *payload.MessageCreated) {
 		Stamps:    []traq.MessageStamp{},
 	}, wikiId)
 	s.addMessageTag(wikiId)
+	s.removeMentionSingle(wikiId)
 	s.addMessageIndex(wikiId)
 }
 
@@ -125,4 +126,20 @@ func (s *Scraper) addMessageIndex(wikiId int) {
 	}
 
 	search.Indexing(indexData)
+}
+
+func (s *Scraper) removeMentionSingle(wikiId int) {
+	var wiki model.WikiContent_fromDB
+	err := s.db.Get(&wiki, "SELECT * FROM wikis WHERE id = ?", wikiId)
+	if err != nil {
+		log.Println("failed to get wiki")
+		log.Println(err)
+	}
+
+	text := ProcessMention(wiki.Content)
+	_, err = s.db.Exec("UPDATE wikis SET content = ? WHERE id = ?", text, wikiId)
+	if err != nil {
+		log.Println("failed to update wiki")
+		log.Println(err)
+	}
 }
