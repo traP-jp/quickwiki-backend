@@ -45,21 +45,27 @@ func main() {
 
 	e.GET("/ping", h.PingHandler)
 
+	e.POST("/lecture", h.PostLectureHandler)
 	e.GET("/lecture/byFolder/id/:folderId", h.GetLectureByFolderIDHandler)
 	e.GET("/lecture/byFolder/path", h.GetLectureByFolderPathHandler)
 	e.GET("/lecture/folder/:folderId", h.GetLectureChildFolderHandler)
-	e.GET("/lecture/lectureId", h.GetLectureHandler)
+	e.GET("/lecture/:lectureId", h.GetLectureHandler)
+
 	e.GET("/sodan", h.GetSodanHandler)
 	e.GET("/memo", h.GetMemoHandler)
 	e.POST("/memo", h.PostMemoHandler)
 	e.PATCH("/memo", h.PatchMemoHandler)
-	e.POST("/wiki/search",h.SearchHandler)
-	e.GET("/wiki/tag",h.GetWikiByTagHandler)
 	e.DELETE("/memo", h.DeleteMemoHandler)
-	e.POST("/wiki/tag", h.PostTagHandler)
-	e.GET("/me", h.GetMeHandler)
-	e.POST("/lecture", h.PostLectureHandler)
 	e.GET("/tag", h.GetTagsHandler)
+	e.POST("/wiki/search", h.SearchHandler)
+	e.GET("/wiki/tag", h.GetWikiByTagHandler)
+	e.POST("/wiki/tag", h.PostTagHandler)
+
+	e.GET("/me", h.GetMeHandler)
+	e.GET("/wiki/user", h.GetUserWikiHandelr)
+	e.GET("/wiki/user/favorite", h.GetUserFavoriteWikiHandler)
+	e.POST("/wiki/user/favorite", h.PostUserFavoriteWikiHandler)
+	e.DELETE("/wiki/user/favorite", h.DeleteUserFavoriteWikiHandler)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }

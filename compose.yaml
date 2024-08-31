@@ -14,6 +14,8 @@ services:
       DB_PORT: 3306
       DB_NAME: quickwiki
       TRAQ_BOT_TOKEN: ${TRAQ_BOT_TOKEN}
+      DEV_MODE: "true"
+      NUM_KEYWORD: 5
     depends_on:
       mariadb:
         condition: service_healthy

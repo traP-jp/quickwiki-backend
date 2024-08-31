@@ -505,7 +505,7 @@ components:
           example: Introduction to Computer Science
         content:
           type: string
-          example: マークダウン形式 資料へのリンク
+          example: 資料へのリンク(URL)のみ
         folderpath:
           type: string
           example: /School/ComputerScience
@@ -597,6 +597,12 @@ components:
           items:
             type: string
           example: [ComputerScience, Python]
+        resultCount:
+          type: integer
+          example: 10
+        from:
+          type: integer
+          example: 0
     lectureWithoutId:
       type: object
       properties:

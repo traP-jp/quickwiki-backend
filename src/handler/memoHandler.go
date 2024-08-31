@@ -26,9 +26,10 @@ func (h *Handler) GetMemoHandler(c echo.Context) error {
 	err = h.db.Get(&wikiContent, "select * from wikis where id = ?", wikiId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
+			log.Printf("wikiid: %d does not exist.", wikiId)
 			return c.NoContent(http.StatusNotFound)
 		}
-		log.Printf("failed to get wikiContent: %s\n", err)
+		log.Printf("[in get memo]failed to get wikiContent: %s\n", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 	if wikiContent.Type == "memo" {
@@ -46,10 +47,7 @@ func (h *Handler) GetMemoHandler(c echo.Context) error {
 	var tags []model.Tag_fromDB
 	var howManyTags int
 	err = h.db.Select(&tags, "select * from tags where wiki_id = ?", wikiId)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return c.NoContent(http.StatusNotFound)
-		}
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		log.Printf("failed to get tags: %s\n", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
@@ -125,19 +123,19 @@ func (h *Handler) PatchMemoHandler(c echo.Context) error {
 	if getMemoBody.ID != 0 {
 		var wikiContent model.WikiContent_fromDB
 		wikiContent.OwnerTraqID = ""
-		err = h.db.Get(&wikiContent, "select owner_traq_id from wikis where id = ?", getMemoBody.ID)
+		err = h.db.Get(&wikiContent, "select * from wikis where id = ?", getMemoBody.ID)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return c.NoContent(http.StatusNotFound)
 			}
-			log.Printf("failed to get wikiContent: %s\n", err)
+			log.Printf("[in patch memo]failed to get wikiContent: %s\n", err)
 			return c.NoContent(http.StatusInternalServerError)
 		}
 		if wikiContent.OwnerTraqID != owner.TraqID {
 			return echo.NewHTTPError(http.StatusUnauthorized, "You are not the owner of this memo.")
 		}
 		now := time.Now()
-		_, err := h.db.Exec("UPDATE wikis SET name = ?,updated_at = ?,content = ? where wiki_id = ?", getMemoBody.Title, now, getMemoBody.Content, getMemoBody.ID)
+		_, err := h.db.Exec("UPDATE wikis SET name = ?,updated_at = ?,content = ? where id = ?", getMemoBody.Title, now, getMemoBody.Content, getMemoBody.ID)
 		if err != nil {
 			log.Printf("DB Error: %s", err)
 			return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
@@ -150,17 +148,14 @@ func (h *Handler) PatchMemoHandler(c echo.Context) error {
 		Response.UpdatedAt = now
 
 		var tags []model.Tag_fromDB
-		err = h.db.Get(&tags, "select * from tags where wiki_id = ?", getMemoBody.ID)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				return c.NoContent(http.StatusNotFound)
-			}
-			log.Printf("failed to get wikiContent: %s\n", err)
+		err = h.db.Select(&tags, "select * from tags where wiki_id = ?", getMemoBody.ID)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			log.Printf("[in patch memo]failed to get tag: %s\n", err)
 			return c.NoContent(http.StatusInternalServerError)
 		}
 		var resTags []string
-		for i := 0; i < len(tags); i++ {
-			resTags[i] = tags[i].TagName
+		for _, tag := range tags {
+			resTags = append(resTags, tag.TagName)
 		}
 	}
 
@@ -172,55 +167,63 @@ func (h *Handler) DeleteMemoHandler(c echo.Context) error {
 
 	Response := model.NewMemoResponse()
 
-	getMemoBody := model.NewGetMemoBody()
-	err := c.Bind(&getMemoBody)
+	wikiIDPost := struct {
+		ID string `json:"wikiId"`
+	}{}
+	err := c.Bind(&wikiIDPost)
 	if err != nil {
-		if getMemoBody.ID != 0 {
-			return echo.NewHTTPError(http.StatusBadRequest, "bad request body")
-		}
+		return echo.NewHTTPError(http.StatusBadRequest, "bad request body")
+	}
+	wikiID, err := strconv.Atoi(wikiIDPost.ID)
+	if err != nil {
+		log.Printf("failed to convert wikiID to int: %v", err)
+		return c.JSON(http.StatusBadRequest, err)
 	}
 
 	owner, err := h.GetUserInfo(c)
 
-	if getMemoBody.ID != 0 {
-		var wikiContent model.WikiContent_fromDB
-		wikiContent.OwnerTraqID = ""
-		err = h.db.Get(&wikiContent, "select * from wikis where id = ?", getMemoBody.ID)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				return c.NoContent(http.StatusNotFound)
-			}
-			log.Printf("failed to get wikiContent: %s\n", err)
-			return c.NoContent(http.StatusInternalServerError)
+	var wikiContent model.WikiContent_fromDB
+	wikiContent.OwnerTraqID = ""
+	err = h.db.Get(&wikiContent, "select * from wikis where id = ?", wikiID)
+	log.Printf("wikiId: %v, wikiContent: %v", wikiID, wikiContent)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return c.NoContent(http.StatusNotFound)
 		}
-		if wikiContent.OwnerTraqID != owner.TraqID {
-			return echo.NewHTTPError(http.StatusUnauthorized, "You are not the owner of this memo.")
-		}
-		_, err := h.db.Exec("DELETE from wikis where wiki_id = ?", getMemoBody.ID)
-		if err != nil {
-			log.Printf("DB Error: %s", err)
-			return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
-		}
-		Response.WikiID = wikiContent.ID
-		Response.Title = wikiContent.Name
-		Response.Content = wikiContent.Content
-		Response.OwnerTraqID = wikiContent.OwnerTraqID
-		Response.CreatedAt = wikiContent.CreatedAt
-		Response.UpdatedAt = wikiContent.UpdatedAt
+		log.Printf("[in delete memo]failed to get wikiContent: %s\n", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	if wikiContent.OwnerTraqID != owner.TraqID {
+		return echo.NewHTTPError(http.StatusUnauthorized, "You are not the owner of this memo.")
+	}
 
-		var tags []model.Tag_fromDB
-		err = h.db.Get(&tags, "select * from tags where wiki_id = ?", getMemoBody.ID)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				return c.NoContent(http.StatusNotFound)
-			}
-			log.Printf("failed to get wikiContent: %s\n", err)
-			return c.NoContent(http.StatusInternalServerError)
-		}
-		var resTags []string
-		for i := 0; i < len(tags); i++ {
-			resTags[i] = tags[i].TagName
-		}
+	// delete tags
+	_, err = h.db.Exec("DELETE from tags where wiki_id = ?", wikiID)
+	if err != nil {
+		log.Printf("failed to delete tags: %s", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
+	}
+	_, err = h.db.Exec("DELETE from wikis where id = ?", wikiID)
+	if err != nil {
+		log.Printf("failed to delete memo: %s", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
+	}
+	Response.WikiID = wikiContent.ID
+	Response.Title = wikiContent.Name
+	Response.Content = wikiContent.Content
+	Response.OwnerTraqID = wikiContent.OwnerTraqID
+	Response.CreatedAt = wikiContent.CreatedAt
+	Response.UpdatedAt = wikiContent.UpdatedAt
+
+	var tags []model.Tag_fromDB
+	err = h.db.Select(&tags, "select * from tags where wiki_id = ?", wikiID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		log.Printf("[in delete memo]failed to get tag: %s\n", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	var resTags []string
+	for i := 0; i < len(tags); i++ {
+		resTags[i] = tags[i].TagName
 	}
 
 	return c.JSON(http.StatusOK, Response)

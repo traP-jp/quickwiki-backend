@@ -6,6 +6,7 @@ import (
 	"github.com/blevesearch/bleve/v2/analysis/analyzer/keyword"
 	"github.com/blevesearch/bleve/v2/analysis/token/lowercase"
 	"github.com/ikawaha/bleveplugin/analysis/lang/ja"
+	"github.com/shogo82148/go-mecab"
 	"log"
 )
 
@@ -38,6 +39,25 @@ func main() {
 		log.Printf("ID: %s, Score: %f\n", hit.ID, hit.Score)
 	}
 	index.Close()
+
+	settinrMecab()
+}
+
+func settinrMecab() {
+	tagger, err := mecab.New(map[string]string{"output-format-type": "wakati"})
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer tagger.Destroy()
+
+	text := "GoはGoogleによって作られたオープンソースのプログラミング言語です。"
+	result, err := tagger.Parse(text)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	log.Println(result)
 }
 
 func setting() {

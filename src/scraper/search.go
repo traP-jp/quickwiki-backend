@@ -6,7 +6,7 @@ import (
 	"quickwiki-backend/search"
 )
 
-func (s *Scraper) setIndexing() {
+func (s *Scraper) SetIndexing() {
 	var wikis []model.WikiContent_fromDB
 	err := s.db.Select(&wikis, "SELECT * FROM wikis WHERE type = 'sodan'")
 	if err != nil {
@@ -21,7 +21,7 @@ func (s *Scraper) setIndexing() {
 			Type:           wiki.Type,
 			Title:          wiki.Name,
 			OwnerTraqID:    wiki.OwnerTraqID,
-			MessageContent: wiki.Content,
+			MessageContent: ProcessLink(removeNewLine(removeCodeBlock(removeTeX(wiki.Content)))),
 		})
 	}
 

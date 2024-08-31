@@ -7,7 +7,7 @@ type LectureFromDB struct {
 	Title      string `db:"title"`
 	Content    string `db:"content"`
 	FolderID   int    `db:"folder_id"`
-	FolderPath string `db:"folderpath"`
+	FolderPath string `db:"folder_path"`
 }
 
 type Lecture struct {

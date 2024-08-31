@@ -5,6 +5,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/traPtitech/go-traq"
 	traqwsbot "github.com/traPtitech/traq-ws-bot"
+	"github.com/traPtitech/traq-ws-bot/payload"
 	"log"
 	"os"
 )
@@ -34,7 +35,7 @@ func (s *Scraper) Scrape() {
 	s.bot = bot
 
 	// get users
-	users, resp, err := bot.API().UserApi.GetUsers(context.Background()).Execute()
+	users, resp, err := bot.API().UserApi.GetUsers(context.Background()).IncludeSuspended(true).Execute()
 	if err != nil {
 		log.Println("failed to get users")
 		log.Printf("response: %+v", resp)
@@ -44,5 +45,21 @@ func (s *Scraper) Scrape() {
 		s.usersMap[u.Id] = u
 	}
 
-	s.GetSodanMessages()
+	//s.GetSodanMessages()
+
+	bot.OnMessageCreated(func(p *payload.MessageCreated) {
+		channelId := p.Message.ChannelID
+		if channelId == "aff37b5f-0911-4255-81c3-b49985c8943f" {
+			s.SodanMessageCreated(p)
+		} else if channelId == "98ea48da-64e8-4f69-9d0d-80690b682670" || channelId == "30c30aa5-c380-4324-b227-0ca85c34801c" || channelId == "7ec94f1d-1920-4e15-bfc5-049c9a289692" || channelId == "c67abb48-3fb0-4486-98ad-4b6947998ad5" || channelId == "eb5a0035-a340-4cf6-a9e0-94ddfabe9337" || channelId == "5b857a8d-03b5-4c25-92d9-bc01f3defe84" {
+			s.SodanSubMessageCreated(p)
+		}
+	})
+
+	if os.Getenv("DEV_MODE") == "false" {
+		err = bot.Start()
+		if err != nil {
+			panic(err)
+		}
+	}
 }
