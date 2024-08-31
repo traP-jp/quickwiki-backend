@@ -83,6 +83,7 @@ func (s *Scraper) GetSodanMessages() {
 		s.AddMessageToDB(m, int(wikiId))
 	}
 
+	s.GetSodanSubMessages("98ea48da-64e8-4f69-9d0d-80690b682670", 40, 52)
 	log.Println("sodan messages scraped")
 	s.GetSodanSubMessages("98ea48da-64e8-4f69-9d0d-80690b682670", 40, 52)
 	log.Println("sodan sub messages 1 scraped")
