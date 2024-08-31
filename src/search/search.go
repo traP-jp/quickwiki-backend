@@ -35,6 +35,10 @@ func Search(query string, limit int, offset int) []int {
 	}
 
 	returnCount := min(limit, int(searchResults.Total)-offset)
+	// if limit is negative, return all results
+	if limit < 0 {
+		returnCount = int(searchResults.Total) - offset
+	}
 	var res []int
 	for i := offset; i < offset+returnCount; i++ {
 		result, err := strconv.Atoi(searchResults.Hits[i].ID)
