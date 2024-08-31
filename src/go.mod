@@ -6,7 +6,7 @@ require (
 	github.com/blevesearch/bleve/v2 v2.4.2
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/jmoiron/sqlx v1.4.0
-	github.com/labstack/echo v3.3.8+incompatible
+	github.com/labstack/echo v3.3.10+incompatible
 	github.com/shogo82148/go-mecab v0.0.8
 	github.com/traPtitech/go-traq v0.0.0-20240725071454-97c7b85dc879
 	github.com/traPtitech/traq-ws-bot v1.1.3

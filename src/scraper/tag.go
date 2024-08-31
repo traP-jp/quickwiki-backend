@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func (s *Scraper) setSodanTags() {
+func (s *Scraper) SetSodanTags() {
 	var wikis []model.WikiContent_fromDB
 	err := s.db.Select(&wikis, "SELECT * FROM wikis WHERE type = 'sodan'")
 	if err != nil {
@@ -58,9 +58,11 @@ func ProcessMention(content string) string {
 	mentions := re.FindAllString(content, -1)
 	res := content
 	for _, mention := range mentions {
-		re = regexp.MustCompile(`"raw":"(.*)",( *)"id"`)
+		re = regexp.MustCompile(`"raw":( *)"(.*)",( *)"id"`)
 		mentionRaw := re.FindString(mention)
-		mentionRaw = mentionRaw[8 : len(mentionRaw)-1]
+		mentionRaw = mentionRaw[7:]
+		fquoteIndex := strings.Index(mentionRaw, "\"")
+		mentionRaw = mentionRaw[fquoteIndex+1 : len(mentionRaw)-1]
 		quoteIndex := strings.Index(mentionRaw, "\"")
 		mentionRaw = mentionRaw[:quoteIndex]
 		res = strings.Replace(res, mention, mentionRaw, 1)
