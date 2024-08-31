@@ -209,6 +209,16 @@ func (h *Handler) SearchHandler(c echo.Context) error {
 			for _, tag := range tags {
 				searchResultWikiIds[i] = append(searchResultWikiIds[i], tag.WikiID)
 			}
+
+			var tagLike []model.Tag_fromDB
+			err = h.db.Select(&tagLike, "select * from tags where name like ? and name != ?", "%"+request.Tags[i]+"%", request.Tags[i])
+			if err != nil && !errors.Is(err, sql.ErrNoRows) {
+				log.Printf("failed to get tags: %s\n", err)
+				return c.NoContent(http.StatusInternalServerError)
+			}
+			for _, tag := range tagLike {
+				searchResultWikiIds[i] = append(searchResultWikiIds[i], tag.WikiID)
+			}
 		}
 		log.Println("searchResultWikiIds : ", searchResultWikiIds)
 
@@ -259,7 +269,7 @@ func (h *Handler) GetWikiByTagHandler(c echo.Context) error {
 	for i, requestTag := range requestTags {
 		searchResultWikiIds = append(searchResultWikiIds, []int{})
 		var tags []model.Tag_fromDB
-		err := h.db.Select(&tags, "select * from tags where name like '%?%'", requestTag)
+		err := h.db.Select(&tags, "select * from tags where name = ?", requestTag)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			log.Printf("failed to get tags: %s\n", err)
 			return c.NoContent(http.StatusInternalServerError)
@@ -267,6 +277,17 @@ func (h *Handler) GetWikiByTagHandler(c echo.Context) error {
 		for _, tag := range tags {
 			searchResultWikiIds[i] = append(searchResultWikiIds[i], tag.WikiID)
 		}
+
+		var tagLike []model.Tag_fromDB
+		err = h.db.Select(&tagLike, "select * from tags where name like ? and name != ?", "%"+requestTag+"%", requestTag)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			log.Printf("failed to get tags: %s\n", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		for _, tag := range tagLike {
+			searchResultWikiIds[i] = append(searchResultWikiIds[i], tag.WikiID)
+		}
+
 	}
 	log.Println("searchResultWikiIds : ", searchResultWikiIds)
 
