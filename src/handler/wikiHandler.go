@@ -259,7 +259,7 @@ func (h *Handler) GetWikiByTagHandler(c echo.Context) error {
 	for i, requestTag := range requestTags {
 		searchResultWikiIds = append(searchResultWikiIds, []int{})
 		var tags []model.Tag_fromDB
-		err := h.db.Select(&tags, "select * from tags where name = ?", requestTag)
+		err := h.db.Select(&tags, "select * from tags where name like '%?%'", requestTag)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			log.Printf("failed to get tags: %s\n", err)
 			return c.NoContent(http.StatusInternalServerError)
