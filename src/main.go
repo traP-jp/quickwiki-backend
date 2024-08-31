@@ -68,7 +68,7 @@ func main() {
 	e.DELETE("/wiki/user/favorite", h.DeleteUserFavoriteWikiHandler)
 
 	e.POST("/anon-sodan", h.PostMessageToTraQ)
-	//e.PATCH("/anon-sodan", h.PatchMessageToTraQ),見つけられなかった
+	e.PATCH("/anon-sodan", h.PatchMessageToTraQ)
 	e.POST("/anon-sodan/replies", h.PostRepliesToTraQ)
 
 	e.Logger.Fatal(e.Start(":8080"))

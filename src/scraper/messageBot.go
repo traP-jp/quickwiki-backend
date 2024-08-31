@@ -17,3 +17,14 @@ func (s *Scraper) MessageToTraQ(message string, PostChanellId string) error {
 		Execute()
 	return err
 }
+
+func (s *Scraper) MessageEditOnTraQ(message string, editMessageId string) error {
+	editMessageId = "0191a3c2-6659-7c4e-a03f-6a37d080cd10" //DEV_MODE
+	_, err := s.bot.API().MessageApi.
+		EditMessage(context.Background(), editMessageId).
+		PostMessageRequest(traq.PostMessageRequest{
+			Content: message,
+		}).
+		Execute()
+	return err
+}
