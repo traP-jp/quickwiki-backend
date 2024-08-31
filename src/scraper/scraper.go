@@ -35,7 +35,7 @@ func (s *Scraper) Scrape() {
 	s.bot = bot
 
 	// get users
-	users, resp, err := bot.API().UserApi.GetUsers(context.Background()).Execute()
+	users, resp, err := bot.API().UserApi.GetUsers(context.Background()).IncludeSuspended(true).Execute()
 	if err != nil {
 		log.Println("failed to get users")
 		log.Printf("response: %+v", resp)
@@ -45,7 +45,7 @@ func (s *Scraper) Scrape() {
 		s.usersMap[u.Id] = u
 	}
 
-	s.GetSodanMessages()
+	//s.GetSodanMessages()
 
 	bot.OnMessageCreated(func(p *payload.MessageCreated) {
 		channelId := p.Message.ChannelID
