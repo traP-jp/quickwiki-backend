@@ -11,3 +11,4 @@ build/
 UNKNOWN*/
 !requirements.txt
 *.bleve
+sql/

@@ -2,31 +2,60 @@ package scraper
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"os"
 	"quickwiki-backend/model"
 	"regexp"
+	"time"
 
 	"github.com/traPtitech/go-traq"
 )
 
+func (s *Scraper) getMessages(channelId string) ([]traq.Message, error) {
+	var messages []traq.Message
+	for i := 0; ; i++ {
+		res, r, err := s.bot.API().MessageApi.GetMessages(context.Background(), channelId).Limit(int32(200)).Offset(int32(i * 200)).Execute()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error when calling `ChannelApi.GetMessages``: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
+		}
+
+		if err != nil {
+			return nil, err
+		}
+		if len(res) == 0 {
+			break
+		}
+		messages = append(messages, res...)
+		time.Sleep(time.Millisecond * 1000)
+		log.Printf("fetched %d messages\n", len(messages))
+	}
+
+	return messages, nil
+}
+
 func (s *Scraper) GetSodanMessages() {
-	sodanMessages, _, err := s.bot.
-		API().
-		MessageApi.
-		GetMessages(context.Background(), "aff37b5f-0911-4255-81c3-b49985c8943f").
-		Offset(int32(18)).
-		Limit(int32(20)).
-		Execute()
+	//sodanMessages, resp, err := s.bot.
+	//	API().
+	//	MessageApi.
+	//	GetMessages(context.Background(), "aff37b5f-0911-4255-81c3-b49985c8943f").
+	//	//Offset(int32(17)).
+	//	Limit(int32(3000)).
+	//	Execute()
+	//if err != nil {
+	//	log.Println(err)
+	//	log.Println(resp)
+	//}
+	sodanMessages, err := s.getMessages("aff37b5f-0911-4255-81c3-b49985c8943f")
 	if err != nil {
 		log.Println(err)
 	}
 
 	log.Println("--------------------")
-	for _, m := range sodanMessages {
-		log.Println(m.CreatedAt)
-	}
+	log.Printf("sodan messages count: %d\n", len(sodanMessages))
 
-	for _, m := range sodanMessages {
+	for i, m := range sodanMessages {
 		newSodan := model.WikiContent_fromDB{
 			Name:        m.Content,
 			Type:        "sodan",
@@ -47,9 +76,14 @@ func (s *Scraper) GetSodanMessages() {
 			log.Println(err)
 		}
 
+		if i%100 == 0 {
+			log.Printf("inserted %d wikis\n", i)
+		}
+
 		s.AddMessageToDB(m, int(wikiId))
 	}
 
+	s.GetSodanSubMessages("98ea48da-64e8-4f69-9d0d-80690b682670", 40, 52)
 	log.Println("sodan messages scraped")
 	s.GetSodanSubMessages("98ea48da-64e8-4f69-9d0d-80690b682670", 48, 52)
 	log.Println("sodan sub messages 1 scraped")
@@ -61,39 +95,38 @@ func (s *Scraper) GetSodanMessages() {
 	log.Println("sodan sub messages 4 scraped")
 	s.GetSodanSubMessages("eb5a0035-a340-4cf6-a9e0-94ddfabe9337", 0, 2)
 	log.Println("sodan sub messages 5 scraped")
+	s.GetSodanSubMessages("5b857a8d-03b5-4c25-92d9-bc01f3defe84", 0, 2)
 
-	s.mergeWikisContent()
-	s.setSodanTags()
-	s.removeMentions()
-	s.setIndexing()
+	//s.MergeWikisContent()
+	//s.SetSodanTags()
+	//s.RemoveMentions()
+	//s.SetIndexing()
 }
 
 func (s *Scraper) GetSodanSubMessages(channelId string, offset int, limit int) {
 	rsodanChannelId := "aff37b5f-0911-4255-81c3-b49985c8943f"
 
-	messages, _, err := s.bot.
-		API().
-		MessageApi.
-		GetMessages(context.Background(), channelId).
-		Offset(int32(offset)).
-		Limit(int32(limit)).
-		Execute()
+	//messages, _, err := s.bot.
+	//	API().
+	//	MessageApi.
+	//	GetMessages(context.Background(), channelId).
+	//	//Offset(int32(offset)).
+	//	Limit(int32(3000)).
+	//	Execute()
+	messages, err := s.getMessages(channelId)
 	if err != nil {
 		log.Println(err)
 	}
 
 	log.Println("--------------------")
-	for _, m := range messages {
-		log.Println(m.CreatedAt)
-	}
 	// reverse messages slice
 	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
 		messages[i], messages[j] = messages[j], messages[i]
 	}
 
-	var wikiId int
+	wikiId := 1
 	urlOffset := len("https://q.trap.jp/messages/")
-	for _, m := range messages {
+	for i, m := range messages {
 		re := regexp.MustCompile(`https://q.trap.jp/messages/([^!*]{36})`)
 		cites := re.FindAllString(m.Content, -1)
 		if len(cites) > 0 {
@@ -102,10 +135,13 @@ func (s *Scraper) GetSodanSubMessages(channelId string, offset int, limit int) {
 			if err != nil {
 				log.Println("failed to get cited message")
 				log.Println(err)
-			}
-			if citedMessage.ChannelId == rsodanChannelId {
+			} else if citedMessage.ChannelId == rsodanChannelId {
 				wikiId = s.GetWikiIDByMessageId(citedMessageId)
 			}
+		}
+
+		if i%200 == 0 {
+			log.Printf("inserted %d wikis\n", i)
 		}
 
 		s.AddMessageToDB(m, wikiId)
@@ -168,7 +204,7 @@ func (s *Scraper) AddMessageToDB(m traq.Message, wikiId int) {
 	}
 }
 
-func (s *Scraper) mergeWikisContent() {
+func (s *Scraper) MergeWikisContent() {
 	var wikis []model.WikiContent_fromDB
 	err := s.db.Select(&wikis, "SELECT * FROM wikis WHERE type = 'sodan'")
 	if err != nil {
@@ -197,7 +233,7 @@ func (s *Scraper) mergeWikisContent() {
 	}
 }
 
-func (s *Scraper) removeMentions() {
+func (s *Scraper) RemoveMentions() {
 	var wikis []model.WikiContent_fromDB
 	err := s.db.Select(&wikis, "SELECT * FROM wikis WHERE type = 'sodan'")
 	if err != nil {
@@ -224,6 +260,7 @@ func (s *Scraper) extractCitedMessage(m model.SodanContent_fromDB) {
 		if err != nil {
 			log.Println("failed to get cited message")
 			log.Println(err)
+			continue
 		}
 		citedMessage := model.CitedMessage_fromDB{
 			ParentMessageID: m.ID,

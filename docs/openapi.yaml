@@ -10,6 +10,8 @@ tags:
     description: 講習会情報
   - name: wiki
     description: sodanと備忘録
+  - name: sodan
+    description: 匿名sodan
   - name: user
     description: ユーザー関連
   - name: other
@@ -286,6 +288,92 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/memo'
+  /anon-sodan:
+    post:
+      tags:
+        - sodan
+      summary: 匿名のsodanの作成
+      description: Endpoint to create a new anonymous sodan.
+      requestBody:
+        description: JSON object containing the content of the sodan.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  example: "This is example content."
+      responses:
+        '200':
+          description: Successfully created sodan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sodan'
+    patch:
+      tags:
+        - sodan
+      summary: 匿名sodanの編集
+      description: Endpoint to edit an existing anonymous sodan.
+      parameters:
+        - name: wikiId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: wikiID
+      requestBody:
+        description: JSON object containing the ID and new content of the sodan.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  example: "This is edited content."
+      responses:
+        '200':
+          description: Successfully edited sodan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sodan'
+  /anon-sodan/replies:
+    post:
+      tags:
+      - sodan
+      summary: 匿名相談の回答に対する返信
+      description: Endpoint to reply to an anonymous sodan.
+      parameters:
+        - name: wikiId
+          in: query
+          description: The ID of the sodan to which the reply is being made.
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: JSON object containing the reply content.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  example: "This is a reply to the sodan."
+      responses:
+        '200':
+          description: Successfully replied to the sodan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sodan'        
+    
   /wiki/user:
     get:
       tags:
