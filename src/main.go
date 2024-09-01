@@ -70,4 +70,5 @@ func main() {
 	e.GET("/setting/index", h.SetIndexingHandler)
 
 	e.Logger.Fatal(e.Start(":8080"))
+	//s.StartBot()
 }

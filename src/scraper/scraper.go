@@ -55,11 +55,11 @@ func (s *Scraper) Scrape() {
 			s.SodanSubMessageCreated(p)
 		}
 	})
+}
 
-	if os.Getenv("DEV_MODE") == "false" {
-		err = bot.Start()
-		if err != nil {
-			panic(err)
-		}
+func (s *Scraper) StartBot() {
+	err := s.bot.Start()
+	if err != nil {
+		panic(err)
 	}
 }
