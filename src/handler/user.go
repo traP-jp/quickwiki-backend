@@ -16,11 +16,11 @@ func (h *Handler) GetUserInfo(c echo.Context) (model.Me_Response, error) {
 		}, nil
 	}
 	userTraqID := c.Request().Header.Get("X-Forwarded-User")
-	if username != "" {
+	if userTraqID == "" {
 		return model.Me_Response{}, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
 	}
 
-	res, err := h.scraper.GetUserDetail(userTraqID[0])
+	res, err := h.scraper.GetUserDetail(userTraqID)
 	if err != nil {
 		return model.Me_Response{}, echo.NewHTTPError(http.StatusInternalServerError, "Internal Server Error")
 	}
