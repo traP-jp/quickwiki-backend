@@ -19,8 +19,9 @@ type Scraper struct {
 
 func NewScraper(db *sqlx.DB) *Scraper {
 	return &Scraper{
-		db:       db,
-		usersMap: make(map[string]traq.User),
+		db:                db,
+		usersMap:          make(map[string]traq.User),
+		usersDisplayNames: make(map[string]string),
 	}
 }
 
