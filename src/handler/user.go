@@ -15,8 +15,8 @@ func (h *Handler) GetUserInfo(c echo.Context) (model.Me_Response, error) {
 			IconUri:     "https://q.trap.jp/api/v3/public/icon/kavos",
 		}, nil
 	}
-	userTraqID, ok := c.Request().Header["X-Forwarded-User"]
-	if !ok {
+	userTraqID := c.Request().Header.Get("X-Forwarded-User")
+	if username != "" {
 		return model.Me_Response{}, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
 	}
 
