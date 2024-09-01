@@ -67,5 +67,7 @@ func main() {
 	e.POST("/wiki/user/favorite", h.PostUserFavoriteWikiHandler)
 	e.DELETE("/wiki/user/favorite", h.DeleteUserFavoriteWikiHandler)
 
+	e.GET("/setting/index", h.SetIndexingHandler)
+
 	e.Logger.Fatal(e.Start(":8080"))
 }
