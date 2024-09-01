@@ -11,9 +11,10 @@ import (
 )
 
 type Scraper struct {
-	db       *sqlx.DB
-	usersMap map[string]traq.User
-	bot      *traqwsbot.Bot
+	db                *sqlx.DB
+	usersMap          map[string]traq.User
+	usersDisplayNames map[string]string
+	bot               *traqwsbot.Bot
 }
 
 func NewScraper(db *sqlx.DB) *Scraper {
@@ -43,6 +44,7 @@ func (s *Scraper) Scrape() {
 	}
 	for _, u := range users {
 		s.usersMap[u.Id] = u
+		s.usersDisplayNames[u.Name] = u.DisplayName
 	}
 
 	//s.GetSodanMessages()
