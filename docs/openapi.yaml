@@ -580,6 +580,9 @@ components:
           items:
             type: string
             example: ComputerScience
+        favorites:
+          type: integer
+          example: 3
     folderList:
       type: array
       items:
@@ -669,6 +672,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/message'
+        favorites:
+          type: integer
+          example: 3
     message:
       type: object
       properties:
@@ -740,6 +746,9 @@ components:
         updatedAt:
           type: string
           example: 2021-01-01 00:00:00
+        favorites:
+          type: integer
+          example: 3
     memoList:
       type: array
       items:

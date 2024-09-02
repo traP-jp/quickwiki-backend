@@ -23,6 +23,7 @@ func NewSodanResponse() *SodanResponse {
 		Tags:            []string{},
 		QuestionMessage: MessageContent_SodanResponse{},
 		AnswerMessages:  []MessageContent_SodanResponse{},
+		Favorites:       0,
 	}
 }
 
@@ -58,5 +59,6 @@ func NewWikiContentResponse() *WikiContentResponse {
 		OwnerTraqID: "",
 		Content:     "",
 		Tags:        []string{},
+		Favorites:   0,
 	}
 }

@@ -47,6 +47,15 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 		Response.Tags = append(Response.Tags, tags[i].TagName)
 	}
 
+	// get favorite count
+	var favoriteCount int
+	err = h.db.Get(&favoriteCount, "select count(*) from favorites where wiki_id = ?", wikiId)
+	if err != nil {
+		log.Printf("failed to get favoriteCount: %s\n", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	Response.Favorites = favoriteCount
+
 	// get messages
 	var messageContents []model.SodanContent_fromDB
 	var howManyMessages int
@@ -161,6 +170,7 @@ func WikiIdToResponse(h *Handler, c echo.Context, wikiIds []int) error {
 		tmpSearchContent.UpdatedAt = wikiContent.UpdatedAt
 		tmpSearchContent.OwnerTraqID = wikiContent.OwnerTraqID
 
+		// get tags
 		var tags []model.Tag_fromDB
 		var howManyTags int
 		err = h.db.Select(&tags, "select * from tags where wiki_id = ?", wikiId)
@@ -172,6 +182,15 @@ func WikiIdToResponse(h *Handler, c echo.Context, wikiIds []int) error {
 		for j := 0; j < howManyTags; j++ {
 			tmpSearchContent.Tags = append(tmpSearchContent.Tags, tags[j].TagName)
 		}
+
+		// get favorite count
+		var favoriteCount int
+		err = h.db.Get(&favoriteCount, "select count(*) from favorites where wiki_id = ?", wikiId)
+		if err != nil {
+			log.Printf("failed to get favoriteCount: %s\n", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		tmpSearchContent.Favorites = favoriteCount
 		Response = append(Response, *tmpSearchContent)
 	}
 	return c.JSON(http.StatusOK, Response)
@@ -268,6 +287,7 @@ func (h *Handler) GetWikiByTagHandler(c echo.Context) error {
 	var searchResultWikiIds [][]int
 	for i, requestTag := range requestTags {
 		searchResultWikiIds = append(searchResultWikiIds, []int{})
+		// tag (exact match)
 		var tags []model.Tag_fromDB
 		err := h.db.Select(&tags, "select * from tags where name = ?", requestTag)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
@@ -278,6 +298,7 @@ func (h *Handler) GetWikiByTagHandler(c echo.Context) error {
 			searchResultWikiIds[i] = append(searchResultWikiIds[i], tag.WikiID)
 		}
 
+		// tag (like match)
 		var tagLike []model.Tag_fromDB
 		err = h.db.Select(&tagLike, "select * from tags where name like ? and name != ?", "%"+requestTag+"%", requestTag)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
