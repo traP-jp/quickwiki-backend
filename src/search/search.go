@@ -20,9 +20,18 @@ func Search(query string, limit int, offset int) []int {
 		log.Printf("[Error from search] failed to open index: %v\n", err)
 	}
 
+	docCount, err := index.DocCount()
+	if err != nil {
+		log.Printf("[Error from search] failed to get doc count: %v\n", err)
+	}
+
+	if limit < 0 {
+		limit = int(docCount)
+	}
+
 	bleveQuery := bleve.NewMatchQuery(query)
 	bleveQuery.SetField("MessageContent")
-	search := bleve.NewSearchRequest(bleveQuery)
+	search := bleve.NewSearchRequestOptions(bleveQuery, limit, offset, false)
 	searchResults, err := index.Search(search)
 	if err != nil {
 		log.Printf("[Error from search] failed to search by query\"%s\": %v\n", query, err)
@@ -34,19 +43,16 @@ func Search(query string, limit int, offset int) []int {
 		log.Printf("[Error from search] failed to close index: %v\n", err)
 	}
 
-	returnCount := min(limit, int(searchResults.Total)-offset)
-	// if limit is negative, return all results
-	if limit < 0 {
-		returnCount = int(searchResults.Total) - offset
-	}
+	log.Printf("[Info from search] Found %d results\n", len(searchResults.Hits))
+
 	var res []int
-	for i := offset; i < offset+returnCount; i++ {
-		result, err := strconv.Atoi(searchResults.Hits[i].ID)
-		res = append(res, result)
+	for _, hit := range searchResults.Hits {
+		id, err := strconv.Atoi(hit.ID)
 		if err != nil {
 			log.Printf("[Error from search] failed to convert ID to int: %v\n", err)
 			return []int{}
 		}
+		res = append(res, id)
 	}
 
 	return res

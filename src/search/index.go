@@ -30,7 +30,7 @@ func Indexing(data []IndexData) {
 			log.Println("[Error from search engine] failed to parse: %v\n", err)
 			return
 		}
-		log.Println(result)
+		//log.Println(result)
 		data[i].MessageContent = result
 	}
 
@@ -72,6 +72,6 @@ func Indexing(data []IndexData) {
 		return
 	}
 
-	res := Search("windows", 10, 0)
+	res := Search("windows", 20, 0)
 	log.Println(res)
 }

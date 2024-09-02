@@ -98,3 +98,8 @@ func unionUsingMap(set1, set2 []int) []int {
 
 	return union
 }
+
+func (h *Handler) SetIndexingHandler(c echo.Context) error {
+	h.scraper.SetIndexing()
+	return c.NoContent(http.StatusOK)
+}

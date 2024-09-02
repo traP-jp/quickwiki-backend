@@ -12,15 +12,17 @@ import (
 )
 
 type Scraper struct {
-	db       *sqlx.DB
-	usersMap map[string]traq.User
-	bot      *traqwsbot.Bot
+	db                *sqlx.DB
+	usersMap          map[string]traq.User
+	usersDisplayNames map[string]string
+	bot               *traqwsbot.Bot
 }
 
 func NewScraper(db *sqlx.DB) *Scraper {
 	return &Scraper{
-		db:       db,
-		usersMap: make(map[string]traq.User),
+		db:                db,
+		usersMap:          make(map[string]traq.User),
+		usersDisplayNames: make(map[string]string),
 	}
 }
 
@@ -44,6 +46,7 @@ func (s *Scraper) Scrape() {
 	}
 	for _, u := range users {
 		s.usersMap[u.Id] = u
+		s.usersDisplayNames[u.Name] = u.DisplayName
 	}
 
 	//s.GetSodanMessages()
@@ -56,11 +59,11 @@ func (s *Scraper) Scrape() {
 			s.SodanSubMessageCreated(p)
 		}
 	})
+}
 
-	if os.Getenv("DEV_MODE") == "false" {
-		err = bot.Start()
-		if err != nil {
-			panic(err)
-		}
+func (s *Scraper) StartBot() {
+	err := s.bot.Start()
+	if err != nil {
+		panic(err)
 	}
 }
