@@ -199,7 +199,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/wikiTag'
+              $ref: '#/components/schemas/wikiTagPatch'
       responses:
         '200':
           description: OK
@@ -772,3 +772,15 @@ components:
         tag:
           type: string
           example: ComputerScience
+    wikiTagPatch:
+        type: object
+        properties:
+          wikiId:
+            type: string
+            example: 123
+          tag:
+            type: string
+            example: ComputerScience
+          newTag:
+            type: string
+            example: Python
