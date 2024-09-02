@@ -8,11 +8,11 @@ services:
     ports:
       - 8080:8080
     environment:
-      DB_USER: root
-      DB_PASSWORD: password
-      DB_HOSTNAME: mariadb
-      DB_PORT: 3306
-      DB_NAME: quickwiki
+      NS_MARIADB_USER: root
+      NS_MARIADB_PASSWORD: password
+      NS_MARIADB_HOSTNAME: mariadb
+      NS_MARIADB_PORT: 3306
+      NS_MARIADB_DATABASE: quickwiki
       TRAQ_BOT_TOKEN: ${TRAQ_BOT_TOKEN}
       DEV_MODE: "true"
       NUM_KEYWORD: 5
