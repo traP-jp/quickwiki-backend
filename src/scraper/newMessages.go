@@ -40,9 +40,7 @@ func (s *Scraper) SodanMessageCreated(p *payload.MessageCreated) {
 func (s *Scraper) SodanSubMessageCreated(p *payload.MessageCreated) {
 	rsodanChannelId := "aff37b5f-0911-4255-81c3-b49985c8943f"
 
-	channelId := p.Message.ChannelID
-
-	var wikiId int
+	wikiId := 0
 	urlOffset := len("https://q.trap.jp/messages/")
 	re := regexp.MustCompile(`https://q.trap.jp/messages/([^!*]{36})`)
 	cites := re.FindAllString(p.Message.Text, -1)
@@ -58,6 +56,29 @@ func (s *Scraper) SodanSubMessageCreated(p *payload.MessageCreated) {
 		}
 	}
 
+	if wikiId == 0 {
+		wikiId = s.getWikiId(p.Message.ChannelID)
+	}
+
+	s.AddMessageToDB(traq.Message{
+		Id:        p.Message.ID,
+		UserId:    p.Message.User.ID,
+		ChannelId: p.Message.ChannelID,
+		Content:   p.Message.Text,
+		CreatedAt: p.Message.CreatedAt,
+		UpdatedAt: p.Message.UpdatedAt,
+		Stamps:    []traq.MessageStamp{},
+	}, wikiId)
+	s.addMessageTag(wikiId)
+	s.removeMentionSingle(wikiId)
+	s.addMessageIndex(wikiId)
+}
+
+func (s *Scraper) getWikiId(channelId string) int {
+	var wikiId int
+	urlOffset := len("https://q.trap.jp/messages/")
+	rsodanChannelId := "aff37b5f-0911-4255-81c3-b49985c8943f"
+
 	var messages []model.SodanContent_fromDB
 	err := s.db.Select(&messages, "SELECT * FROM messages WHERE channel_id = ? ORDER BY created_at DESC LIMIT 30", channelId)
 	if err != nil {
@@ -65,6 +86,7 @@ func (s *Scraper) SodanSubMessageCreated(p *payload.MessageCreated) {
 		log.Println(err)
 	}
 
+	// check where starts the sodan
 	for _, m := range messages {
 		re := regexp.MustCompile(`https://q.trap.jp/messages/([^!*]{36})`)
 		cites := re.FindAllString(m.MessageContent, -1)
@@ -82,18 +104,43 @@ func (s *Scraper) SodanSubMessageCreated(p *payload.MessageCreated) {
 		}
 	}
 
-	s.AddMessageToDB(traq.Message{
-		Id:        p.Message.ID,
-		UserId:    p.Message.User.ID,
-		ChannelId: p.Message.ChannelID,
-		Content:   p.Message.Text,
-		CreatedAt: p.Message.CreatedAt,
-		UpdatedAt: p.Message.UpdatedAt,
-		Stamps:    []traq.MessageStamp{},
-	}, wikiId)
+	return wikiId
+}
+
+func (s *Scraper) registerWiki(channelId string) {
+	wikiId := s.getWikiId(channelId)
+
+	s.mergeWikiContent(wikiId)
 	s.addMessageTag(wikiId)
 	s.removeMentionSingle(wikiId)
 	s.addMessageIndex(wikiId)
+}
+
+func (s *Scraper) mergeWikiContent(wikiId int) {
+	var wiki model.WikiContent_fromDB
+	err := s.db.Get(&wiki, "SELECT * FROM wikis WHERE id = ?", wikiId)
+	if err != nil {
+		log.Println("failed to get wiki")
+		log.Println(err)
+	}
+
+	var messages []model.SodanContent_fromDB
+	err = s.db.Select(&messages, "SELECT * FROM messages WHERE wiki_id = ?", wikiId)
+	if err != nil {
+		log.Println("failed to get messages")
+		log.Println(err)
+	}
+
+	content := ""
+	for _, m := range messages {
+		content += m.MessageContent
+	}
+
+	_, err = s.db.Exec("UPDATE wikis SET content = ? WHERE id = ?", content, wikiId)
+	if err != nil {
+		log.Println("failed to update wiki")
+		log.Println(err)
+	}
 }
 
 func (s *Scraper) addMessageTag(wikiId int) {
