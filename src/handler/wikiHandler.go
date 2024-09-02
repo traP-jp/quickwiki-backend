@@ -349,6 +349,23 @@ func (h *Handler) EditTagHandler(c echo.Context) error {
 	})
 }
 
+// /wiki/tag (DELETE)
+func (h *Handler) DeleteTagHandler(c echo.Context) error {
+	tagRequest := model.Tag_Post{}
+	err := c.Bind(&tagRequest)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "bad request body")
+	}
+
+	_, err = h.db.Exec("DELETE FROM tags WHERE name = ? AND wiki_id = ?", tagRequest.Tag, tagRequest.WikiID)
+	if err != nil {
+		log.Printf("failed to delete tag: %+v", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
+	}
+
+	return c.JSON(http.StatusOK, tagRequest)
+}
+
 // /tag
 func (h *Handler) GetTagsHandler(c echo.Context) error {
 	tags := []string{}
