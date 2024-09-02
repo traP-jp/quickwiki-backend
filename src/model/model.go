@@ -102,6 +102,7 @@ type SodanResponse struct {
 	Tags            []string                       `json:"tags"`
 	QuestionMessage MessageContent_SodanResponse   `json:"questionMessage"`
 	AnswerMessages  []MessageContent_SodanResponse `json:"answerMessages"`
+	Favorites       int                            `json:"favorites"`
 }
 
 // sqlのmemosより情報を取ってくるときに使う
@@ -123,6 +124,7 @@ type MemoResponse struct {
 	Tags        []string  `json:"tags"`
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
+	Favorites   int       `json:"favorites"`
 }
 
 type CitedMessage_fromDB struct {
@@ -161,6 +163,7 @@ type WikiContentResponse struct {
 	OwnerTraqID string    `json:"ownerTraqId"`
 	Content     string    `json:"content"`
 	Tags        []string  `json:"tags"`
+	Favorites   int       `json:"favorites"`
 }
 
 // POST/wiki/search の body 受取構造体

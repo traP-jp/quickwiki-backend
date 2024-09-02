@@ -12,6 +12,7 @@ func NewMemoResponse() *MemoResponse {
 		Tags:        []string{},
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
+		Favorites:   0,
 	}
 }
 
@@ -23,6 +24,7 @@ func NewSodanResponse() *SodanResponse {
 		Tags:            []string{},
 		QuestionMessage: MessageContent_SodanResponse{},
 		AnswerMessages:  []MessageContent_SodanResponse{},
+		Favorites:       0,
 	}
 }
 
@@ -58,5 +60,6 @@ func NewWikiContentResponse() *WikiContentResponse {
 		OwnerTraqID: "",
 		Content:     "",
 		Tags:        []string{},
+		Favorites:   0,
 	}
 }

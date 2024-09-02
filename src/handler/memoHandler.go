@@ -44,6 +44,7 @@ func (h *Handler) GetMemoHandler(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
+	// get tags
 	var tags []model.Tag_fromDB
 	var howManyTags int
 	err = h.db.Select(&tags, "select * from tags where wiki_id = ?", wikiId)
@@ -56,6 +57,14 @@ func (h *Handler) GetMemoHandler(c echo.Context) error {
 		Response.Tags = append(Response.Tags, tags[i].TagName)
 	}
 
+	// get favorite count
+	var favorites int
+	err = h.db.Get(&favorites, "select count(*) from favorites where wiki_id = ?", wikiId)
+	if err != nil {
+		log.Printf("failed to get favorites: %s\n", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	Response.Favorites = favorites
 	return c.JSON(http.StatusOK, Response)
 }
 
@@ -157,6 +166,15 @@ func (h *Handler) PatchMemoHandler(c echo.Context) error {
 		for _, tag := range tags {
 			resTags = append(resTags, tag.TagName)
 		}
+
+		// get favorite count
+		var favorites int
+		err = h.db.Get(&favorites, "select count(*) from favorites where wiki_id = ?", getMemoBody.ID)
+		if err != nil {
+			log.Printf("failed to get favorites: %s\n", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		Response.Favorites = favorites
 	}
 
 	return c.JSON(http.StatusOK, Response)
