@@ -203,6 +203,12 @@ func (h *Handler) DeleteMemoHandler(c echo.Context) error {
 		log.Printf("failed to delete tags: %s", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
 	}
+	// delete favorite
+	_, err = h.db.Exec("DELETE from favorites where wiki_id = ?", wikiID)
+	if err != nil {
+		log.Printf("failed to delete favorites: %s", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
+	}
 	_, err = h.db.Exec("DELETE from wikis where id = ?", wikiID)
 	if err != nil {
 		log.Printf("failed to delete memo: %s", err)
