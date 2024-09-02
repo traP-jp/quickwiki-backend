@@ -12,6 +12,7 @@ func NewMemoResponse() *MemoResponse {
 		Tags:        []string{},
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
+		Favorites:   0,
 	}
 }
 

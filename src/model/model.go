@@ -124,6 +124,7 @@ type MemoResponse struct {
 	Tags        []string  `json:"tags"`
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
+	Favorites   int       `json:"favorites"`
 }
 
 type CitedMessage_fromDB struct {
