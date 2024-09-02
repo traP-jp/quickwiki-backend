@@ -85,7 +85,7 @@ func (s *Scraper) GetSodanMessages() {
 
 	s.GetSodanSubMessages("98ea48da-64e8-4f69-9d0d-80690b682670", 40, 52)
 	log.Println("sodan messages scraped")
-	s.GetSodanSubMessages("98ea48da-64e8-4f69-9d0d-80690b682670", 40, 52)
+	s.GetSodanSubMessages("98ea48da-64e8-4f69-9d0d-80690b682670", 48, 52)
 	log.Println("sodan sub messages 1 scraped")
 	s.GetSodanSubMessages("30c30aa5-c380-4324-b227-0ca85c34801c", 22, 32)
 	log.Println("sodan sub messages 2 scraped")
