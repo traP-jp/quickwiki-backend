@@ -176,6 +176,12 @@ type Tag_Post struct {
 	Tag    string `json:"tag"`
 }
 
+type Tag_Patch struct {
+	WikiID int    `json:"wikiId"`
+	Tag    string `json:"tag"`
+	NewTag string `json:"newTag"`
+}
+
 type Lecture_Post struct {
 	Title      string `json:"title"`
 	Content    string `json:"content"`

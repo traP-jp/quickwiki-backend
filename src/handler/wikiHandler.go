@@ -312,7 +312,7 @@ func (h *Handler) GetWikiByTagHandler(c echo.Context) error {
 	return WikiIdToResponse(h, c, searchResults_Tags)
 }
 
-// /wiki/tag
+// /wiki/tag (POST)
 func (h *Handler) PostTagHandler(c echo.Context) error {
 	tagRequest := model.Tag_Post{}
 	err := c.Bind(&tagRequest)
@@ -327,6 +327,26 @@ func (h *Handler) PostTagHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, tagRequest)
+}
+
+// /wiki/tag (PATCH)
+func (h *Handler) EditTagHandler(c echo.Context) error {
+	tagRequest := model.Tag_Patch{}
+	err := c.Bind(&tagRequest)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "bad request body")
+	}
+
+	_, err = h.db.Exec("UPDATE tags SET name = ? WHERE name = ? AND wiki_id = ?", tagRequest.NewTag, tagRequest.Tag, tagRequest.WikiID)
+	if err != nil {
+		log.Printf("failed to update tag: %+v", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
+	}
+
+	return c.JSON(http.StatusOK, model.Tag_Post{
+		WikiID: tagRequest.WikiID,
+		Tag:    tagRequest.NewTag,
+	})
 }
 
 // /tag
