@@ -60,6 +60,8 @@ func main() {
 	e.POST("/wiki/search", h.SearchHandler)
 	e.GET("/wiki/tag", h.GetWikiByTagHandler)
 	e.POST("/wiki/tag", h.PostTagHandler)
+	e.PATCH("/wiki/tag", h.EditTagHandler)
+	e.DELETE("/wiki/tag", h.DeleteTagHandler)
 
 	e.GET("/me", h.GetMeHandler)
 	e.GET("/wiki/user", h.GetUserWikiHandelr)
