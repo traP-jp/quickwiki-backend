@@ -190,6 +190,40 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/wikiTag'
+    patch:
+      tags:
+        - wiki
+      summary: wikiのタグを更新
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/wikiTag'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/wikiTag'
+    delete:
+      tags:
+        - wiki
+      summary: wikiのタグを削除
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/wikiTag'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/wikiTag'
   /sodan:
     get:
       tags:
