@@ -72,7 +72,10 @@ func main() {
 	e.POST("/anon-sodan", h.PostMessageToTraQ)
 	e.PATCH("/anon-sodan", h.PatchMessageToTraQ)
 	e.POST("/anon-sodan/replies", h.PostRepliesToTraQ)
-  
+
+	e.GET("/files/:fileId", h.GetFileHandler)
+	e.GET("/stamps/:stampId", h.GetStampHandler)
+
 	e.GET("/setting/index", h.SetIndexingHandler)
 
 	e.Logger.Fatal(e.Start(":8080"))
