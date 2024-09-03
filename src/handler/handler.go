@@ -25,6 +25,7 @@ func (h *Handler) PingHandler(c echo.Context) error {
 	return c.String(http.StatusOK, "pong")
 }
 
+// /files/:fileId
 func (h *Handler) GetFileHandler(c echo.Context) error {
 	fileID := c.Param("fileId")
 
