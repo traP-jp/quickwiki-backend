@@ -36,7 +36,6 @@ func (h *Handler) GetFileHandler(c echo.Context) error {
 	}
 
 	response := c.Response()
-	response.Header().Set("Cache-Control", "no-cache")
 	response.Header().Set(echo.HeaderContentType, echo.MIMEOctetStream)
 	response.Header().Set(echo.HeaderAccessControlExposeHeaders, "Content-Disposition")
 	response.Header().Set(echo.HeaderContentDisposition, "attachment; filename="+fileID)
@@ -56,7 +55,6 @@ func (h *Handler) GetStampHandler(c echo.Context) error {
 	}
 
 	response := c.Response()
-	response.Header().Set("Cache-Control", "no-cache")
 	response.Header().Set(echo.HeaderContentType, echo.MIMEOctetStream)
 	response.Header().Set(echo.HeaderAccessControlExposeHeaders, "Content-Disposition")
 	response.Header().Set(echo.HeaderContentDisposition, "attachment; filename="+stampID)
