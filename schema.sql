@@ -63,4 +63,10 @@ CREATE TABLE favorites (
     wiki_id INT(11) NOT NULL,
     FOREIGN KEY (wiki_id) REFERENCES wikis(id)
 );
+CREATE TABLE anonSodans (
+    wiki_id INT(11),
+    message_traq_id CHAR(36) NOT NULL,
+    user_traq_id CHAR(36) NOT NULL,
+    FOREIGN KEY (wiki_id) REFERENCES wikis(id)
+);
 INSERT INTO folders (name, parent_id) VALUES ('root', 0);

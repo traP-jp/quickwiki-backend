@@ -191,3 +191,9 @@ type Folder_fromDB struct {
 type MessageToTraQ_POST struct {
 	Content string `json:"content"`
 }
+
+type AnonSodans_fromDB struct {
+	WikiID        int    `db:"wiki_id"`
+	MessageTraqID string `db:"message_traq_id"`
+	UserTraqID    string `db:"user_traq_id"`
+}
