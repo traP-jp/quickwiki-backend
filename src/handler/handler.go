@@ -45,6 +45,26 @@ func (h *Handler) GetFileHandler(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+// /stamps/:stampId
+func (h *Handler) GetStampHandler(c echo.Context) error {
+	stampID := c.Param("stampId")
+
+	resp, err := h.scraper.GetStamp(stampID)
+	if err != nil {
+		log.Printf("failed to get stamp: %v", err)
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	response := c.Response()
+	response.Header().Set("Cache-Control", "no-cache")
+	response.Header().Set(echo.HeaderContentType, echo.MIMEOctetStream)
+	response.Header().Set(echo.HeaderAccessControlExposeHeaders, "Content-Disposition")
+	response.Header().Set(echo.HeaderContentDisposition, "attachment; filename="+stampID)
+	response.WriteHeader(http.StatusOK)
+	io.Copy(response.Writer, resp.Body)
+	return c.NoContent(http.StatusOK)
+}
+
 // はじめのn文字を返す関数
 func firstTenChars(s string, n int) string {
 	// 文字列の長さがn文字未満の場合、そのまま返す
