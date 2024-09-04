@@ -204,6 +204,50 @@ func (s *Scraper) AddMessageToDB(m traq.Message, wikiId int) {
 	}
 }
 
+func (s *Scraper) UpdateMessageToDB(m traq.Message, wikiId int) {
+	newMessage := model.SodanContent_fromDB{
+		WikiID:         wikiId,
+		MessageContent: m.Content,
+		CreatedAt:      m.CreatedAt,
+		UpdatedAt:      m.UpdatedAt,
+		UserTraqID:     s.usersMap[m.UserId].Name,
+		ChannelID:      m.ChannelId,
+		MessageID:      m.Id,
+	}
+	_, err := s.db.Exec("UPDATE messages SET content = ?, updated_at = ? WHERE message_traq_id = ?",
+		newMessage.MessageContent, newMessage.UpdatedAt, newMessage.MessageID)
+	if err != nil {
+		log.Println("failed to update message")
+		log.Printf("%+v\nerr:%+v\n", newMessage.ID, err)
+	}
+	err = s.db.Get(&newMessage.ID, "SELECT id FROM messages WHERE message_traq_id = ?", newMessage.MessageID)
+	if err != nil {
+		log.Println("failed to get message id")
+		log.Println(err)
+	}
+
+	stampCount := make(map[string]int)
+	for _, s := range m.Stamps {
+		if _, ok := stampCount[s.StampId]; !ok {
+			stampCount[s.StampId] = 0
+		}
+		stampCount[s.StampId] += int(s.Count)
+	}
+
+	for stampId, count := range stampCount {
+		newStamp := model.Stamp_fromDB{
+			MessageID:   newMessage.ID,
+			StampTraqID: stampId,
+			StampCount:  count,
+		}
+		_, err := s.db.Exec("INSERT INTO messageStamps (message_id, stamp_traq_id, count) VALUES (?, ?, ?)",
+			newStamp.MessageID, newStamp.StampTraqID, newStamp.StampCount)
+		if err != nil {
+			log.Println(err)
+		}
+	}
+}
+
 func (s *Scraper) MergeWikisContent() {
 	var wikis []model.WikiContent_fromDB
 	err := s.db.Select(&wikis, "SELECT * FROM wikis WHERE type = 'sodan'")
