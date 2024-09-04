@@ -76,6 +76,9 @@ func (s *Scraper) SodanSubMessageCreated(p *payload.MessageCreated) {
 	s.removeMentionSingle(wikiId)
 	s.addMessageIndex(wikiId)
 	//SodanSubMessageCreatedかつ質問者とsub投稿者が違うとき、DMに通知する
+	s.responseNotification(p, wikiId)
+}
+func (s *Scraper) responseNotification(p *payload.MessageCreated, wikiId int) {
 	var messages model.SodanContent_fromDB
 	err := s.db.Get(&messages, "SELECT * FROM messages WHERE wiki_id = ? ORDER BY created_at ASC LIMIT 1", wikiId)
 	if err != nil {
