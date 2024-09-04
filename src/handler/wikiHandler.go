@@ -68,7 +68,7 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 	howManyMessages = len(messageContents)
-	log.Println("howManyMessages : ", howManyMessages)
+	//log.Println("howManyMessages : ", howManyMessages)
 	Response.QuestionMessage.UserTraqID = messageContents[0].UserTraqID
 	Response.QuestionMessage.Content = messageContents[0].MessageContent
 	Response.QuestionMessage.CreatedAt = messageContents[0].CreatedAt
@@ -129,7 +129,7 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 			return c.NoContent(http.StatusInternalServerError)
 		}
 		howManyStamps := len(stamps)
-		log.Println("howManyStamps : ", howManyStamps)
+		//log.Println("howManyStamps : ", howManyStamps)
 		for j := 0; j < howManyStamps; j++ {
 			if i == 0 {
 				var stamps_Response model.Stamp_MessageContent
