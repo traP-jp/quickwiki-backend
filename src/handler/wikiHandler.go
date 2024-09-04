@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/labstack/echo"
+	"golang.org/x/exp/slices"
 	"log"
 	"net/http"
 	"quickwiki-backend/model"
@@ -165,7 +166,7 @@ func WikiIdToResponse(h *Handler, c echo.Context, wikiIds []int) error {
 		tmpSearchContent.ID = wikiId
 		tmpSearchContent.Type = wikiContent.Type
 		tmpSearchContent.Title = wikiContent.Name
-		tmpSearchContent.Abstract = firstTenChars(wikiContent.Content, 20) //Abstractを入れるべき
+		tmpSearchContent.Abstract = firstTenChars(wikiContent.Content, 50) //Abstractを入れるべき
 		tmpSearchContent.CreatedAt = wikiContent.CreatedAt
 		tmpSearchContent.UpdatedAt = wikiContent.UpdatedAt
 		tmpSearchContent.OwnerTraqID = wikiContent.OwnerTraqID
@@ -309,6 +310,7 @@ func (h *Handler) GetWikiByTagHandler(c echo.Context) error {
 			searchResultWikiIds[i] = append(searchResultWikiIds[i], tag.WikiID)
 		}
 
+		searchResultWikiIds[i] = slices.Compact(searchResultWikiIds[i])
 	}
 	log.Println("searchResultWikiIds : ", searchResultWikiIds)
 

@@ -10,6 +10,7 @@ require (
 	github.com/shogo82148/go-mecab v0.0.8
 	github.com/traPtitech/go-traq v0.0.0-20240725071454-97c7b85dc879
 	github.com/traPtitech/traq-ws-bot v1.1.3
+	golang.org/x/exp v0.0.0-20240823005443-9b4947da3948
 )
 
 require (
