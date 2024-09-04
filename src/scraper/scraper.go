@@ -14,6 +14,7 @@ import (
 type Scraper struct {
 	db                *sqlx.DB
 	usersMap          map[string]traq.User
+	userUUIDMap       map[string]string
 	usersDisplayNames map[string]string
 	bot               *traqwsbot.Bot
 }
@@ -22,6 +23,7 @@ func NewScraper(db *sqlx.DB) *Scraper {
 	return &Scraper{
 		db:                db,
 		usersMap:          make(map[string]traq.User),
+		userUUIDMap:       make(map[string]string),
 		usersDisplayNames: make(map[string]string),
 	}
 }
@@ -46,10 +48,11 @@ func (s *Scraper) Scrape() {
 	}
 	for _, u := range users {
 		s.usersMap[u.Id] = u
+		s.userUUIDMap[u.Name] = u.Id
 		s.usersDisplayNames[u.Name] = u.DisplayName
 	}
 
-	//s.GetSodanMessages()
+	s.GetSodanMessages()
 
 	bot.OnMessageCreated(func(p *payload.MessageCreated) {
 		channelId := p.Message.ChannelID

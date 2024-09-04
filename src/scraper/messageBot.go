@@ -2,15 +2,18 @@ package scraper
 
 import (
 	"context"
+	"log"
+	"net/http"
 
+	"github.com/labstack/echo"
 	"github.com/traPtitech/go-traq"
 )
 
-func (s *Scraper) MessageToTraQ(message string, PostChanellId string) (*traq.Message, error) {
-	PostChanellId = "01913f8b-8c05-76a2-b51f-bb83e9e93615" //DEV_MODE
+func (s *Scraper) MessageToTraQ(message string, postChanellId string) (*traq.Message, error) {
+	postChanellId = "01913f8b-8c05-76a2-b51f-bb83e9e93615" //DEV_MODE
 	resp, _, err := s.bot.API().
 		MessageApi.
-		PostMessage(context.Background(), PostChanellId).
+		PostMessage(context.Background(), postChanellId).
 		PostMessageRequest(traq.PostMessageRequest{
 			Content: message,
 		}).
@@ -27,4 +30,25 @@ func (s *Scraper) MessageEditOnTraQ(message string, editMessageId string) error 
 		}).
 		Execute()
 	return err
+}
+
+func (s *Scraper) MessageToDM(message string, postUserTraqId string, isUUID bool) (*traq.Message, error) {
+	ret := traq.NewMessageWithDefaults()
+	var userUUID string
+	if isUUID {
+		userUUID = postUserTraqId
+	} else {
+		userUUID = s.userUUIDMap[postUserTraqId]
+	}
+	resp, _, err := s.bot.API().MessageApi.
+		PostDirectMessage(context.Background(), userUUID).
+		PostMessageRequest(traq.PostMessageRequest{
+			Content: message,
+		}).
+		Execute()
+	if err != nil {
+		log.Println("Failed to PostDirectMessage : ", err)
+		return ret, echo.NewHTTPError(http.StatusInternalServerError, "Failed to post DM.")
+	}
+	return resp, echo.NewHTTPError(http.StatusOK, "successfully sent DM.")
 }
