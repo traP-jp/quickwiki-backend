@@ -47,6 +47,13 @@ func (h *Handler) GetUserWikiHandelr(c echo.Context) error {
 			tagsRes = append(tagsRes, tag.TagName)
 		}
 
+		var favorites int
+		err = h.db.Get(&favorites, "SELECT COUNT(*) FROM favorites WHERE wiki_id = ?", wiki.ID)
+		if err != nil {
+			log.Printf("failed to get favorites: %v", err)
+			return c.JSON(http.StatusInternalServerError, err)
+		}
+
 		res = append(res, model.WikiContentResponse{
 			ID:          wiki.ID,
 			Type:        wiki.Type,
@@ -56,6 +63,7 @@ func (h *Handler) GetUserWikiHandelr(c echo.Context) error {
 			UpdatedAt:   wiki.UpdatedAt,
 			OwnerTraqID: wiki.OwnerTraqID,
 			Tags:        tagsRes,
+			Favorites:   favorites,
 		})
 	}
 
@@ -90,6 +98,13 @@ func (h *Handler) GetUserFavoriteWikiHandler(c echo.Context) error {
 			tagsRes = append(tagsRes, tag.TagName)
 		}
 
+		var favorites int
+		err = h.db.Get(&favorites, "SELECT COUNT(*) FROM favorites WHERE wiki_id = ?", wiki.ID)
+		if err != nil {
+			log.Printf("failed to get favorites: %v", err)
+			return c.JSON(http.StatusInternalServerError, err)
+		}
+
 		res = append(res, model.WikiContentResponse{
 			ID:          wiki.ID,
 			Type:        wiki.Type,
@@ -99,6 +114,7 @@ func (h *Handler) GetUserFavoriteWikiHandler(c echo.Context) error {
 			UpdatedAt:   wiki.UpdatedAt,
 			OwnerTraqID: wiki.OwnerTraqID,
 			Tags:        tagsRes,
+			Favorites:   favorites,
 		})
 	}
 
@@ -172,6 +188,7 @@ func (h *Handler) PostUserFavoriteWikiHandler(c echo.Context) error {
 		UpdatedAt:   wiki.UpdatedAt,
 		OwnerTraqID: wiki.OwnerTraqID,
 		Tags:        tagsRes,
+		Favorites:   0,
 	}
 
 	return c.JSON(http.StatusOK, res)
@@ -228,6 +245,13 @@ func (h *Handler) DeleteUserFavoriteWikiHandler(c echo.Context) error {
 		tagsRes = append(tagsRes, tag.TagName)
 	}
 
+	var favorites int
+	err = h.db.Get(&favorites, "SELECT COUNT(*) FROM favorites WHERE wiki_id = ?", wiki.ID)
+	if err != nil {
+		log.Printf("failed to get favorites: %v", err)
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
 	res := model.WikiContentResponse{
 		ID:          wiki.ID,
 		Type:        wiki.Type,
@@ -237,6 +261,7 @@ func (h *Handler) DeleteUserFavoriteWikiHandler(c echo.Context) error {
 		UpdatedAt:   wiki.UpdatedAt,
 		OwnerTraqID: wiki.OwnerTraqID,
 		Tags:        tagsRes,
+		Favorites:   favorites,
 	}
 
 	_, err = h.db.Exec("DELETE FROM favorites WHERE user_traq_id = ? AND wiki_id = ?", user.TraqID, wikiID)
