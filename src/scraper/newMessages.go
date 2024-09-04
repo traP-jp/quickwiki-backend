@@ -52,6 +52,7 @@ func (s *Scraper) SodanSubMessageCreated(p *payload.MessageCreated) {
 			log.Println(err)
 		}
 		if citedMessage.ChannelId == rsodanChannelId {
+			s.registerWiki(p.Message.ChannelID)
 			wikiId = s.GetWikiIDByMessageId(citedMessageId)
 		}
 	}
@@ -80,7 +81,7 @@ func (s *Scraper) getWikiId(channelId string) int {
 	rsodanChannelId := "aff37b5f-0911-4255-81c3-b49985c8943f"
 
 	var messages []model.SodanContent_fromDB
-	err := s.db.Select(&messages, "SELECT * FROM messages WHERE channel_id = ? ORDER BY created_at DESC LIMIT 30", channelId)
+	err := s.db.Select(&messages, "SELECT * FROM messages WHERE channel_id = ? ORDER BY created_at DESC LIMIT 100", channelId)
 	if err != nil {
 		log.Println("failed to get messages")
 		log.Println(err)
@@ -188,5 +189,21 @@ func (s *Scraper) removeMentionSingle(wikiId int) {
 	if err != nil {
 		log.Println("failed to update wiki")
 		log.Println(err)
+	}
+
+	var messages []model.SodanContent_fromDB
+	err = s.db.Select(&messages, "SELECT * FROM messages WHERE wiki_id = ?", wikiId)
+	if err != nil {
+		log.Println("failed to get messages")
+		log.Println(err)
+	}
+
+	for _, m := range messages {
+		text := ProcessMention(m.MessageContent)
+		_, err = s.db.Exec("UPDATE messages SET message_content = ? WHERE id = ?", text, m.ID)
+		if err != nil {
+			log.Println("failed to update message")
+			log.Println(err)
+		}
 	}
 }
