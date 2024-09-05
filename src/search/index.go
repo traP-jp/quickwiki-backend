@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 )
 
 type IndexData struct {
@@ -14,6 +15,7 @@ type IndexData struct {
 	Title          string
 	OwnerTraqID    string
 	MessageContent string
+	CreateAt       time.Time
 }
 
 func Indexing(data []IndexData) {
@@ -72,6 +74,6 @@ func Indexing(data []IndexData) {
 		return
 	}
 
-	res := Search("windows", 20, 0)
+	res := Search("windows", 20, 0, "none")
 	log.Println(res)
 }
