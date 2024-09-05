@@ -20,51 +20,51 @@ func main() {
 	data := []IndexDatas{
 		{
 			ID:             1,
-			Type:           "type1",
+			Type:           "type",
 			Title:          "title1",
 			OwnerTraqID:    "owner1",
 			MessageContent: "GoはGoogleによって作られたオープンソースのプログラミング言語です。",
-			CreateAt:       time.Now(),
+			CreatedAt:      time.Now(),
 		},
 		{
 			ID:             2,
-			Type:           "type2",
+			Type:           "type",
 			Title:          "title2",
 			OwnerTraqID:    "owner2",
 			MessageContent: "swiftはGoogleによって作られたオープンソースのプログラミング言語です。",
-			CreateAt:       time.Now().Add(-48 * time.Hour),
+			CreatedAt:      time.Now().Add(-48 * time.Hour),
 		},
 		{
 			ID:             3,
-			Type:           "type3",
+			Type:           "type",
 			Title:          "title3",
 			OwnerTraqID:    "owner3",
 			MessageContent: "PythonはGuido van Rossumによって作られたオープンソースのプログラミング言語です。",
-			CreateAt:       time.Now().Add(-24 * time.Hour),
+			CreatedAt:      time.Now().Add(-24 * time.Hour),
 		},
 		{
 			ID:             4,
-			Type:           "type4",
+			Type:           "type",
 			Title:          "title4",
 			OwnerTraqID:    "owner4",
 			MessageContent: "RubyはYukihiro Matsumotoによって作られたオープンソースのプログラミング言語です。",
-			CreateAt:       time.Now().Add(-72 * time.Hour),
+			CreatedAt:      time.Now().Add(-72 * time.Hour),
 		},
 		{
 			ID:             5,
-			Type:           "type5",
+			Type:           "type",
 			Title:          "title5",
 			OwnerTraqID:    "owner5",
 			MessageContent: "JavaはSun Microsystemsによって作られたオープンソースのプログラミング言語です。",
-			CreateAt:       time.Now().Add(-96 * time.Hour),
+			CreatedAt:      time.Now().Add(-96 * time.Hour),
 		},
 		{
 			ID:             6,
-			Type:           "type6",
+			Type:           "type",
 			Title:          "title6",
 			OwnerTraqID:    "owner6",
 			MessageContent: "C++はBjarne Stroustrupによって作られたオープンソースのプログラミング言語です。",
-			CreateAt:       time.Now().Add(-120 * time.Hour),
+			CreatedAt:      time.Now().Add(-120 * time.Hour),
 		},
 	}
 
@@ -113,7 +113,7 @@ func main() {
 	bleveQuery := bleve.NewMatchQuery("プログラミング言語")
 	bleveQuery.SetField("MessageContent")
 	search := bleve.NewSearchRequestOptions(bleveQuery, 10, 0, false)
-	search.SortBy([]string{"-CreateAt"})
+	search.SortBy([]string{"CreatedAt", "-_score"})
 	searchResults, err := index.Search(search)
 	if err != nil {
 		log.Printf("[Error from search] failed to search by query\"%s\": %v\n", "プログラミング言語", err)
@@ -138,5 +138,5 @@ type IndexDatas struct {
 	Title          string
 	OwnerTraqID    string
 	MessageContent string
-	CreateAt       time.Time
+	CreatedAt      time.Time
 }

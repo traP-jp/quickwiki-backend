@@ -15,7 +15,7 @@ type IndexData struct {
 	Title          string
 	OwnerTraqID    string
 	MessageContent string
-	CreateAt       time.Time
+	CreatedAt      time.Time
 }
 
 func Indexing(data []IndexData) {
@@ -74,6 +74,9 @@ func Indexing(data []IndexData) {
 		return
 	}
 
-	res := Search("windows", 20, 0, "none")
+	res := Search("windows", 20, 0, "createdAt_oldest")
+	log.Println(res)
+
+	res = Search("windows", 20, 0, "createdAt_newest")
 	log.Println(res)
 }

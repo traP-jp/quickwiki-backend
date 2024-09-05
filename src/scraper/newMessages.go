@@ -188,7 +188,7 @@ func (s *Scraper) addMessageIndex(wikiId int) {
 			Title:          wiki.Name,
 			OwnerTraqID:    wiki.OwnerTraqID,
 			MessageContent: wiki.Content,
-			CreateAt:       wiki.CreatedAt,
+			CreatedAt:      wiki.CreatedAt,
 		},
 	}
 

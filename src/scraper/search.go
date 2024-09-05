@@ -22,7 +22,7 @@ func (s *Scraper) SetIndexing() {
 			Title:          wiki.Name,
 			OwnerTraqID:    wiki.OwnerTraqID,
 			MessageContent: ProcessLink(removeNewLine(removeCodeBlock(removeTeX(wiki.Content)))),
-			CreateAt:       wiki.CreatedAt,
+			CreatedAt:      wiki.CreatedAt,
 		})
 	}
 

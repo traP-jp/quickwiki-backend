@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-// return array of ID
+// Search return array of ID
 // return empty array if no result or error
 // sort: "createdAt_oldest", "createdAt_newest", "none"
 func Search(query string, limit int, offset int, sort string) []int {
@@ -35,9 +35,13 @@ func Search(query string, limit int, offset int, sort string) []int {
 	search := bleve.NewSearchRequestOptions(bleveQuery, limit, offset, false)
 	switch sort {
 	case "createdAt_oldest":
-		search.SortBy([]string{"CreatedAt"})
+		search.SortBy([]string{"CreatedAt", "-_score"})
+		break
 	case "createdAt_newest":
-		search.SortBy([]string{"-CreatedAt"})
+		search.SortBy([]string{"-CreatedAt", "-_score"})
+		break
+	default:
+		search.SortBy([]string{"_score"})
 	}
 	searchResults, err := index.Search(search)
 	if err != nil {
