@@ -219,7 +219,7 @@ func (s *Scraper) removeMentionSingle(wikiId int) {
 
 	for _, m := range messages {
 		text := ProcessMention(m.MessageContent)
-		_, err = s.db.Exec("UPDATE messages SET message_content = ? WHERE id = ?", text, m.ID)
+		_, err = s.db.Exec("UPDATE messages SET content = ? WHERE id = ?", text, m.ID)
 		if err != nil {
 			log.Println("failed to update message")
 			log.Println(err)
