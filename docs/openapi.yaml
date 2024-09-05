@@ -518,6 +518,26 @@ paths:
               schema:
                 type: string
                 format: binary
+  /stamps/{stampID}:
+    get:
+      tags:
+        - other
+      summary: スタンプの取得(ダウンロード)
+      parameters:
+        - name: stampID
+          in: path
+          required: true
+          schema:
+            type: string
+          description: スタンプID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
 
 
 components:

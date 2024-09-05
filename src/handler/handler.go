@@ -25,6 +25,7 @@ func (h *Handler) PingHandler(c echo.Context) error {
 	return c.String(http.StatusOK, "pong")
 }
 
+// /files/:fileId
 func (h *Handler) GetFileHandler(c echo.Context) error {
 	fileID := c.Param("fileId")
 
@@ -35,10 +36,29 @@ func (h *Handler) GetFileHandler(c echo.Context) error {
 	}
 
 	response := c.Response()
+	response.Header().Set(echo.HeaderContentType, resp.Header.Get(echo.HeaderContentType))
+	response.Header().Set(echo.HeaderAccessControlExposeHeaders, "Content-Disposition")
+	response.Header().Set(echo.HeaderContentDisposition, "attachment; filename="+fileID)
+	response.WriteHeader(http.StatusOK)
+	io.Copy(response.Writer, resp.Body)
+	return c.NoContent(http.StatusOK)
+}
+
+// /stamps/:stampId
+func (h *Handler) GetStampHandler(c echo.Context) error {
+	stampID := c.Param("stampId")
+
+	resp, err := h.scraper.GetStamp(stampID)
+	if err != nil {
+		log.Printf("failed to get stamp: %v", err)
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	response := c.Response()
 	response.Header().Set("Cache-Control", "no-cache")
 	response.Header().Set(echo.HeaderContentType, echo.MIMEOctetStream)
 	response.Header().Set(echo.HeaderAccessControlExposeHeaders, "Content-Disposition")
-	response.Header().Set(echo.HeaderContentDisposition, "attachment; filename="+fileID)
+	response.Header().Set(echo.HeaderContentDisposition, "attachment; filename="+stampID)
 	response.WriteHeader(http.StatusOK)
 	io.Copy(response.Writer, resp.Body)
 	return c.NoContent(http.StatusOK)

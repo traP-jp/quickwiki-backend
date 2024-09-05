@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/labstack/echo"
+	"golang.org/x/exp/slices"
 	"log"
 	"net/http"
 	"quickwiki-backend/model"
@@ -68,7 +69,7 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 	howManyMessages = len(messageContents)
-	log.Println("howManyMessages : ", howManyMessages)
+	//log.Println("howManyMessages : ", howManyMessages)
 	Response.QuestionMessage.UserTraqID = messageContents[0].UserTraqID
 	Response.QuestionMessage.Content = messageContents[0].MessageContent
 	Response.QuestionMessage.CreatedAt = messageContents[0].CreatedAt
@@ -129,7 +130,7 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 			return c.NoContent(http.StatusInternalServerError)
 		}
 		howManyStamps := len(stamps)
-		log.Println("howManyStamps : ", howManyStamps)
+		//log.Println("howManyStamps : ", howManyStamps)
 		for j := 0; j < howManyStamps; j++ {
 			if i == 0 {
 				var stamps_Response model.Stamp_MessageContent
@@ -165,7 +166,7 @@ func WikiIdToResponse(h *Handler, c echo.Context, wikiIds []int) error {
 		tmpSearchContent.ID = wikiId
 		tmpSearchContent.Type = wikiContent.Type
 		tmpSearchContent.Title = wikiContent.Name
-		tmpSearchContent.Abstract = firstTenChars(wikiContent.Content, 20) //Abstractを入れるべき
+		tmpSearchContent.Abstract = firstTenChars(wikiContent.Content, 50) //Abstractを入れるべき
 		tmpSearchContent.CreatedAt = wikiContent.CreatedAt
 		tmpSearchContent.UpdatedAt = wikiContent.UpdatedAt
 		tmpSearchContent.OwnerTraqID = wikiContent.OwnerTraqID
@@ -309,6 +310,7 @@ func (h *Handler) GetWikiByTagHandler(c echo.Context) error {
 			searchResultWikiIds[i] = append(searchResultWikiIds[i], tag.WikiID)
 		}
 
+		searchResultWikiIds[i] = slices.Compact(searchResultWikiIds[i])
 	}
 	log.Println("searchResultWikiIds : ", searchResultWikiIds)
 

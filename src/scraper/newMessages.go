@@ -36,8 +36,6 @@ func (s *Scraper) SodanMessageCreated(p *payload.MessageCreated) {
 	}
 
 	s.AddMessageToDB(newSodan, int(wikiId))
-	s.addMessageTag(int(wikiId))
-	s.addMessageIndex(int(wikiId))
 }
 
 func (s *Scraper) SodanSubMessageCreated(p *payload.MessageCreated) {
@@ -55,6 +53,7 @@ func (s *Scraper) SodanSubMessageCreated(p *payload.MessageCreated) {
 			log.Println(err)
 		}
 		if citedMessage.ChannelId == rsodanChannelId {
+			s.registerWiki(p.Message.ChannelID)
 			wikiId = s.GetWikiIDByMessageId(citedMessageId)
 		}
 	}
@@ -110,7 +109,7 @@ func (s *Scraper) getWikiId(channelId string) int {
 	rsodanChannelId := "aff37b5f-0911-4255-81c3-b49985c8943f"
 
 	var messages []model.SodanContent_fromDB
-	err := s.db.Select(&messages, "SELECT * FROM messages WHERE channel_id = ? ORDER BY created_at DESC LIMIT 30", channelId)
+	err := s.db.Select(&messages, "SELECT * FROM messages WHERE channel_id = ? ORDER BY created_at DESC LIMIT 100", channelId)
 	if err != nil {
 		log.Println("failed to get messages")
 		log.Println(err)
@@ -140,10 +139,33 @@ func (s *Scraper) getWikiId(channelId string) int {
 func (s *Scraper) registerWiki(channelId string) {
 	wikiId := s.getWikiId(channelId)
 
+	s.updateMessages(wikiId)
 	s.mergeWikiContent(wikiId)
 	s.addMessageTag(wikiId)
 	s.removeMentionSingle(wikiId)
 	s.addMessageIndex(wikiId)
+}
+
+func (s *Scraper) updateMessages(wikiId int) {
+	var messages []model.SodanContent_fromDB
+	err := s.db.Select(&messages, "SELECT * FROM messages WHERE wiki_id = ? ORDER BY created_at DESC", wikiId)
+	if err != nil {
+		log.Println("failed to get messages")
+		log.Println(err)
+	}
+
+	firstCreated := messages[len(messages)-1].CreatedAt
+	lastCreated := messages[0].CreatedAt
+
+	newMessages, r, err := s.bot.API().MessageApi.GetMessages(context.Background(), messages[0].ChannelID).Limit(100).Since(firstCreated).Until(lastCreated).Execute()
+	if err != nil {
+		log.Printf("failed to get messages: %+v, %+v", r, err)
+		log.Println(err)
+	}
+
+	for _, m := range newMessages {
+		s.UpdateMessageToDB(m, wikiId)
+	}
 }
 
 func (s *Scraper) mergeWikiContent(wikiId int) {
@@ -218,5 +240,21 @@ func (s *Scraper) removeMentionSingle(wikiId int) {
 	if err != nil {
 		log.Println("failed to update wiki")
 		log.Println(err)
+	}
+
+	var messages []model.SodanContent_fromDB
+	err = s.db.Select(&messages, "SELECT * FROM messages WHERE wiki_id = ?", wikiId)
+	if err != nil {
+		log.Println("failed to get messages")
+		log.Println(err)
+	}
+
+	for _, m := range messages {
+		text := ProcessMention(m.MessageContent)
+		_, err = s.db.Exec("UPDATE messages SET message_content = ? WHERE id = ?", text, m.ID)
+		if err != nil {
+			log.Println("failed to update message")
+			log.Println(err)
+		}
 	}
 }
