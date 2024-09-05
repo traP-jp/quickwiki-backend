@@ -208,7 +208,7 @@ func (h *Handler) SearchHandler(c echo.Context) error {
 	// query検索
 	var searchResults_Query []int
 	if request.Query != "" {
-		searchResults_Query = search.Search(request.Query, request.ResultCount, request.From)
+		searchResults_Query = search.Search(request.Query, request.ResultCount, request.From, request.Sort)
 		if len(searchResults_Query) == 0 {
 			return echo.NewHTTPError(http.StatusNotFound, "No results were found matching that query.")
 		}

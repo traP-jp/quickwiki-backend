@@ -172,6 +172,7 @@ type WikiSearchBody struct {
 	Tags        []string `json:"tags"`
 	From        int      `json:"from"`
 	ResultCount int      `json:"resultCount"`
+	Sort        string   `json:"sort"`
 }
 
 type Tag_Post struct {
