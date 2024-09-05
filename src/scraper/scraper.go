@@ -52,7 +52,7 @@ func (s *Scraper) Scrape() {
 		s.usersDisplayNames[u.Name] = u.DisplayName
 	}
 
-	s.GetSodanMessages()
+	// s.GetSodanMessages()
 
 	bot.OnMessageCreated(func(p *payload.MessageCreated) {
 		channelId := p.Message.ChannelID
