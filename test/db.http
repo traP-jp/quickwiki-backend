@@ -33,3 +33,15 @@ Content-Type: application/json
   "ResultCount":10,
   "from":0
 }
+###
+GET http://localhost:8080/setting/index
+
+###
+PATCH http://localhost:8080/wiki/tag
+Content-Type: application/json
+
+{
+  "wikiId": 2,
+  "tag": "token",
+  "newTag": "kawattayo"
+}

@@ -77,6 +77,7 @@ func main() {
 	e.GET("/stamps/:stampId", h.GetStampHandler)
 
 	e.GET("/setting/index", h.SetIndexingHandler)
+	e.GET("/setting/messages", h.ScrapingHandler)
 
 	e.Logger.Fatal(e.Start(":8080"))
 	//s.StartBot()

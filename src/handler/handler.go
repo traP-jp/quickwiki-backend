@@ -123,3 +123,8 @@ func (h *Handler) SetIndexingHandler(c echo.Context) error {
 	h.scraper.SetIndexing()
 	return c.NoContent(http.StatusOK)
 }
+
+func (h *Handler) ScrapingHandler(c echo.Context) error {
+	h.scraper.GetSodanMessages()
+	return c.NoContent(http.StatusOK)
+}
