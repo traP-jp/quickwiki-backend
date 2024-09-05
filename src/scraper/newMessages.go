@@ -2,12 +2,15 @@ package scraper
 
 import (
 	"context"
-	"github.com/traPtitech/go-traq"
-	"github.com/traPtitech/traq-ws-bot/payload"
+	"database/sql"
+	"errors"
 	"log"
 	"quickwiki-backend/model"
 	"quickwiki-backend/search"
 	"regexp"
+
+	"github.com/traPtitech/go-traq"
+	"github.com/traPtitech/traq-ws-bot/payload"
 )
 
 func (s *Scraper) SodanMessageCreated(p *payload.MessageCreated) {
@@ -68,6 +71,36 @@ func (s *Scraper) SodanSubMessageCreated(p *payload.MessageCreated) {
 		UpdatedAt: p.Message.UpdatedAt,
 		Stamps:    []traq.MessageStamp{},
 	}, wikiId)
+	s.addMessageTag(wikiId)
+	s.removeMentionSingle(wikiId)
+	s.addMessageIndex(wikiId)
+	//SodanSubMessageCreatedかつ質問者とsub投稿者が違うとき、DMに通知する
+	s.responseNotification(p, wikiId)
+}
+func (s *Scraper) responseNotification(p *payload.MessageCreated, wikiId int) {
+	var messages model.SodanContent_fromDB
+	err := s.db.Get(&messages, "SELECT * FROM messages WHERE wiki_id = ? ORDER BY created_at ASC LIMIT 1", wikiId)
+	if err != nil {
+		log.Println("failed to get messages")
+		log.Println(err)
+	}
+	//anon-sodanを使用していればanonSodanの表に残っているはず,そうでなければ投稿者の判定をそのまま行う
+	var anonSodan model.AnonSodans_fromDB
+	var userUUID string
+	err = s.db.Get(&anonSodan, "SELECT * FROM anonSodan WHERE message_traq_id = ?", messages.ID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			userUUID = s.userUUIDMap[messages.UserTraqID]
+		}
+		log.Printf("[in delete memo]failed to get wikiContent: %s\n", err)
+		return
+	}
+	userUUID = s.userUUIDMap[anonSodan.UserTraqID]
+	if p.Message.User.ID == userUUID {
+		return
+	}
+	message := "You got a reply to your SODAN in the random/sodan channel.\nhttps://q.trap.jp/messages/" + p.Message.ID
+	s.MessageToDM(message, p.Message.User.ID, true)
 }
 
 func (s *Scraper) getWikiId(channelId string) int {
