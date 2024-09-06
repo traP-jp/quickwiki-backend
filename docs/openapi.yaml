@@ -147,6 +147,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/searchRequest'
+      description: sortはcreatedAt_oldest, createdAt_newest
       responses:
         '200':
           description: OK
@@ -660,6 +661,9 @@ components:
         from:
           type: integer
           example: 0
+        sort:
+          type: string
+          example: createdAt_oldest
     lectureWithoutId:
       type: object
       properties:

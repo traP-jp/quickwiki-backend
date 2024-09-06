@@ -33,3 +33,6 @@ Content-Type: application/json
   "ResultCount":10,
   "from":0
 }
+
+###
+GET http://localhost:8080/setting/index
