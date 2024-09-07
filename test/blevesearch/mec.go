@@ -23,7 +23,7 @@ func main() {
 			Type:           "type",
 			Title:          "title1",
 			OwnerTraqID:    "owner1",
-			MessageContent: "GoはGoogleによって作られたオープンソースのプログラミング言語です。",
+			MessageContent: "GoはGoogleによって作られた，オープンソースのプログラミング言語です。",
 			CreatedAt:      time.Now(),
 		},
 		{
@@ -31,7 +31,7 @@ func main() {
 			Type:           "type",
 			Title:          "title2",
 			OwnerTraqID:    "owner2",
-			MessageContent: "swiftはGoogleによって作られたオープンソースのプログラミング言語です。",
+			MessageContent: "swiftはGoogleによって作られた，プロプライエタリです。",
 			CreatedAt:      time.Now().Add(-48 * time.Hour),
 		},
 		{
@@ -39,7 +39,7 @@ func main() {
 			Type:           "type",
 			Title:          "title3",
 			OwnerTraqID:    "owner3",
-			MessageContent: "PythonはGuido van Rossumによって作られたオープンソースのプログラミング言語です。",
+			MessageContent: "PythonはGoogleによって作られた，オープンソースのプログラミング言語です。",
 			CreatedAt:      time.Now().Add(-24 * time.Hour),
 		},
 		{
@@ -47,7 +47,7 @@ func main() {
 			Type:           "type",
 			Title:          "title4",
 			OwnerTraqID:    "owner4",
-			MessageContent: "RubyはYukihiro Matsumotoによって作られたオープンソースのプログラミング言語です。",
+			MessageContent: "RubyはYukihiro Matsumotoによって作られた，オープンソースのプログラミング言語です。",
 			CreatedAt:      time.Now().Add(-72 * time.Hour),
 		},
 		{
@@ -55,7 +55,7 @@ func main() {
 			Type:           "type",
 			Title:          "title5",
 			OwnerTraqID:    "owner5",
-			MessageContent: "JavaはSun Microsystemsによって作られたオープンソースのプログラミング言語です。",
+			MessageContent: "JavaはSun Microsystemsによって作られた，オープンソースのプログラミング言語です。",
 			CreatedAt:      time.Now().Add(-96 * time.Hour),
 		},
 		{
@@ -113,7 +113,8 @@ func main() {
 	bleveQuery := bleve.NewMatchQuery("プログラミング言語")
 	bleveQuery.SetField("MessageContent")
 	search := bleve.NewSearchRequestOptions(bleveQuery, 10, 0, false)
-	search.SortBy([]string{"CreatedAt", "-_score"})
+	search.SearchBefore = []string{"Google"}
+	//search.SortBy([]string{"CreatedAt", "-_score"})
 	searchResults, err := index.Search(search)
 	if err != nil {
 		log.Printf("[Error from search] failed to search by query\"%s\": %v\n", "プログラミング言語", err)
