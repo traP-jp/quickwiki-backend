@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"quickwiki-backend/model"
+	"quickwiki-backend/search"
 	"strconv"
 	"time"
 )
@@ -108,6 +109,16 @@ func (h *Handler) PostMemoHandler(c echo.Context) error {
 		Response.Tags = append(Response.Tags, getMemoBody.Tags[i])
 	}
 
+	indexData := search.IndexData{
+		ID:             int(WikiID),
+		Type:           "memo",
+		Title:          getMemoBody.Title,
+		OwnerTraqID:    owner.TraqID,
+		MessageContent: getMemoBody.Content,
+		CreatedAt:      now,
+	}
+	search.Indexing([]search.IndexData{indexData})
+
 	Response.CreatedAt = now
 	Response.UpdatedAt = now
 
@@ -166,6 +177,16 @@ func (h *Handler) PatchMemoHandler(c echo.Context) error {
 		for _, tag := range tags {
 			resTags = append(resTags, tag.TagName)
 		}
+
+		indexData := search.IndexData{
+			ID:             getMemoBody.ID,
+			Type:           "memo",
+			Title:          getMemoBody.Title,
+			OwnerTraqID:    owner.TraqID,
+			MessageContent: getMemoBody.Content,
+			CreatedAt:      wikiContent.CreatedAt,
+		}
+		search.Indexing([]search.IndexData{indexData})
 
 		// get favorite count
 		var favorites int
@@ -238,6 +259,8 @@ func (h *Handler) DeleteMemoHandler(c echo.Context) error {
 	Response.OwnerTraqID = wikiContent.OwnerTraqID
 	Response.CreatedAt = wikiContent.CreatedAt
 	Response.UpdatedAt = wikiContent.UpdatedAt
+
+	search.DeleteIndex(wikiID)
 
 	var tags []model.Tag_fromDB
 	err = h.db.Select(&tags, "select * from tags where wiki_id = ?", wikiID)
