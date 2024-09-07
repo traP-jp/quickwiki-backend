@@ -71,9 +71,6 @@ func (s *Scraper) SodanSubMessageCreated(p *payload.MessageCreated) {
 		UpdatedAt: p.Message.UpdatedAt,
 		Stamps:    []traq.MessageStamp{},
 	}, wikiId)
-	s.addMessageTag(wikiId)
-	s.removeMentionSingle(wikiId)
-	s.addMessageIndex(wikiId)
 	//SodanSubMessageCreatedかつ質問者とsub投稿者が違うとき、DMに通知する
 	s.responseNotification(p, wikiId)
 }
@@ -87,7 +84,7 @@ func (s *Scraper) responseNotification(p *payload.MessageCreated, wikiId int) {
 	//anon-sodanを使用していればanonSodanの表に残っているはず,そうでなければ投稿者の判定をそのまま行う
 	var anonSodan model.AnonSodans_fromDB
 	var userUUID string
-	err = s.db.Get(&anonSodan, "SELECT * FROM anonSodan WHERE message_traq_id = ?", messages.ID)
+	err = s.db.Get(&anonSodan, "SELECT * FROM anonSodans WHERE message_traq_id = ?", messages.ID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			userUUID = s.userUUIDMap[messages.UserTraqID]
@@ -100,7 +97,11 @@ func (s *Scraper) responseNotification(p *payload.MessageCreated, wikiId int) {
 		return
 	}
 	message := "You got a reply to your SODAN in the random/sodan channel.\nhttps://q.trap.jp/messages/" + p.Message.ID
-	s.MessageToDM(message, p.Message.User.ID, true)
+	_, err = s.MessageToDM(message, p.Message.User.ID, true)
+	if err != nil {
+		log.Println("failed to send message to DM")
+		log.Println(err)
+	}
 }
 
 func (s *Scraper) getWikiId(channelId string) int {
