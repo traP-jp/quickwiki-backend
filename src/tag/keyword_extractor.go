@@ -65,6 +65,10 @@ func KeywordExtractorMulti(data []KeywordExtractorData, numKeyword int) [][]Tag 
 		f.Close()
 
 		for i, tagsStr := range pyData {
+			if i >= len(data) {
+				log.Printf("index out of range: %d", i)
+				continue
+			}
 			tagsData := strings.Split(tagsStr, ",")
 
 			var tags []Tag

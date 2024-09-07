@@ -37,6 +37,9 @@ Content-Type: application/json
 GET http://localhost:8080/setting/index
 
 ###
+GET http://localhost:8080/setting/all
+
+###
 PATCH http://localhost:8080/wiki/tag
 Content-Type: application/json
 

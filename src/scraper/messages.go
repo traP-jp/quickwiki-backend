@@ -285,6 +285,46 @@ func (s *Scraper) RemoveMentions() {
 	}
 }
 
+func (s *Scraper) RemoveMentionFromMessage() {
+	var messages []model.SodanContent_fromDB
+	err := s.db.Select(&messages, "SELECT * FROM messages")
+	if err != nil {
+		log.Println("failed to get messages")
+		log.Println(err)
+	}
+
+	for _, m := range messages {
+		content := ProcessMention(m.MessageContent)
+		_, err = s.db.Exec("UPDATE messages SET content = ? WHERE id = ?", content, m.ID)
+		if err != nil {
+			log.Println("failed to update message")
+			log.Println(err)
+		}
+	}
+}
+
+func (s *Scraper) FixTitle() {
+	var wikis []model.WikiContent_fromDB
+	err := s.db.Select(&wikis, "SELECT * FROM wikis WHERE type = 'sodan'")
+	if err != nil {
+		log.Println("failed to get wikis")
+		log.Println(err)
+	}
+
+	for _, wiki := range wikis {
+		name := ProcessMentionAll(ProcessLink(removeNewLine(removeCodeBlock(removeTeX(wiki.Name)))))
+		r := []rune(name)
+		if len(r) > 50 {
+			name = string(r[:50]) + "..."
+		}
+		log.Println(name)
+		_, err = s.db.Exec("UPDATE wikis SET name = ? WHERE id = ?", name, wiki.ID)
+		if err != nil {
+			log.Printf("failed to update wiki: %v", err)
+		}
+	}
+}
+
 func (s *Scraper) extractCitedMessage(m model.SodanContent_fromDB) {
 	re := regexp.MustCompile(`https://q.trap.jp/messages/([^!*]{36})`)
 	cites := re.FindAllString(m.MessageContent, -1)
@@ -313,4 +353,19 @@ func (s *Scraper) extractCitedMessage(m model.SodanContent_fromDB) {
 			log.Println(err)
 		}
 	}
+}
+
+func (s *Scraper) SettingAll() {
+	s.MergeWikisContent()
+	log.Println("finished merging wikis content")
+	//s.SetSodanTags()
+	log.Println("finished setting sodan tags")
+	s.FixTitle()
+	log.Println("finished fixing title")
+	s.RemoveMentions()
+	log.Println("finished removing mentions")
+	s.RemoveMentionFromMessage()
+	log.Println("finished removing mention from message")
+	s.SetIndexing()
+	log.Println("finished setting indexing")
 }

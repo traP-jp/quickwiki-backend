@@ -151,6 +151,7 @@ func (h *Handler) PostLectureHandler(c echo.Context) error {
 
 	folderTree := strings.Split(lecturePost.FolderPath, "/")
 	folderTree[0] = "root"
+	log.Printf("folderTree: %v\n", folderTree)
 	folderTreeIds := []int{1}
 
 	// insert folder if not exists

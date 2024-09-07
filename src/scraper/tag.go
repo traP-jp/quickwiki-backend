@@ -81,11 +81,11 @@ func removeNewLine(content string) string {
 }
 
 func removeCodeBlock(content string) string {
-	re := regexp.MustCompile("```[^```]*```")
+	re := regexp.MustCompile("```[^`]*```")
 	return re.ReplaceAllString(content, "")
 }
 
 func removeTeX(content string) string {
-	re := regexp.MustCompile("\\$[^\\$]*\\$")
+	re := regexp.MustCompile("\\$[^$]*\\$")
 	return re.ReplaceAllString(content, "")
 }

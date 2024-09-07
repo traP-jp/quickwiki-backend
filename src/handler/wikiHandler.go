@@ -166,7 +166,7 @@ func WikiIdToResponse(h *Handler, c echo.Context, wikiIds []int) error {
 		tmpSearchContent.ID = wikiId
 		tmpSearchContent.Type = wikiContent.Type
 		tmpSearchContent.Title = wikiContent.Name
-		tmpSearchContent.Abstract = firstTenChars(wikiContent.Content, 50) //Abstractを入れるべき
+		tmpSearchContent.Abstract = firstTenChars(wikiContent.Content, 100) + "..." //Abstractを入れるべき
 		tmpSearchContent.CreatedAt = wikiContent.CreatedAt
 		tmpSearchContent.UpdatedAt = wikiContent.UpdatedAt
 		tmpSearchContent.OwnerTraqID = wikiContent.OwnerTraqID

@@ -78,6 +78,7 @@ func main() {
 
 	e.GET("/setting/index", h.SetIndexingHandler)
 	//e.POST("/setting/messages", h.ScrapingHandler)
+	e.GET("/setting/all", h.SettingAllHandler)
 
 	e.Logger.Fatal(e.Start(":8080"))
 	//s.StartBot()
