@@ -74,14 +74,14 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 	Response.QuestionMessage.Content = messageContents[0].MessageContent
 	Response.QuestionMessage.CreatedAt = messageContents[0].CreatedAt
 	Response.QuestionMessage.UpdatedAt = messageContents[0].UpdatedAt
-	citedMessagesFromDB := []model.CitedMessage_fromDB{}
+	var citedMessagesFromDB []model.CitedMessage_fromDB
 	// get citedMessages for question
 	err = h.db.Select(&citedMessagesFromDB, "select * from citedMessages where parent_message_id = ?", messageContents[0].ID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		log.Printf("failed to get citedMessagesFromDB: %s\n", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
-	citedMessages := []model.MessageContentForCitations_SodanResponse{}
+	var citedMessages []model.MessageContentForCitations_SodanResponse
 	for _, citedMessage := range citedMessagesFromDB {
 		citedMessageContent := model.MessageContentForCitations_SodanResponse{
 			UserTraqID:     citedMessage.UserTraqID,
@@ -104,7 +104,7 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 			log.Printf("failed to get citedMessagesFromDB: %s\n", err)
 			return c.NoContent(http.StatusInternalServerError)
 		}
-		citedMessages := []model.MessageContentForCitations_SodanResponse{}
+		var citedMessages []model.MessageContentForCitations_SodanResponse
 		for _, citedMessage := range citedMessagesFromDB {
 			citedMessageContent := model.MessageContentForCitations_SodanResponse{
 				UserTraqID:     citedMessage.UserTraqID,
@@ -345,6 +345,7 @@ func (h *Handler) PostTagHandler(c echo.Context) error {
 
 	_, err = h.db.Exec("INSERT INTO tags (name,tag_score,wiki_id) VALUES (?,?,?)", tagRequest.Tag, 1, tagRequest.WikiID)
 	if err != nil {
+		log.Printf("tagRequest : %+v", tagRequest)
 		log.Printf("failed to insert tag: %+v", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
 	}
@@ -391,7 +392,7 @@ func (h *Handler) DeleteTagHandler(c echo.Context) error {
 
 // /tag
 func (h *Handler) GetTagsHandler(c echo.Context) error {
-	tags := []string{}
+	var tags []string
 	err := h.db.Select(&tags, "SELECT DISTINCT name FROM tags")
 	if err != nil {
 		log.Printf("failed to get tags: %v", err)

@@ -35,7 +35,7 @@ func (s *Scraper) getMessages(channelId string) ([]traq.Message, error) {
 	return messages, nil
 }
 
-func (s *Scraper) GetSodanMessages() {
+func (s *Scraper) GetSodanMessages(mainChannelId string, subChannelId []string) {
 	//sodanMessages, resp, err := s.bot.
 	//	API().
 	//	MessageApi.
@@ -47,7 +47,7 @@ func (s *Scraper) GetSodanMessages() {
 	//	log.Println(err)
 	//	log.Println(resp)
 	//}
-	sodanMessages, err := s.getMessages("aff37b5f-0911-4255-81c3-b49985c8943f")
+	sodanMessages, err := s.getMessages(mainChannelId)
 	if err != nil {
 		log.Println(err)
 	}
@@ -83,19 +83,10 @@ func (s *Scraper) GetSodanMessages() {
 		s.AddMessageToDB(m, int(wikiId))
 	}
 
-	s.GetSodanSubMessages("98ea48da-64e8-4f69-9d0d-80690b682670", 40, 52)
-	log.Println("sodan messages scraped")
-	s.GetSodanSubMessages("98ea48da-64e8-4f69-9d0d-80690b682670", 48, 52)
-	log.Println("sodan sub messages 1 scraped")
-	s.GetSodanSubMessages("30c30aa5-c380-4324-b227-0ca85c34801c", 22, 32)
-	log.Println("sodan sub messages 2 scraped")
-	s.GetSodanSubMessages("7ec94f1d-1920-4e15-bfc5-049c9a289692", 5, 18)
-	log.Println("sodan sub messages 3 scraped")
-	s.GetSodanSubMessages("c67abb48-3fb0-4486-98ad-4b6947998ad5", 0, 21)
-	log.Println("sodan sub messages 4 scraped")
-	s.GetSodanSubMessages("eb5a0035-a340-4cf6-a9e0-94ddfabe9337", 0, 2)
-	log.Println("sodan sub messages 5 scraped")
-	s.GetSodanSubMessages("5b857a8d-03b5-4c25-92d9-bc01f3defe84", 0, 2)
+	for i, channelId := range subChannelId {
+		s.GetSodanSubMessages(channelId, mainChannelId)
+		log.Printf("finished scraping subchannel %d\n", i+1)
+	}
 
 	//s.MergeWikisContent()
 	//s.SetSodanTags()
@@ -103,8 +94,7 @@ func (s *Scraper) GetSodanMessages() {
 	//s.SetIndexing()
 }
 
-func (s *Scraper) GetSodanSubMessages(channelId string, offset int, limit int) {
-	rsodanChannelId := "aff37b5f-0911-4255-81c3-b49985c8943f"
+func (s *Scraper) GetSodanSubMessages(channelId string, parentId string) {
 
 	//messages, _, err := s.bot.
 	//	API().
@@ -135,7 +125,7 @@ func (s *Scraper) GetSodanSubMessages(channelId string, offset int, limit int) {
 			if err != nil {
 				log.Println("failed to get cited message")
 				log.Println(err)
-			} else if citedMessage.ChannelId == rsodanChannelId {
+			} else if citedMessage.ChannelId == parentId {
 				wikiId = s.GetWikiIDByMessageId(citedMessageId)
 			}
 		}

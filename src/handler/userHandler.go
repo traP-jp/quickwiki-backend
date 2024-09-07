@@ -26,23 +26,23 @@ func (h *Handler) GetUserWikiHandelr(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, err)
 	}
 
-	wikis := []model.WikiContent_fromDB{}
+	var wikis []model.WikiContent_fromDB
 	err = h.db.Select(&wikis, "SELECT * FROM wikis WHERE owner_traq_id = ?", user.TraqID)
 	if err != nil {
 		log.Printf("failed to get wikis: %v", err)
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	res := []model.WikiContentResponse{}
+	var res []model.WikiContentResponse
 	for _, wiki := range wikis {
 		// get tag
-		tags := []model.Tag_fromDB{}
+		var tags []model.Tag_fromDB
 		err = h.db.Select(&tags, "SELECT * FROM tags WHERE wiki_id = ?", wiki.ID)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			log.Printf("failed to get tags: %v", err)
 			return c.JSON(http.StatusInternalServerError, err)
 		}
-		tagsRes := []string{}
+		var tagsRes []string
 		for _, tag := range tags {
 			tagsRes = append(tagsRes, tag.TagName)
 		}
@@ -77,23 +77,23 @@ func (h *Handler) GetUserFavoriteWikiHandler(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, err)
 	}
 
-	wikis := []model.WikiContent_fromDB{}
+	var wikis []model.WikiContent_fromDB
 	err = h.db.Select(&wikis, "SELECT * FROM wikis WHERE id IN (SELECT wiki_id FROM favorites WHERE user_traq_id = ?)", user.TraqID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		log.Printf("failed to get wikis: %v", err)
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	res := []model.WikiContentResponse{}
+	var res []model.WikiContentResponse
 	for _, wiki := range wikis {
 		// get tag
-		tags := []model.Tag_fromDB{}
+		var tags []model.Tag_fromDB
 		err = h.db.Select(&tags, "SELECT * FROM tags WHERE wiki_id = ?", wiki.ID)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			log.Printf("failed to get tags: %v", err)
 			return c.JSON(http.StatusInternalServerError, err)
 		}
-		tagsRes := []string{}
+		var tagsRes []string
 		for _, tag := range tags {
 			tagsRes = append(tagsRes, tag.TagName)
 		}
@@ -168,13 +168,13 @@ func (h *Handler) PostUserFavoriteWikiHandler(c echo.Context) error {
 	}
 
 	// get tag
-	tags := []model.Tag_fromDB{}
+	var tags []model.Tag_fromDB
 	err = h.db.Select(&tags, "SELECT * FROM tags WHERE wiki_id = ?", wiki.ID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		log.Printf("failed to get tags: %v", err)
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	tagsRes := []string{}
+	var tagsRes []string
 	for _, tag := range tags {
 		tagsRes = append(tagsRes, tag.TagName)
 	}
@@ -234,13 +234,13 @@ func (h *Handler) DeleteUserFavoriteWikiHandler(c echo.Context) error {
 	}
 
 	// get tag
-	tags := []model.Tag_fromDB{}
+	var tags []model.Tag_fromDB
 	err = h.db.Select(&tags, "SELECT * FROM tags WHERE wiki_id = ?", wiki.ID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		log.Printf("failed to get tags: %v", err)
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	tagsRes := []string{}
+	var tagsRes []string
 	for _, tag := range tags {
 		tagsRes = append(tagsRes, tag.TagName)
 	}

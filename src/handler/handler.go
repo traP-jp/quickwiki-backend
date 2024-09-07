@@ -124,7 +124,17 @@ func (h *Handler) SetIndexingHandler(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+type ScrapeRequest struct {
+	MainChannelID string   `json:"main"`
+	SubChannelIDs []string `json:"sub"`
+}
+
 func (h *Handler) ScrapingHandler(c echo.Context) error {
-	h.scraper.GetSodanMessages()
+	req := ScrapeRequest{}
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, err)
+	}
+	h.scraper.GetSodanMessages(req.MainChannelID, req.SubChannelIDs)
+	log.Println("finish scraping")
 	return c.NoContent(http.StatusOK)
 }

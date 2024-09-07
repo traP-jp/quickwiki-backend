@@ -19,7 +19,7 @@ func (h *Handler) GetLectureByFolderIDHandler(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	lectures := []model.LectureFromDB{}
+	var lectures []model.LectureFromDB
 	err = h.db.Select(&lectures, "SELECT * FROM lectures WHERE folder_id = ?", folderID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -29,7 +29,7 @@ func (h *Handler) GetLectureByFolderIDHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	lecturesWithFolderPath := []model.Lecture{}
+	var lecturesWithFolderPath []model.Lecture
 	for _, lecture := range lectures {
 		lecturesWithFolderPath = append(lecturesWithFolderPath, model.Lecture{
 			ID:         lecture.ID,
@@ -58,7 +58,7 @@ func (h *Handler) GetLectureByFolderPathHandler(c echo.Context) error {
 	}
 
 	log.Printf("lectures: %v", lectures)
-	lecturesWithFolderPath := []model.Lecture{}
+	var lecturesWithFolderPath []model.Lecture
 	for _, lecture := range lectures {
 		lecturesWithFolderPath = append(lecturesWithFolderPath, model.Lecture{
 			ID:         lecture.ID,
@@ -79,9 +79,9 @@ func (h *Handler) GetLectureChildFolderHandler(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	files := []model.File{}
+	var files []model.File
 
-	childFolders := []model.FolderFromDB{}
+	var childFolders []model.FolderFromDB
 	err = h.db.Select(&childFolders, "SELECT * FROM folders WHERE parent_id = ?", folderID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		log.Printf("failed to get child folders: %v", err)
@@ -96,7 +96,7 @@ func (h *Handler) GetLectureChildFolderHandler(c echo.Context) error {
 		})
 	}
 
-	childLectures := []model.LectureOnlyName{}
+	var childLectures []model.LectureOnlyName
 	err = h.db.Select(&childLectures, "SELECT id, title FROM lectures WHERE folder_id = ?", folderID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		log.Printf("failed to get child lectures: %v", err)
