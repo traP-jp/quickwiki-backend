@@ -78,7 +78,6 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 	var citedMessagesFromDB []model.CitedMessage_fromDB
 	Response.ChannelID = messageContents[0].ChannelID
 	Response.QuestionMessage.MessageTraqID = messageContents[0].MessageID
-	citedMessagesFromDB := []model.CitedMessage_fromDB{}
 	// get citedMessages for question
 	err = h.db.Select(&citedMessagesFromDB, "select * from citedMessages where parent_message_id = ?", messageContents[0].ID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {

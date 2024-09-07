@@ -80,3 +80,18 @@ func Indexing(data []IndexData) {
 	res = Search("windows", 20, 0, "createdAt_newest")
 	log.Println(res)
 }
+
+func DeleteIndex(wikiID int) {
+	index, err := bleve.Open("index.bleve")
+	if err != nil {
+		log.Printf("[Error from search engine] failed to open index: %v\n", err)
+		return
+	}
+	defer index.Close()
+
+	err = index.Delete(strconv.Itoa(wikiID))
+	if err != nil {
+		log.Printf("[Error from search engine] failed to delete index: %v\n", err)
+		return
+	}
+}
