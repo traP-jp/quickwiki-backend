@@ -33,33 +33,6 @@ Content-Type: application/json
   "ResultCount":10,
   "from":0
 }
+
 ###
 GET http://localhost:8080/setting/index
-
-###
-GET http://localhost:8080/setting/all
-
-###
-PATCH http://localhost:8080/wiki/tag
-Content-Type: application/json
-
-{
-  "wikiId": 2,
-  "tag": "token",
-  "newTag": "kawattayo"
-}
-
-###
-POST http://localhost:8080/setting/messages
-Content-Type: application/json
-
-{
-  "main": "581f7c4f-f788-459d-a21d-6c4d9b6604e8",
-  "sub": [
-    "8b681f08-5a9d-4cd5-b388-40cdeb9cb0e0",
-    "5f4b1a2c-9135-43ad-84a7-f0c6ac6501a1",
-    "83aa4b36-ae34-4d04-ac0c-6788fee6f431",
-    "f6fff662-0641-439c-9274-8fbc9bf43782",
-    "dbb00195-79aa-4161-a44a-90d4ce36ae93"
-  ]
-}

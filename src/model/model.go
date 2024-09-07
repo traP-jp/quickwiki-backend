@@ -80,12 +80,13 @@ type Stamp_MessageContent struct {
 
 // SodanResponseで使うMessageの構造体
 type MessageContent_SodanResponse struct {
-	UserTraqID string                                     `json:"userTraqId"`
-	Content    string                                     `json:"content"`
-	CreatedAt  time.Time                                  `json:"createdAt"`
-	UpdatedAt  time.Time                                  `json:"updatedAt"`
-	Stamps     []Stamp_MessageContent                     `json:"stamps"`
-	Citations  []MessageContentForCitations_SodanResponse `json:"citations"`
+	UserTraqID    string                                     `json:"userTraqId"`
+	Content       string                                     `json:"content"`
+	CreatedAt     time.Time                                  `json:"createdAt"`
+	UpdatedAt     time.Time                                  `json:"updatedAt"`
+	MessageTraqID string                                     `json:"messageTraqId"`
+	Stamps        []Stamp_MessageContent                     `json:"stamps"`
+	Citations     []MessageContentForCitations_SodanResponse `json:"citations"`
 }
 
 type MessageContentForCitations_SodanResponse struct {
@@ -99,6 +100,7 @@ type MessageContentForCitations_SodanResponse struct {
 type SodanResponse struct {
 	WikiID          int                            `json:"id"`
 	Title           string                         `json:"title"`
+	ChannelID       string                         `json:"channelId"`
 	Tags            []string                       `json:"tags"`
 	QuestionMessage MessageContent_SodanResponse   `json:"questionMessage"`
 	AnswerMessages  []MessageContent_SodanResponse `json:"answerMessages"`
@@ -172,6 +174,7 @@ type WikiSearchBody struct {
 	Tags        []string `json:"tags"`
 	From        int      `json:"from"`
 	ResultCount int      `json:"resultCount"`
+	Sort        string   `json:"sort"`
 }
 
 type Tag_Post struct {

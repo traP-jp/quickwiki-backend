@@ -68,6 +68,7 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 		log.Printf("failed to get sodanContent: %s\n", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+
 	howManyMessages = len(messageContents)
 	//log.Println("howManyMessages : ", howManyMessages)
 	Response.QuestionMessage.UserTraqID = messageContents[0].UserTraqID
@@ -75,6 +76,9 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 	Response.QuestionMessage.CreatedAt = messageContents[0].CreatedAt
 	Response.QuestionMessage.UpdatedAt = messageContents[0].UpdatedAt
 	var citedMessagesFromDB []model.CitedMessage_fromDB
+	Response.ChannelID = messageContents[0].ChannelID
+	Response.QuestionMessage.MessageTraqID = messageContents[0].MessageID
+	citedMessagesFromDB := []model.CitedMessage_fromDB{}
 	// get citedMessages for question
 	err = h.db.Select(&citedMessagesFromDB, "select * from citedMessages where parent_message_id = ?", messageContents[0].ID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
@@ -98,6 +102,7 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 		ans_Response.Content = messageContents[i].MessageContent
 		ans_Response.CreatedAt = messageContents[i].CreatedAt
 		ans_Response.UpdatedAt = messageContents[i].UpdatedAt
+		ans_Response.MessageTraqID = messageContents[i].MessageID
 		// get citedMessages for answer
 		err = h.db.Select(&citedMessagesFromDB, "select * from citedMessages where parent_message_id = ?", messageContents[i].ID)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
@@ -208,7 +213,7 @@ func (h *Handler) SearchHandler(c echo.Context) error {
 	// query検索
 	var searchResults_Query []int
 	if request.Query != "" {
-		searchResults_Query = search.Search(request.Query, request.ResultCount, request.From)
+		searchResults_Query = search.Search(request.Query, request.ResultCount, request.From, request.Sort)
 		if len(searchResults_Query) == 0 {
 			return echo.NewHTTPError(http.StatusNotFound, "No results were found matching that query.")
 		}

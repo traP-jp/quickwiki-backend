@@ -147,6 +147,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/searchRequest'
+      description: sortはcreatedAt_oldest, createdAt_newest
       responses:
         '200':
           description: OK
@@ -660,6 +661,9 @@ components:
         from:
           type: integer
           example: 0
+        sort:
+          type: string
+          example: createdAt_oldest
     lectureWithoutId:
       type: object
       properties:
@@ -681,6 +685,9 @@ components:
         title:
           type: string
           example: Introduction to Computer Science
+        channelId:
+          type: string
+          example: abcd-efgh-ijkl
         tags:
           type: array
           items:
@@ -710,6 +717,9 @@ components:
         updatedAt:
           type: string
           example: 2021-01-01 00:00:00
+        messageTraqId:
+          type: string
+          example: abcd-efgh-ijkl
         stamps:
           type: array
           items:
