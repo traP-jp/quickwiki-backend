@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/labstack/echo"
+	"golang.org/x/exp/slices"
 	"log"
 	"net/http"
 	"quickwiki-backend/model"
@@ -47,6 +48,15 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 		Response.Tags = append(Response.Tags, tags[i].TagName)
 	}
 
+	// get favorite count
+	var favoriteCount int
+	err = h.db.Get(&favoriteCount, "select count(*) from favorites where wiki_id = ?", wikiId)
+	if err != nil {
+		log.Printf("failed to get favoriteCount: %s\n", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	Response.Favorites = favoriteCount
+
 	// get messages
 	var messageContents []model.SodanContent_fromDB
 	var howManyMessages int
@@ -58,20 +68,23 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 		log.Printf("failed to get sodanContent: %s\n", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+
 	howManyMessages = len(messageContents)
-	log.Println("howManyMessages : ", howManyMessages)
+	//log.Println("howManyMessages : ", howManyMessages)
 	Response.QuestionMessage.UserTraqID = messageContents[0].UserTraqID
 	Response.QuestionMessage.Content = messageContents[0].MessageContent
 	Response.QuestionMessage.CreatedAt = messageContents[0].CreatedAt
 	Response.QuestionMessage.UpdatedAt = messageContents[0].UpdatedAt
-	citedMessagesFromDB := []model.CitedMessage_fromDB{}
+	var citedMessagesFromDB []model.CitedMessage_fromDB
+	Response.ChannelID = messageContents[0].ChannelID
+	Response.QuestionMessage.MessageTraqID = messageContents[0].MessageID
 	// get citedMessages for question
 	err = h.db.Select(&citedMessagesFromDB, "select * from citedMessages where parent_message_id = ?", messageContents[0].ID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		log.Printf("failed to get citedMessagesFromDB: %s\n", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
-	citedMessages := []model.MessageContentForCitations_SodanResponse{}
+	var citedMessages []model.MessageContentForCitations_SodanResponse
 	for _, citedMessage := range citedMessagesFromDB {
 		citedMessageContent := model.MessageContentForCitations_SodanResponse{
 			UserTraqID:     citedMessage.UserTraqID,
@@ -88,13 +101,14 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 		ans_Response.Content = messageContents[i].MessageContent
 		ans_Response.CreatedAt = messageContents[i].CreatedAt
 		ans_Response.UpdatedAt = messageContents[i].UpdatedAt
+		ans_Response.MessageTraqID = messageContents[i].MessageID
 		// get citedMessages for answer
 		err = h.db.Select(&citedMessagesFromDB, "select * from citedMessages where parent_message_id = ?", messageContents[i].ID)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			log.Printf("failed to get citedMessagesFromDB: %s\n", err)
 			return c.NoContent(http.StatusInternalServerError)
 		}
-		citedMessages := []model.MessageContentForCitations_SodanResponse{}
+		var citedMessages []model.MessageContentForCitations_SodanResponse
 		for _, citedMessage := range citedMessagesFromDB {
 			citedMessageContent := model.MessageContentForCitations_SodanResponse{
 				UserTraqID:     citedMessage.UserTraqID,
@@ -120,7 +134,7 @@ func (h *Handler) GetSodanHandler(c echo.Context) error {
 			return c.NoContent(http.StatusInternalServerError)
 		}
 		howManyStamps := len(stamps)
-		log.Println("howManyStamps : ", howManyStamps)
+		//log.Println("howManyStamps : ", howManyStamps)
 		for j := 0; j < howManyStamps; j++ {
 			if i == 0 {
 				var stamps_Response model.Stamp_MessageContent
@@ -156,11 +170,12 @@ func WikiIdToResponse(h *Handler, c echo.Context, wikiIds []int) error {
 		tmpSearchContent.ID = wikiId
 		tmpSearchContent.Type = wikiContent.Type
 		tmpSearchContent.Title = wikiContent.Name
-		tmpSearchContent.Abstract = firstTenChars(wikiContent.Content, 20) //Abstractを入れるべき
+		tmpSearchContent.Abstract = firstTenChars(wikiContent.Content, 150) + "..." //Abstractを入れるべき
 		tmpSearchContent.CreatedAt = wikiContent.CreatedAt
 		tmpSearchContent.UpdatedAt = wikiContent.UpdatedAt
 		tmpSearchContent.OwnerTraqID = wikiContent.OwnerTraqID
 
+		// get tags
 		var tags []model.Tag_fromDB
 		var howManyTags int
 		err = h.db.Select(&tags, "select * from tags where wiki_id = ?", wikiId)
@@ -172,6 +187,15 @@ func WikiIdToResponse(h *Handler, c echo.Context, wikiIds []int) error {
 		for j := 0; j < howManyTags; j++ {
 			tmpSearchContent.Tags = append(tmpSearchContent.Tags, tags[j].TagName)
 		}
+
+		// get favorite count
+		var favoriteCount int
+		err = h.db.Get(&favoriteCount, "select count(*) from favorites where wiki_id = ?", wikiId)
+		if err != nil {
+			log.Printf("failed to get favoriteCount: %s\n", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		tmpSearchContent.Favorites = favoriteCount
 		Response = append(Response, *tmpSearchContent)
 	}
 	return c.JSON(http.StatusOK, Response)
@@ -188,7 +212,7 @@ func (h *Handler) SearchHandler(c echo.Context) error {
 	// query検索
 	var searchResults_Query []int
 	if request.Query != "" {
-		searchResults_Query = search.Search(request.Query, request.ResultCount, request.From)
+		searchResults_Query = search.Search(request.Query, request.ResultCount, request.From, request.Sort)
 		if len(searchResults_Query) == 0 {
 			return echo.NewHTTPError(http.StatusNotFound, "No results were found matching that query.")
 		}
@@ -268,6 +292,7 @@ func (h *Handler) GetWikiByTagHandler(c echo.Context) error {
 	var searchResultWikiIds [][]int
 	for i, requestTag := range requestTags {
 		searchResultWikiIds = append(searchResultWikiIds, []int{})
+		// tag (exact match)
 		var tags []model.Tag_fromDB
 		err := h.db.Select(&tags, "select * from tags where name = ?", requestTag)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
@@ -278,6 +303,7 @@ func (h *Handler) GetWikiByTagHandler(c echo.Context) error {
 			searchResultWikiIds[i] = append(searchResultWikiIds[i], tag.WikiID)
 		}
 
+		// tag (like match)
 		var tagLike []model.Tag_fromDB
 		err = h.db.Select(&tagLike, "select * from tags where name like ? and name != ?", "%"+requestTag+"%", requestTag)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
@@ -288,6 +314,7 @@ func (h *Handler) GetWikiByTagHandler(c echo.Context) error {
 			searchResultWikiIds[i] = append(searchResultWikiIds[i], tag.WikiID)
 		}
 
+		searchResultWikiIds[i] = slices.Compact(searchResultWikiIds[i])
 	}
 	log.Println("searchResultWikiIds : ", searchResultWikiIds)
 
@@ -312,7 +339,7 @@ func (h *Handler) GetWikiByTagHandler(c echo.Context) error {
 	return WikiIdToResponse(h, c, searchResults_Tags)
 }
 
-// /wiki/tag
+// /wiki/tag (POST)
 func (h *Handler) PostTagHandler(c echo.Context) error {
 	tagRequest := model.Tag_Post{}
 	err := c.Bind(&tagRequest)
@@ -322,7 +349,45 @@ func (h *Handler) PostTagHandler(c echo.Context) error {
 
 	_, err = h.db.Exec("INSERT INTO tags (name,tag_score,wiki_id) VALUES (?,?,?)", tagRequest.Tag, 1, tagRequest.WikiID)
 	if err != nil {
+		log.Printf("tagRequest : %+v", tagRequest)
 		log.Printf("failed to insert tag: %+v", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
+	}
+
+	return c.JSON(http.StatusOK, tagRequest)
+}
+
+// /wiki/tag (PATCH)
+func (h *Handler) EditTagHandler(c echo.Context) error {
+	tagRequest := model.Tag_Patch{}
+	err := c.Bind(&tagRequest)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "bad request body")
+	}
+
+	_, err = h.db.Exec("UPDATE tags SET name = ? WHERE name = ? AND wiki_id = ?", tagRequest.NewTag, tagRequest.Tag, tagRequest.WikiID)
+	if err != nil {
+		log.Printf("failed to update tag: %+v", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
+	}
+
+	return c.JSON(http.StatusOK, model.Tag_Post{
+		WikiID: tagRequest.WikiID,
+		Tag:    tagRequest.NewTag,
+	})
+}
+
+// /wiki/tag (DELETE)
+func (h *Handler) DeleteTagHandler(c echo.Context) error {
+	tagRequest := model.Tag_Post{}
+	err := c.Bind(&tagRequest)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "bad request body")
+	}
+
+	_, err = h.db.Exec("DELETE FROM tags WHERE name = ? AND wiki_id = ?", tagRequest.Tag, tagRequest.WikiID)
+	if err != nil {
+		log.Printf("failed to delete tag: %+v", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
 	}
 
@@ -331,7 +396,7 @@ func (h *Handler) PostTagHandler(c echo.Context) error {
 
 // /tag
 func (h *Handler) GetTagsHandler(c echo.Context) error {
-	tags := []string{}
+	var tags []string
 	err := h.db.Select(&tags, "SELECT DISTINCT name FROM tags")
 	if err != nil {
 		log.Printf("failed to get tags: %v", err)

@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 )
 
 type IndexData struct {
@@ -14,6 +15,7 @@ type IndexData struct {
 	Title          string
 	OwnerTraqID    string
 	MessageContent string
+	CreatedAt      time.Time
 }
 
 func Indexing(data []IndexData) {
@@ -72,6 +74,24 @@ func Indexing(data []IndexData) {
 		return
 	}
 
-	res := Search("windows", 20, 0)
+	res := Search("windows", 20, 0, "createdAt_oldest")
 	log.Println(res)
+
+	res = Search("windows", 20, 0, "createdAt_newest")
+	log.Println(res)
+}
+
+func DeleteIndex(wikiID int) {
+	index, err := bleve.Open("index.bleve")
+	if err != nil {
+		log.Printf("[Error from search engine] failed to open index: %v\n", err)
+		return
+	}
+	defer index.Close()
+
+	err = index.Delete(strconv.Itoa(wikiID))
+	if err != nil {
+		log.Printf("[Error from search engine] failed to delete index: %v\n", err)
+		return
+	}
 }

@@ -1,12 +1,10 @@
 package main
 
 import (
-	"github.com/blevesearch/bleve/v2"
 	"github.com/blevesearch/bleve/v2/analysis/analyzer/custom"
 	"github.com/blevesearch/bleve/v2/analysis/analyzer/keyword"
 	"github.com/blevesearch/bleve/v2/analysis/token/lowercase"
 	"github.com/ikawaha/bleveplugin/analysis/lang/ja"
-	"github.com/shogo82148/go-mecab"
 	"log"
 )
 
@@ -40,10 +38,10 @@ func main() {
 	}
 	index.Close()
 
-	settinrMecab()
+	settingMecab()
 }
 
-func settinrMecab() {
+func settingMecab() {
 	tagger, err := mecab.New(map[string]string{"output-format-type": "wakati"})
 	if err != nil {
 		log.Println(err)

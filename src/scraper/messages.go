@@ -35,7 +35,7 @@ func (s *Scraper) getMessages(channelId string) ([]traq.Message, error) {
 	return messages, nil
 }
 
-func (s *Scraper) GetSodanMessages() {
+func (s *Scraper) GetSodanMessages(mainChannelId string, subChannelId []string) {
 	//sodanMessages, resp, err := s.bot.
 	//	API().
 	//	MessageApi.
@@ -47,7 +47,7 @@ func (s *Scraper) GetSodanMessages() {
 	//	log.Println(err)
 	//	log.Println(resp)
 	//}
-	sodanMessages, err := s.getMessages("aff37b5f-0911-4255-81c3-b49985c8943f")
+	sodanMessages, err := s.getMessages(mainChannelId)
 	if err != nil {
 		log.Println(err)
 	}
@@ -83,19 +83,10 @@ func (s *Scraper) GetSodanMessages() {
 		s.AddMessageToDB(m, int(wikiId))
 	}
 
-	s.GetSodanSubMessages("98ea48da-64e8-4f69-9d0d-80690b682670", 40, 52)
-	log.Println("sodan messages scraped")
-	s.GetSodanSubMessages("98ea48da-64e8-4f69-9d0d-80690b682670", 40, 52)
-	log.Println("sodan sub messages 1 scraped")
-	s.GetSodanSubMessages("30c30aa5-c380-4324-b227-0ca85c34801c", 22, 32)
-	log.Println("sodan sub messages 2 scraped")
-	s.GetSodanSubMessages("7ec94f1d-1920-4e15-bfc5-049c9a289692", 5, 18)
-	log.Println("sodan sub messages 3 scraped")
-	s.GetSodanSubMessages("c67abb48-3fb0-4486-98ad-4b6947998ad5", 0, 21)
-	log.Println("sodan sub messages 4 scraped")
-	s.GetSodanSubMessages("eb5a0035-a340-4cf6-a9e0-94ddfabe9337", 0, 2)
-	log.Println("sodan sub messages 5 scraped")
-	s.GetSodanSubMessages("5b857a8d-03b5-4c25-92d9-bc01f3defe84", 0, 2)
+	for i, channelId := range subChannelId {
+		s.GetSodanSubMessages(channelId, mainChannelId)
+		log.Printf("finished scraping subchannel %d\n", i+1)
+	}
 
 	//s.MergeWikisContent()
 	//s.SetSodanTags()
@@ -103,8 +94,7 @@ func (s *Scraper) GetSodanMessages() {
 	//s.SetIndexing()
 }
 
-func (s *Scraper) GetSodanSubMessages(channelId string, offset int, limit int) {
-	rsodanChannelId := "aff37b5f-0911-4255-81c3-b49985c8943f"
+func (s *Scraper) GetSodanSubMessages(channelId string, parentId string) {
 
 	//messages, _, err := s.bot.
 	//	API().
@@ -135,7 +125,7 @@ func (s *Scraper) GetSodanSubMessages(channelId string, offset int, limit int) {
 			if err != nil {
 				log.Println("failed to get cited message")
 				log.Println(err)
-			} else if citedMessage.ChannelId == rsodanChannelId {
+			} else if citedMessage.ChannelId == parentId {
 				wikiId = s.GetWikiIDByMessageId(citedMessageId)
 			}
 		}
@@ -204,9 +194,53 @@ func (s *Scraper) AddMessageToDB(m traq.Message, wikiId int) {
 	}
 }
 
+func (s *Scraper) UpdateMessageToDB(m traq.Message, wikiId int) {
+	newMessage := model.SodanContent_fromDB{
+		WikiID:         wikiId,
+		MessageContent: m.Content,
+		CreatedAt:      m.CreatedAt,
+		UpdatedAt:      m.UpdatedAt,
+		UserTraqID:     s.usersMap[m.UserId].Name,
+		ChannelID:      m.ChannelId,
+		MessageID:      m.Id,
+	}
+	_, err := s.db.Exec("UPDATE messages SET content = ?, updated_at = ? WHERE message_traq_id = ?",
+		newMessage.MessageContent, newMessage.UpdatedAt, newMessage.MessageID)
+	if err != nil {
+		log.Println("failed to update message")
+		log.Printf("%+v\nerr:%+v\n", newMessage.ID, err)
+	}
+	err = s.db.Get(&newMessage.ID, "SELECT id FROM messages WHERE message_traq_id = ?", newMessage.MessageID)
+	if err != nil {
+		log.Println("failed to get message id")
+		log.Println(err)
+	}
+
+	stampCount := make(map[string]int)
+	for _, s := range m.Stamps {
+		if _, ok := stampCount[s.StampId]; !ok {
+			stampCount[s.StampId] = 0
+		}
+		stampCount[s.StampId] += int(s.Count)
+	}
+
+	for stampId, count := range stampCount {
+		newStamp := model.Stamp_fromDB{
+			MessageID:   newMessage.ID,
+			StampTraqID: stampId,
+			StampCount:  count,
+		}
+		_, err := s.db.Exec("INSERT INTO messageStamps (message_id, stamp_traq_id, count) VALUES (?, ?, ?)",
+			newStamp.MessageID, newStamp.StampTraqID, newStamp.StampCount)
+		if err != nil {
+			log.Println(err)
+		}
+	}
+}
+
 func (s *Scraper) MergeWikisContent() {
 	var wikis []model.WikiContent_fromDB
-	err := s.db.Select(&wikis, "SELECT * FROM wikis WHERE type = 'sodan'")
+	err := s.db.Select(&wikis, "SELECT * FROM wikis WHERE type = 'sodan' ORDER BY created_at DESC ")
 	if err != nil {
 		log.Println("failed to get wikis")
 		log.Println(err)
@@ -251,6 +285,46 @@ func (s *Scraper) RemoveMentions() {
 	}
 }
 
+func (s *Scraper) RemoveMentionFromMessage() {
+	var messages []model.SodanContent_fromDB
+	err := s.db.Select(&messages, "SELECT * FROM messages")
+	if err != nil {
+		log.Println("failed to get messages")
+		log.Println(err)
+	}
+
+	for _, m := range messages {
+		content := ProcessMention(m.MessageContent)
+		_, err = s.db.Exec("UPDATE messages SET content = ? WHERE id = ?", content, m.ID)
+		if err != nil {
+			log.Println("failed to update message")
+			log.Println(err)
+		}
+	}
+}
+
+func (s *Scraper) FixTitle() {
+	var wikis []model.WikiContent_fromDB
+	err := s.db.Select(&wikis, "SELECT * FROM wikis WHERE type = 'sodan'")
+	if err != nil {
+		log.Println("failed to get wikis")
+		log.Println(err)
+	}
+
+	for _, wiki := range wikis {
+		name := ProcessMentionAll(ProcessLink(removeNewLine(removeCodeBlock(removeTeX(wiki.Name)))))
+		r := []rune(name)
+		if len(r) > 50 {
+			name = string(r[:50]) + "..."
+		}
+		//log.Println(name)
+		_, err = s.db.Exec("UPDATE wikis SET name = ? WHERE id = ?", name, wiki.ID)
+		if err != nil {
+			log.Printf("failed to update wiki: %v", err)
+		}
+	}
+}
+
 func (s *Scraper) extractCitedMessage(m model.SodanContent_fromDB) {
 	re := regexp.MustCompile(`https://q.trap.jp/messages/([^!*]{36})`)
 	cites := re.FindAllString(m.MessageContent, -1)
@@ -279,4 +353,19 @@ func (s *Scraper) extractCitedMessage(m model.SodanContent_fromDB) {
 			log.Println(err)
 		}
 	}
+}
+
+func (s *Scraper) SettingAll() {
+	s.MergeWikisContent()
+	log.Println("finished merging wikis content")
+	s.SetSodanTags()
+	log.Println("finished setting sodan tags")
+	s.FixTitle()
+	log.Println("finished fixing title")
+	s.RemoveMentions()
+	log.Println("finished removing mentions")
+	s.RemoveMentionFromMessage()
+	log.Println("finished removing mention from message")
+	s.SetIndexing()
+	log.Println("finished setting indexing")
 }

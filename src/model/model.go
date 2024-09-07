@@ -80,12 +80,13 @@ type Stamp_MessageContent struct {
 
 // SodanResponseで使うMessageの構造体
 type MessageContent_SodanResponse struct {
-	UserTraqID string                                     `json:"userTraqId"`
-	Content    string                                     `json:"content"`
-	CreatedAt  time.Time                                  `json:"createdAt"`
-	UpdatedAt  time.Time                                  `json:"updatedAt"`
-	Stamps     []Stamp_MessageContent                     `json:"stamps"`
-	Citations  []MessageContentForCitations_SodanResponse `json:"citations"`
+	UserTraqID    string                                     `json:"userTraqId"`
+	Content       string                                     `json:"content"`
+	CreatedAt     time.Time                                  `json:"createdAt"`
+	UpdatedAt     time.Time                                  `json:"updatedAt"`
+	MessageTraqID string                                     `json:"messageTraqId"`
+	Stamps        []Stamp_MessageContent                     `json:"stamps"`
+	Citations     []MessageContentForCitations_SodanResponse `json:"citations"`
 }
 
 type MessageContentForCitations_SodanResponse struct {
@@ -99,9 +100,11 @@ type MessageContentForCitations_SodanResponse struct {
 type SodanResponse struct {
 	WikiID          int                            `json:"id"`
 	Title           string                         `json:"title"`
+	ChannelID       string                         `json:"channelId"`
 	Tags            []string                       `json:"tags"`
 	QuestionMessage MessageContent_SodanResponse   `json:"questionMessage"`
 	AnswerMessages  []MessageContent_SodanResponse `json:"answerMessages"`
+	Favorites       int                            `json:"favorites"`
 }
 
 // sqlのmemosより情報を取ってくるときに使う
@@ -123,6 +126,7 @@ type MemoResponse struct {
 	Tags        []string  `json:"tags"`
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
+	Favorites   int       `json:"favorites"`
 }
 
 type CitedMessage_fromDB struct {
@@ -161,6 +165,7 @@ type WikiContentResponse struct {
 	OwnerTraqID string    `json:"ownerTraqId"`
 	Content     string    `json:"content"`
 	Tags        []string  `json:"tags"`
+	Favorites   int       `json:"favorites"`
 }
 
 // POST/wiki/search の body 受取構造体
@@ -169,11 +174,18 @@ type WikiSearchBody struct {
 	Tags        []string `json:"tags"`
 	From        int      `json:"from"`
 	ResultCount int      `json:"resultCount"`
+	Sort        string   `json:"sort"`
 }
 
 type Tag_Post struct {
 	WikiID int    `json:"wikiId"`
 	Tag    string `json:"tag"`
+}
+
+type Tag_Patch struct {
+	WikiID int    `json:"wikiId"`
+	Tag    string `json:"tag"`
+	NewTag string `json:"newTag"`
 }
 
 type Lecture_Post struct {
@@ -186,4 +198,14 @@ type Folder_fromDB struct {
 	ID       int    `db:"id"`
 	Name     string `db:"name"`
 	ParentID int    `db:"parent_id"`
+}
+
+type MessageToTraQ_POST struct {
+	Content string `json:"content"`
+}
+
+type AnonSodans_fromDB struct {
+	WikiID        int    `db:"wiki_id"`
+	MessageTraqID string `db:"message_traq_id"`
+	UserTraqID    string `db:"user_traq_id"`
 }

@@ -49,7 +49,7 @@ func (s *Scraper) insertTag(t tag.Tag) {
 }
 
 func ProcessLink(content string) string {
-	re := regexp.MustCompile("(http|https)://[^ ]*")
+	re := regexp.MustCompile("(http|https)://[a-zA-Z0-9-./?=_&%$#]*")
 	return re.ReplaceAllString(content, "")
 }
 
@@ -81,11 +81,11 @@ func removeNewLine(content string) string {
 }
 
 func removeCodeBlock(content string) string {
-	re := regexp.MustCompile("```[^```]*```")
+	re := regexp.MustCompile("```[^`]*```")
 	return re.ReplaceAllString(content, "")
 }
 
 func removeTeX(content string) string {
-	re := regexp.MustCompile("\\$[^\\$]*\\$")
+	re := regexp.MustCompile("\\$[^$]*\\$")
 	return re.ReplaceAllString(content, "")
 }

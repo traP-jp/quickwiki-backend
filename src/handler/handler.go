@@ -25,6 +25,7 @@ func (h *Handler) PingHandler(c echo.Context) error {
 	return c.String(http.StatusOK, "pong")
 }
 
+// /files/:fileId
 func (h *Handler) GetFileHandler(c echo.Context) error {
 	fileID := c.Param("fileId")
 
@@ -35,10 +36,29 @@ func (h *Handler) GetFileHandler(c echo.Context) error {
 	}
 
 	response := c.Response()
+	response.Header().Set(echo.HeaderContentType, resp.Header.Get(echo.HeaderContentType))
+	response.Header().Set(echo.HeaderAccessControlExposeHeaders, "Content-Disposition")
+	response.Header().Set(echo.HeaderContentDisposition, "attachment; filename="+fileID)
+	response.WriteHeader(http.StatusOK)
+	io.Copy(response.Writer, resp.Body)
+	return c.NoContent(http.StatusOK)
+}
+
+// /stamps/:stampId
+func (h *Handler) GetStampHandler(c echo.Context) error {
+	stampID := c.Param("stampId")
+
+	resp, err := h.scraper.GetStamp(stampID)
+	if err != nil {
+		log.Printf("failed to get stamp: %v", err)
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	response := c.Response()
 	response.Header().Set("Cache-Control", "no-cache")
 	response.Header().Set(echo.HeaderContentType, echo.MIMEOctetStream)
 	response.Header().Set(echo.HeaderAccessControlExposeHeaders, "Content-Disposition")
-	response.Header().Set(echo.HeaderContentDisposition, "attachment; filename="+fileID)
+	response.Header().Set(echo.HeaderContentDisposition, "attachment; filename="+stampID)
 	response.WriteHeader(http.StatusOK)
 	io.Copy(response.Writer, resp.Body)
 	return c.NoContent(http.StatusOK)
@@ -99,7 +119,27 @@ func unionUsingMap(set1, set2 []int) []int {
 	return union
 }
 
+func (h *Handler) SettingAllHandler(c echo.Context) error {
+	h.scraper.SettingAll()
+	return c.NoContent(http.StatusOK)
+}
+
 func (h *Handler) SetIndexingHandler(c echo.Context) error {
 	h.scraper.SetIndexing()
+	return c.NoContent(http.StatusOK)
+}
+
+type ScrapeRequest struct {
+	MainChannelID string   `json:"main"`
+	SubChannelIDs []string `json:"sub"`
+}
+
+func (h *Handler) ScrapingHandler(c echo.Context) error {
+	req := ScrapeRequest{}
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, err)
+	}
+	h.scraper.GetSodanMessages(req.MainChannelID, req.SubChannelIDs)
+	log.Println("finish scraping")
 	return c.NoContent(http.StatusOK)
 }

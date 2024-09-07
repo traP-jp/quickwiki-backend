@@ -60,6 +60,8 @@ func main() {
 	e.POST("/wiki/search", h.SearchHandler)
 	e.GET("/wiki/tag", h.GetWikiByTagHandler)
 	e.POST("/wiki/tag", h.PostTagHandler)
+	e.PATCH("/wiki/tag", h.EditTagHandler)
+	e.DELETE("/wiki/tag", h.DeleteTagHandler)
 
 	e.GET("/me", h.GetMeHandler)
 	e.GET("/wiki/user", h.GetUserWikiHandelr)
@@ -67,7 +69,16 @@ func main() {
 	e.POST("/wiki/user/favorite", h.PostUserFavoriteWikiHandler)
 	e.DELETE("/wiki/user/favorite", h.DeleteUserFavoriteWikiHandler)
 
+	e.POST("/anon-sodan", h.PostMessageToTraQ)
+	e.PATCH("/anon-sodan", h.PatchMessageToTraQ)
+	e.POST("/anon-sodan/replies", h.PostRepliesToTraQ)
+
+	e.GET("/files/:fileId", h.GetFileHandler)
+	e.GET("/stamps/:stampId", h.GetStampHandler)
+
 	e.GET("/setting/index", h.SetIndexingHandler)
+	//e.POST("/setting/messages", h.ScrapingHandler)
+	e.GET("/setting/all", h.SettingAllHandler)
 
 	e.Logger.Fatal(e.Start(":8080"))
 	//s.StartBot()

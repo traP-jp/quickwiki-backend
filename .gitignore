@@ -12,3 +12,4 @@ UNKNOWN*/
 !requirements.txt
 *.bleve
 sql/
+!stoplist_ja.txt

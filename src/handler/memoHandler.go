@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"quickwiki-backend/model"
+	"quickwiki-backend/search"
 	"strconv"
 	"time"
 )
@@ -44,6 +45,7 @@ func (h *Handler) GetMemoHandler(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
+	// get tags
 	var tags []model.Tag_fromDB
 	var howManyTags int
 	err = h.db.Select(&tags, "select * from tags where wiki_id = ?", wikiId)
@@ -56,6 +58,14 @@ func (h *Handler) GetMemoHandler(c echo.Context) error {
 		Response.Tags = append(Response.Tags, tags[i].TagName)
 	}
 
+	// get favorite count
+	var favorites int
+	err = h.db.Get(&favorites, "select count(*) from favorites where wiki_id = ?", wikiId)
+	if err != nil {
+		log.Printf("failed to get favorites: %s\n", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	Response.Favorites = favorites
 	return c.JSON(http.StatusOK, Response)
 }
 
@@ -98,6 +108,16 @@ func (h *Handler) PostMemoHandler(c echo.Context) error {
 	for i := 0; i < howManyTags; i++ {
 		Response.Tags = append(Response.Tags, getMemoBody.Tags[i])
 	}
+
+	indexData := search.IndexData{
+		ID:             int(WikiID),
+		Type:           "memo",
+		Title:          getMemoBody.Title,
+		OwnerTraqID:    owner.TraqID,
+		MessageContent: getMemoBody.Content,
+		CreatedAt:      now,
+	}
+	search.Indexing([]search.IndexData{indexData})
 
 	Response.CreatedAt = now
 	Response.UpdatedAt = now
@@ -157,6 +177,25 @@ func (h *Handler) PatchMemoHandler(c echo.Context) error {
 		for _, tag := range tags {
 			resTags = append(resTags, tag.TagName)
 		}
+
+		indexData := search.IndexData{
+			ID:             getMemoBody.ID,
+			Type:           "memo",
+			Title:          getMemoBody.Title,
+			OwnerTraqID:    owner.TraqID,
+			MessageContent: getMemoBody.Content,
+			CreatedAt:      wikiContent.CreatedAt,
+		}
+		search.Indexing([]search.IndexData{indexData})
+
+		// get favorite count
+		var favorites int
+		err = h.db.Get(&favorites, "select count(*) from favorites where wiki_id = ?", getMemoBody.ID)
+		if err != nil {
+			log.Printf("failed to get favorites: %s\n", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		Response.Favorites = favorites
 	}
 
 	return c.JSON(http.StatusOK, Response)
@@ -203,6 +242,12 @@ func (h *Handler) DeleteMemoHandler(c echo.Context) error {
 		log.Printf("failed to delete tags: %s", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
 	}
+	// delete favorite
+	_, err = h.db.Exec("DELETE from favorites where wiki_id = ?", wikiID)
+	if err != nil {
+		log.Printf("failed to delete favorites: %s", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
+	}
 	_, err = h.db.Exec("DELETE from wikis where id = ?", wikiID)
 	if err != nil {
 		log.Printf("failed to delete memo: %s", err)
@@ -214,6 +259,8 @@ func (h *Handler) DeleteMemoHandler(c echo.Context) error {
 	Response.OwnerTraqID = wikiContent.OwnerTraqID
 	Response.CreatedAt = wikiContent.CreatedAt
 	Response.UpdatedAt = wikiContent.UpdatedAt
+
+	search.DeleteIndex(wikiID)
 
 	var tags []model.Tag_fromDB
 	err = h.db.Select(&tags, "select * from tags where wiki_id = ?", wikiID)
