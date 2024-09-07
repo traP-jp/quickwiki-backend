@@ -240,7 +240,7 @@ func (s *Scraper) UpdateMessageToDB(m traq.Message, wikiId int) {
 
 func (s *Scraper) MergeWikisContent() {
 	var wikis []model.WikiContent_fromDB
-	err := s.db.Select(&wikis, "SELECT * FROM wikis WHERE type = 'sodan'")
+	err := s.db.Select(&wikis, "SELECT * FROM wikis WHERE type = 'sodan' ORDER BY created_at DESC ")
 	if err != nil {
 		log.Println("failed to get wikis")
 		log.Println(err)
@@ -317,7 +317,7 @@ func (s *Scraper) FixTitle() {
 		if len(r) > 50 {
 			name = string(r[:50]) + "..."
 		}
-		log.Println(name)
+		//log.Println(name)
 		_, err = s.db.Exec("UPDATE wikis SET name = ? WHERE id = ?", name, wiki.ID)
 		if err != nil {
 			log.Printf("failed to update wiki: %v", err)
@@ -358,7 +358,7 @@ func (s *Scraper) extractCitedMessage(m model.SodanContent_fromDB) {
 func (s *Scraper) SettingAll() {
 	s.MergeWikisContent()
 	log.Println("finished merging wikis content")
-	//s.SetSodanTags()
+	s.SetSodanTags()
 	log.Println("finished setting sodan tags")
 	s.FixTitle()
 	log.Println("finished fixing title")

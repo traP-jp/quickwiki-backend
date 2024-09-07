@@ -38,7 +38,10 @@ func KeywordExtractorMulti(data []KeywordExtractorData, numKeyword int) [][]Tag 
 
 	f.WriteString(fmt.Sprintf("%d\n", numKeyword))
 	for _, d := range data {
-		f.WriteString(fmt.Sprintf("%s\n", d.Text))
+		text := strings.ReplaceAll(d.Text, "\r\n", "")
+		text = strings.ReplaceAll(text, "\r", "")
+		text = strings.ReplaceAll(text, "\n", "")
+		f.WriteString(fmt.Sprintf("%d,%s\n", d.WikiID, text))
 	}
 
 	f.Close()
@@ -46,6 +49,7 @@ func KeywordExtractorMulti(data []KeywordExtractorData, numKeyword int) [][]Tag 
 	out, err := exec.Command("python3", "/src/tag/keyword_extractor.py").Output()
 	if err != nil {
 		log.Printf("failed to run python script: %v", err)
+		log.Printf("output: %v", string(out))
 		return res
 	}
 
@@ -64,14 +68,17 @@ func KeywordExtractorMulti(data []KeywordExtractorData, numKeyword int) [][]Tag 
 		}
 		f.Close()
 
-		for i, tagsStr := range pyData {
-			if i >= len(data) {
-				log.Printf("index out of range: %d", i)
-				continue
-			}
-			tagsData := strings.Split(tagsStr, ",")
+		for _, tagsStr := range pyData {
+			spstr := strings.Split(tagsStr, "|")
+			tagsData := strings.Split(spstr[1], ",")
 
 			var tags []Tag
+
+			wikiID, err := strconv.Atoi(spstr[0])
+			if err != nil {
+				log.Printf("failed to convert wikiID to int: %v", err)
+				continue
+			}
 
 			for _, tagData := range tagsData {
 				tagDataSplit := strings.Split(tagData, ":")
@@ -89,7 +96,7 @@ func KeywordExtractorMulti(data []KeywordExtractorData, numKeyword int) [][]Tag 
 				}
 
 				tag := Tag{
-					WikiID:  data[i].WikiID,
+					WikiID:  wikiID,
 					TagName: tagName,
 					Score:   tagScore,
 				}

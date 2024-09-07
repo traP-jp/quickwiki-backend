@@ -49,7 +49,7 @@ func (s *Scraper) insertTag(t tag.Tag) {
 }
 
 func ProcessLink(content string) string {
-	re := regexp.MustCompile("(http|https)://[^ ]*")
+	re := regexp.MustCompile("(http|https)://[a-zA-Z0-9-./?=_&%$#]*")
 	return re.ReplaceAllString(content, "")
 }
 
