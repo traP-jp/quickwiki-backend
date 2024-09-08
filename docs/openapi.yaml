@@ -337,6 +337,9 @@ paths:
             schema:
               type: object
               properties:
+                isDraft:
+                  type: boolean
+                  example: false
                 content:
                   type: string
                   example: "This is example content."
@@ -346,7 +349,20 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/sodan'
+                type: object
+                properties:
+                  isDraft:
+                    type: boolean
+                    example: false
+                  messageTraqId:
+                    type: string
+                    example: "88888888-2b2b-xxxx-1111-aaaaaaaaaaaa"
+                  userTraqId:
+                    type: string
+                    example: kavos
+                  content:
+                    type: string
+                    example: "This is a example content."
     patch:
       tags:
         - sodan
@@ -367,6 +383,9 @@ paths:
             schema:
               type: object
               properties:
+                isDraft:
+                  type: boolean
+                  example: false
                 content:
                   type: string
                   example: "This is edited content."

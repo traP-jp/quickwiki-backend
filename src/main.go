@@ -69,9 +69,10 @@ func main() {
 	e.POST("/wiki/user/favorite", h.PostUserFavoriteWikiHandler)
 	e.DELETE("/wiki/user/favorite", h.DeleteUserFavoriteWikiHandler)
 
-	e.POST("/anon-sodan", h.PostMessageToTraQ)
-	e.PATCH("/anon-sodan", h.PatchMessageToTraQ)
-	e.POST("/anon-sodan/replies", h.PostRepliesToTraQ)
+	e.GET("/anonn-sodan", h.GetAnonSodanDraftHandler)
+	e.POST("/anon-sodan", h.PostAnonSodanToTraQ)
+	e.PATCH("/anon-sodan", h.PatchAnonSodanToTraQ)
+	e.POST("/anon-sodan/replies", h.PostAnonSodanRepliesToTraQ)
 
 	e.GET("/files/:fileId", h.GetFileHandler)
 	e.GET("/stamps/:stampId", h.GetStampHandler)
