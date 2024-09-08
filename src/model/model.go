@@ -199,6 +199,7 @@ type Folder_fromDB struct {
 }
 
 type MessageToTraQ_POST struct {
+	IsDraft bool   `json:"isDraft"`
 	Content string `json:"content"`
 }
 
@@ -206,4 +207,22 @@ type AnonSodans_fromDB struct {
 	WikiID        int    `db:"wiki_id"`
 	MessageTraqID string `db:"message_traq_id"`
 	UserTraqID    string `db:"user_traq_id"`
+}
+
+type AnonSodanRespons struct {
+	MessageTraqID string `json:"messageTraqId"`
+	UserTraqID    string `json:"userTraqId"`
+	Content       string `json:"content"`
+}
+
+type AnonSodanDraftRespons struct {
+	ID         string `json:"messageDraftId"`
+	UserTraqID string `json:"userTraqId"`
+	Content    string `json:"content"`
+}
+
+type AnonSodanDraft_fromDB struct {
+	ID         string `db:"id"`
+	UserTraqID string `db:"user_traq_id"`
+	Content    string `db:"content"`
 }

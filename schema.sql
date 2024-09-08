@@ -69,4 +69,9 @@ CREATE TABLE anonSodans (
     user_traq_id CHAR(36) NOT NULL,
     FOREIGN KEY (wiki_id) REFERENCES wikis(id)
 );
+CREATE TABLE anonSodanDrafts (
+    id INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    content TEXT NOT NULL,
+    user_traq_id CHAR(36) NOT NULL,
+);
 INSERT INTO folders (name, parent_id) VALUES ('root', 0);
